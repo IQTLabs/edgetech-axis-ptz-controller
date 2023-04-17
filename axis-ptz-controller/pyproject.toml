@@ -1,15 +1,22 @@
 [tool.poetry]
-name = "examples"
+name = "axis-ptz-controller"
 version = "0.1.0"
-description = "Template child class MQTT client that builds on top of EdgeTech-Core"
-authors = ["arichadda <ari.chadda@gmail.com>"]
+description = "AXIS PTZ network camera controller"
+authors = ["Raymond LeClair <raymond.leclair@springbok.io>"]
 license = "Apache 2.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+numpy = "^1.24.2"
+numpy-quaternion = "^2022.4.3"
 schedule = "^1.1.0"
+sensecam-control = "^0.1.0"
+paho-mqtt = "^1.6.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+matplotlib = "^3.7.1"
+pandas = "^2.0.0"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
