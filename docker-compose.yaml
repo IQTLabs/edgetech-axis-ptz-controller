@@ -1,3 +1,7 @@
+# Prior to building, copy the following resources from
+# IQTLabs/edgetech-core to the build directory:
+#   - core/base_mqtt_pub_sub.py
+#   - mqtt/*
 version: "3"
 services:
   mqtt:
@@ -6,7 +10,7 @@ services:
       - "1883:1883"
       - "9001:9001"
     build:
-      context: ./mqtt
+      context: ./axis-ptz-controller/mqtt
       dockerfile: ./Dockerfile
     restart: unless-stopped
     logging:
@@ -14,18 +18,20 @@ services:
       options:
         max-size: "10M"
         max-file: "10"
-  template:
-    image: iqtlabs/edgetech-template:latest
+  controller:
+    image: iqtlabs/skyscan-ptz-controller:latest
     build:
-      context: ./
+      context: ./axis-ptz-controller
       dockerfile: ./Dockerfile
     restart: unless-stopped
-    depends_on: 
+    depends_on:
       - mqtt
+    env_file:
+      - axis-ptz-controller.env
+    volumes:
+      - /flash/raw:/data/tosort
     logging:
       driver: "json-file"
       options:
         max-size: "10M"
         max-file: "10"
-    env_file:
-      - template.env
