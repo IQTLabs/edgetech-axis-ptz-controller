@@ -6,7 +6,6 @@ COPY ./poetry.lock .
 RUN poetry config virtualenvs.create false
 RUN poetry install --without dev
 
-COPY ./axis-ptz-controller.env .
 COPY ./axis_ptz_controller.py .
 COPY ./axis_ptz_utilities.py .
 RUN mkdir -p /data/tosort
