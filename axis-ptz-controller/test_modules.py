@@ -1,8 +1,10 @@
 import json
 import math
 import os
+from typing import Any, Dict
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 import quaternion
 import axis_ptz_controller
@@ -38,12 +40,12 @@ JPEG_RESOLUTION = "1920x1080"
 JPEG_COMPRESSION = 5
 
 
-def qnorm(q):
+def qnorm(q: quaternion.quaternion) -> float:
     """Compute the quaternion norm."""
     return math.sqrt((q * q.conjugate()).w)
 
 
-def R_pole():
+def R_pole() -> float:
     """Compute the semi-minor axis of the geoid."""
     f = 1.0 / axis_ptz_utilities.F_INV
     N_pole = axis_ptz_utilities.R_OPLUS / math.sqrt(1.0 - f * (2.0 - f))
@@ -51,18 +53,18 @@ def R_pole():
 
 
 @pytest.fixture
-def controller():
+def controller() -> axis_ptz_controller.AxisPtzController:
     """Construct a controller."""
     controller = axis_ptz_controller.AxisPtzController(
-        camera_ip=os.getenv("CAMERA_IP"),
-        camera_user=os.getenv("CAMERA_USER"),
-        camera_password=os.getenv("CAMERA_PASSWORD"),
-        mqtt_ip=os.getenv("MQTT_IP"),
-        config_topic=os.getenv("CONFIG_TOPIC"),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC"),
-        flight_topic=os.getenv("FLIGHT_TOPIC"),
-        capture_topic=os.getenv("CAPTURE_TOPIC"),
-        logger_topic=os.getenv("LOGGER_TOPIC"),
+        camera_ip=os.getenv("CAMERA_IP", ""),
+        camera_user=os.getenv("CAMERA_USER", ""),
+        camera_password=os.getenv("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.getenv("MQTT_IP", ""),
+        config_topic=os.getenv("CONFIG_TOPIC", ""),
+        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
+        logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         update_interval=UPDATE_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
@@ -83,7 +85,7 @@ def controller():
 
 
 @pytest.fixture
-def config_msg():
+def config_msg() -> Dict[Any, Any]:
     """Populate a config message."""
     with open("data/config_msg.json", "r") as f:
         msg = json.load(f)
@@ -91,7 +93,7 @@ def config_msg():
 
 
 @pytest.fixture
-def calibration_msg_0s():
+def calibration_msg_0s() -> Dict[Any, Any]:
     """Populate a calibration message with all 0 deg angles."""
     with open("data/calibration_msg_0s.json", "r") as f:
         msg = json.load(f)
@@ -99,7 +101,7 @@ def calibration_msg_0s():
 
 
 @pytest.fixture
-def calibration_msg_90s():
+def calibration_msg_90s() -> Dict[Any, Any]:
     """Populate a calibration message with all 90 deg angles."""
     with open("data/calibration_msg_90s.json", "r") as f:
         msg = json.load(f)
@@ -107,7 +109,7 @@ def calibration_msg_90s():
 
 
 @pytest.fixture
-def flight_msg():
+def flight_msg() -> Dict[Any, Any]:
     """Populate a flight message with velocity along the line of
     sight, using the calculation noted below.
 
@@ -129,7 +131,11 @@ def flight_msg():
 class TestAxisPtzController:
     """Test message callbacks and update method."""
 
-    def test_config_callback(self, controller, config_msg):
+    def test_config_callback(
+        self,
+        controller: axis_ptz_controller.AxisPtzController,
+        config_msg: Dict[Any, Any],
+    ) -> None:
 
         # Align ENz with XYZ
         _client = None
@@ -154,7 +160,12 @@ class TestAxisPtzController:
         assert np.linalg.norm(controller.e_N_XYZ - e_N_XYZ_exp) < PRECISION
         assert np.linalg.norm(controller.e_z_XYZ - e_z_XYZ_exp) < PRECISION
 
-    def test_calibration_callback(self, controller, config_msg, calibration_msg_90s):
+    def test_calibration_callback(
+        self,
+        controller: axis_ptz_controller.AxisPtzController,
+        config_msg: Dict[Any, Any],
+        calibration_msg_90s: Dict[Any, Any],
+    ) -> None:
 
         # Align ENz with XYZ
         _client = None
@@ -187,19 +198,27 @@ class TestAxisPtzController:
         assert qnorm(controller.q_gamma - q_gamma_exp) < PRECISION
         assert np.linalg.norm(controller.E_XYZ_to_uvw - E_XYZ_to_uvw_exp) < PRECISION
 
-    def test_compute_pan_rate_index(self, controller):
+    def test_compute_pan_rate_index(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
         assert controller._compute_pan_rate_index(-PAN_RATE_MAX * 2.0) == -100
         assert controller._compute_pan_rate_index(0.0) == 0
         assert controller._compute_pan_rate_index(PAN_RATE_MAX * 2.0) == +100
 
-    def test_compute_tilt_rate_index(self, controller):
+    def test_compute_tilt_rate_index(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
         assert controller._compute_tilt_rate_index(-TILT_RATE_MAX * 2.0) == -100
         assert controller._compute_tilt_rate_index(0.0) == 0
         assert controller._compute_tilt_rate_index(TILT_RATE_MAX * 2.0) == +100
 
     def test_flight_callback(
-        self, controller, config_msg, calibration_msg_0s, flight_msg
-    ):
+        self,
+        controller: axis_ptz_controller.AxisPtzController,
+        config_msg: Dict[Any, Any],
+        calibration_msg_0s: Dict[Any, Any],
+        flight_msg: Dict[Any, Any],
+    ) -> None:
 
         # Align ENz with XYZ
         _client = None
@@ -253,7 +272,9 @@ class TestAxisPtzUtilities:
             (180.0, np.array([0.0, -1.0, 0.0])),
         ],
     )
-    def test_compute_e_E_XYZ(self, o_lambda, e_E_XYZ_exp):
+    def test_compute_e_E_XYZ(
+        self, o_lambda: float, e_E_XYZ_exp: npt.NDArray[np.float64]
+    ) -> None:
         e_E_XYZ_act = axis_ptz_utilities.compute_e_E_XYZ(o_lambda)
         assert np.linalg.norm(e_E_XYZ_act - e_E_XYZ_exp) < PRECISION
 
@@ -270,7 +291,9 @@ class TestAxisPtzUtilities:
             ),
         ],
     )
-    def test_compute_e_N_XYZ(self, o_lambda, o_varphi, e_N_XYZ_exp):
+    def test_compute_e_N_XYZ(
+        self, o_lambda: float, o_varphi: float, e_N_XYZ_exp: npt.NDArray[np.float64]
+    ) -> None:
         e_N_XYZ_act = axis_ptz_utilities.compute_e_N_XYZ(o_lambda, o_varphi)
         assert np.linalg.norm(e_N_XYZ_act - e_N_XYZ_exp) < PRECISION
 
@@ -283,7 +306,9 @@ class TestAxisPtzUtilities:
             (0.0, 90.0, np.array([0.0, 0.0, 1.0])),
         ],
     )
-    def test_compute_e_z_XYZ(self, o_lambda, o_varphi, e_z_XYZ_exp):
+    def test_compute_e_z_XYZ(
+        self, o_lambda: float, o_varphi: float, e_z_XYZ_exp: npt.NDArray[np.float64]
+    ) -> None:
         e_z_XYZ_act = axis_ptz_utilities.compute_e_z_XYZ(o_lambda, o_varphi)
         assert np.linalg.norm(e_z_XYZ_act - e_z_XYZ_exp) < PRECISION
 
@@ -304,7 +329,9 @@ class TestAxisPtzUtilities:
             ),
         ],
     )
-    def test_compute_E_XYZ_to_ENz(self, o_lambda, o_varphi, E_exp):
+    def test_compute_E_XYZ_to_ENz(
+        self, o_lambda: float, o_varphi: float, E_exp: npt.NDArray[np.float64]
+    ) -> None:
         E_act, _, _, _ = axis_ptz_utilities.compute_E_XYZ_to_ENz(o_lambda, o_varphi)
         assert np.linalg.norm(E_act - E_exp) < PRECISION
 
@@ -317,7 +344,13 @@ class TestAxisPtzUtilities:
             (0.0, 90.0, 0.0, np.array([0.0, 0.0, R_pole()])),
         ],
     )
-    def test_compute_r_XYZ(self, o_lambda, o_varphi, o_h, r_XYZ_exp):
+    def test_compute_r_XYZ(
+        self,
+        o_lambda: float,
+        o_varphi: float,
+        o_h: float,
+        r_XYZ_exp: npt.NDArray[np.float64],
+    ) -> None:
         r_XYZ_act = axis_ptz_utilities.compute_r_XYZ(o_lambda, o_varphi, o_h)
         # Decrease precision to accommodate R_OPLUS [ft]
         assert np.linalg.norm(r_XYZ_act - r_XYZ_exp) < 10000 * PRECISION
@@ -326,10 +359,12 @@ class TestAxisPtzUtilities:
     @pytest.mark.parametrize(
         "s, v, q_exp",
         [
-            (0.0, np.array([1.0, 2.0, 3.0]), np.quaternion(0.0, 1.0, 2.0, 3.0)),
+            (0.0, np.array([1.0, 2.0, 3.0]), np.quaternion(0.0, 1.0, 2.0, 3.0)),  # type: ignore
         ],
     )
-    def test_as_quaternion(self, s, v, q_exp):
+    def test_as_quaternion(
+        self, s: float, v: npt.NDArray[np.float64], q_exp: quaternion.quaternion
+    ) -> None:
         q_act = axis_ptz_utilities.as_quaternion(s, v)
         assert np.equal(q_act, q_exp).any()
 
@@ -337,11 +372,13 @@ class TestAxisPtzUtilities:
     @pytest.mark.parametrize(
         "s, v, r_exp",
         [
-            (0.0, np.array([1.0, 2.0, 3.0]), np.quaternion(1.0, 0.0, 0.0, 0.0)),
-            (180.0, np.array([1.0, 2.0, 3.0]), np.quaternion(0.0, 1.0, 2.0, 3.0)),
+            (0.0, np.array([1.0, 2.0, 3.0]), np.quaternion(1.0, 0.0, 0.0, 0.0)),  # type: ignore
+            (180.0, np.array([1.0, 2.0, 3.0]), np.quaternion(0.0, 1.0, 2.0, 3.0)),  # type: ignore
         ],
     )
-    def test_as_rotation_quaternion(self, s, v, r_exp):
+    def test_as_rotation_quaternion(
+        self, s: float, v: npt.NDArray[np.float64], r_exp: quaternion.quaternion
+    ) -> None:
         r_act = axis_ptz_utilities.as_rotation_quaternion(s, v)
         assert qnorm(r_act - r_exp) < PRECISION
 
@@ -349,15 +386,17 @@ class TestAxisPtzUtilities:
     @pytest.mark.parametrize(
         "q, v_exp",
         [
-            (np.quaternion(0.0, 1.0, 2.0, 3.0), np.array([1.0, 2.0, 3.0])),
+            (np.quaternion(0.0, 1.0, 2.0, 3.0), np.array([1.0, 2.0, 3.0])),  # type: ignore
         ],
     )
-    def test_as_vector(self, q, v_exp):
+    def test_as_vector(
+        self, q: quaternion.quaternion, v_exp: npt.NDArray[np.float64]
+    ) -> None:
         v_act = axis_ptz_utilities.as_vector(q)
         assert np.equal(v_act, v_exp).any()
 
     # Compute the cross product of two vectors
-    def test_cross(self):
+    def test_cross(self) -> None:
         u = np.array([2.0, 3.0, 4.0])
         v = np.array([3.0, 4.0, 5.0])
         w_exp = np.array([-1, 2, -1])
@@ -369,7 +408,7 @@ class TestAxisPtzUtilities:
         assert np.equal(w_npq, w_exp).any()
 
     # Compute the Euclidean norm of a vector
-    def test_norm(self):
+    def test_norm(self) -> None:
         v = np.array([3.0, 4.0, 5.0])
         n_exp = math.sqrt(50)
         n_act = axis_ptz_utilities.norm(v)
@@ -377,14 +416,18 @@ class TestAxisPtzUtilities:
 
     # Compute camera rotations aligning ENz with XYZ and using only 90
     # deg rotations
-    def test_compute_camera_rotations(self):
+    def test_compute_camera_rotations(self) -> None:
 
         # Align ENz with XYZ
         o_lambda = 270.0
         o_varphi = 90.0
         e_E_XYZ = axis_ptz_utilities.compute_e_E_XYZ(o_lambda)  # [1, 0, 0] or X
-        e_N_XYZ = axis_ptz_utilities.compute_e_N_XYZ(o_lambda, o_varphi)  # [0, 1, 0] or Y
-        e_z_XYZ = axis_ptz_utilities.compute_e_z_XYZ(o_lambda, o_varphi)  # [0, 0, 1] or Z
+        e_N_XYZ = axis_ptz_utilities.compute_e_N_XYZ(
+            o_lambda, o_varphi
+        )  # [0, 1, 0] or Y
+        e_z_XYZ = axis_ptz_utilities.compute_e_z_XYZ(
+            o_lambda, o_varphi
+        )  # [0, 0, 1] or Z
 
         # Only use 90 degree rotations
         alpha = 90.0
@@ -445,7 +488,14 @@ class TestAxisPtzUtilities:
             (0.0, 0.0, 0.0, 90.0, math.pi * axis_ptz_utilities.R_OPLUS / 2.0),
         ],
     )
-    def test_great_circle_distance(self, lambda_1, varphi_1, lambda_2, varphi_2, d_exp):
+    def test_great_circle_distance(
+        self,
+        lambda_1: float,
+        varphi_1: float,
+        lambda_2: float,
+        varphi_2: float,
+        d_exp: float,
+    ) -> None:
         d_act = axis_ptz_utilities.compute_great_circle_distance(
             lambda_1, varphi_1, lambda_2, varphi_2
         )

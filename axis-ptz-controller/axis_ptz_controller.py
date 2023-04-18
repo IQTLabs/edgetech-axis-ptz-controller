@@ -1,5 +1,5 @@
+import ast
 from datetime import datetime
-from distutils.util import strtobool
 import json
 import logging
 import math
@@ -8,7 +8,7 @@ from pathlib import Path
 import shutil
 import tempfile
 from time import sleep, time
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import numpy as np
 import quaternion
@@ -34,7 +34,7 @@ class AxisPtzController(BaseMQTTPubSub):
     controller, and capture images while in track."""
 
     def __init__(
-        self: Any,
+        self,
         camera_ip: str,
         camera_user: str,
         camera_password: str,
@@ -190,12 +190,12 @@ class AxisPtzController(BaseMQTTPubSub):
         # camera fixed (rst) coordinate system
         self.icao24 = "NA"
         self.time_a = 0.0  # [s]
-        self.datetime_a = None
+        self.datetime_a = datetime.utcnow()
         self.lambda_a = 0.0  # [deg]
         self.varphi_a = 0.0  # [deg]
         self.h_a = 0.0  # [m]
-        self.r_rst_a_0_t = None  # [m/s]
-        self.v_rst_a_0_t = None  # [m/s]
+        self.r_rst_a_0_t = np.zeros((3,))  # [m/s]
+        self.v_rst_a_0_t = np.zeros((3,))  # [m/s]
 
         # Tripod yaw, pitch, and roll angles
         self.alpha = 0.0  # [deg]
@@ -203,18 +203,18 @@ class AxisPtzController(BaseMQTTPubSub):
         self.gamma = 0.0  # [deg]
 
         # Tripod yaw, pitch, and roll rotation quaternions
-        self.q_alpha = None
-        self.q_beta = None
-        self.q_gamma = None
+        self.q_alpha = np.quaternion()  # type: ignore
+        self.q_beta = np.quaternion()  # type: ignore
+        self.q_gamma = np.quaternion()  # type: ignore
 
         # Orthogonal transformation matrix from geocentric (XYZ) to
         # camera housing fixed (uvw) coordinates
-        self.E_XYZ_to_uvw = None
+        self.E_XYZ_to_uvw = np.zeros((3, 3))
 
         # Position and velocity in the topocentric (ENz) coordinate
         # system of the aircraft relative to the tripod at time zero
-        self.r_ENz_a_0_t = None
-        self.v_ENz_a_0_t = None
+        self.r_ENz_a_0_t = np.zeros((3,))
+        self.v_ENz_a_0_t = np.zeros((3,))
 
         # Distance between the aircraft and the tripod at time one
         self.distance3d = 0.0  # [m]
@@ -228,12 +228,12 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tau_a = 0.0  # [deg]
 
         # Pan, and tilt rotation quaternions
-        self.q_row = None
-        self.q_tau = None
+        self.q_row = np.quaternion()  # type: ignore
+        self.q_tau = np.quaternion()  # type: ignore
 
         # Orthogonal transformation matrix from camera housing (uvw)
         # to camera fixed (rst) coordinates
-        self.E_XYZ_to_rst = None
+        self.E_XYZ_to_rst = np.zeros((3, 3))
 
         # Aircraft pan and tilt rates
         self.rho_dot_a = 0.0  # [deg/s]
@@ -327,18 +327,18 @@ class AxisPtzController(BaseMQTTPubSub):
             """
         )
 
-    def decode_payload(self, payload):
+    def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
         """
         Decode the payload carried by a message.
 
         Parameters
         ----------
-        payload: Any
-            A JSON string with {timestamp: ____, data: ____,}
+        payload: mqtt.MQTTMessage
+            The MQTT message
 
         Returns
         -------
-        data : dict
+        data : Dict[Any, Any]
             The data component of the payload
         """
         # TODO: Establish and use message format convention
@@ -350,22 +350,22 @@ class AxisPtzController(BaseMQTTPubSub):
         return data
 
     def _config_callback(
-        self: Any,
-        _client: mqtt.Client,
-        _userdata: Dict[Any, Any],
-        msg: Any,
+        self,
+        _client: Union[mqtt.Client, None],
+        _userdata: Union[Dict[Any, Any], None],
+        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
     ) -> None:
         """
         Process configuration message.
 
         Parameters
         ----------
-        _client: mqtt.Client
+        _client: Union[mqtt.Client, None]
             MQTT client
-        _userdata: dict
+        _userdata: Union[Dict[Any, Any], None]
             Any required user data
-        msg: Any
-            A JSON string with {timestamp: ____, data: ____,}
+        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]]
+            An MQTT message, or dictionary
 
         Returns
         -------
@@ -415,19 +415,22 @@ class AxisPtzController(BaseMQTTPubSub):
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(self.lambda_t, self.varphi_t)
 
     def _calibration_callback(
-        self: Any, _client: mqtt.Client, _userdata: Dict[Any, Any], msg: Any
+        self,
+        _client: Union[mqtt.Client, None],
+        _userdata: Union[Dict[Any, Any], None],
+        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
     ) -> None:
         """
         Process calibration message.
 
         Parameters
         ----------
-        _client: mqtt.Client
+        _client: Union[mqtt.Client, None]
             MQTT client
-        _userdata: dict
+        _userdata: Union[Dict[Any, Any], None]
             Any required user data
-        msg: Any
-            A JSON string with {timestamp: ____, data: ____,}
+        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]]
+            An MQTT message, or dictionary
 
         Returns
         -------
@@ -468,19 +471,22 @@ class AxisPtzController(BaseMQTTPubSub):
         logger.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
     def _flight_callback(
-        self: Any, _client: mqtt.Client, _userdata: Dict[Any, Any], msg: Any
+        self,
+        _client: Union[mqtt.Client, None],
+        _userdata: Union[Dict[Any, Any], None],
+        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
     ) -> None:
         """
         Process flight message.
 
         Parameters
         ----------
-        _client: mqtt.Client
+        _client: Union[mqtt.Client, None]
             MQTT client
-        _userdata: dict
+        _userdata: Union[Dict[Any, Any], None]
             Any required user data
-        msg: Any
-            A JSON string with {timestamp: ____, data: ____,}
+        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]]
+            An MQTT message, or dictionary
 
         Returns
         -------
@@ -703,7 +709,7 @@ class AxisPtzController(BaseMQTTPubSub):
             logger.info(f"Publishing logger msg: {msg}")
             self.publish_to_topic(self.logger_topic, json.dumps(msg))
 
-    def _compute_pan_rate_index(self, rho_dot):
+    def _compute_pan_rate_index(self, rho_dot: float) -> int:
         """Compute pan rate index between -100 and 100 using rates in
         deg/s, limiting the results to the specified minimum and
         maximum. Note that the dead zone from -1.8 to 1.8 deg/s is ignored.
@@ -728,7 +734,7 @@ class AxisPtzController(BaseMQTTPubSub):
             pan_rate = round((100 / self.pan_rate_max) * rho_dot)
         return pan_rate
 
-    def _compute_tilt_rate_index(self, tau_dot):
+    def _compute_tilt_rate_index(self, tau_dot: float) -> int:
         """Compute tilt rate index between -100 and 100 using rates in
         deg/s, limiting the results to the specified minimum and
         maximum. Note that the dead zone from -1.8 to 1.8 deg/s is ignored.
@@ -753,7 +759,7 @@ class AxisPtzController(BaseMQTTPubSub):
             tilt_rate = round((100 / self.tilt_rate_max) * tau_dot)
         return tilt_rate
 
-    def _capture_image(self):
+    def _capture_image(self) -> None:
         """When enabled, capture an image in JPEG format, and publish
         corresponding image metadata.
 
@@ -816,7 +822,7 @@ class AxisPtzController(BaseMQTTPubSub):
             )
             self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
 
-    def _update_pointing(self):
+    def _update_pointing(self) -> None:
         """Update values of camera pan and tilt using current pan and
         tilt rate. Note that these value likely differ slightly from
         the actual camera pan and tilt angles, and will be overwritten
@@ -835,7 +841,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.rho_c += self.rho_dot_c * self.update_interval
         self.tau_c += self.tau_dot_c * self.update_interval
 
-    def main(self: Any) -> None:
+    def main(self) -> None:
         """Schedule module heartbeat and image capture, subscribe to
         all required topics, then loop forever. Update pointing for
         logging, and command zero camera pan and tilt rates and stop
@@ -889,37 +895,37 @@ class AxisPtzController(BaseMQTTPubSub):
                 logger.error(f"Main loop exception: {e}")
 
 
-def make_controller():
+def make_controller() -> AxisPtzController:
     return AxisPtzController(
-        camera_ip=os.getenv("CAMERA_IP"),
-        camera_user=os.getenv("CAMERA_USER"),
-        camera_password=os.getenv("CAMERA_PASSWORD"),
+        camera_ip=os.getenv("CAMERA_IP", ""),
+        camera_user=os.getenv("CAMERA_USER", ""),
+        camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP"),
-        config_topic=os.getenv("CONFIG_TOPIC"),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC"),
-        flight_topic=os.getenv("FLIGHT_TOPIC"),
-        capture_topic=os.getenv("CAPTURE_TOPIC"),
-        logger_topic=os.getenv("LOGGER_TOPIC"),
-        heartbeat_interval=float(os.getenv("HEARTBEAT_INTERVAL")),
-        lambda_t=float(os.getenv("TRIPOD_LONGITUDE")),
-        varphi_t=float(os.getenv("TRIPOD_LATITUDE")),
-        h_t=float(os.getenv("TRIPOD_ALTITUDE")),
-        update_interval=float(os.getenv("UPDATE_INTERVAL")),
-        capture_interval=float(os.getenv("CAPTURE_INTERVAL")),
-        capture_dir=os.getenv("CAPTURE_DIR"),
-        lead_time=float(os.getenv("LEAD_TIME")),
-        pan_gain=float(os.getenv("PAN_GAIN")),
-        pan_rate_min=float(os.getenv("PAN_RATE_MIN")),
-        pan_rate_max=float(os.getenv("PAN_RATE_MAX")),
-        tilt_gain=float(os.getenv("TILT_GAIN")),
-        tilt_rate_min=float(os.getenv("TILT_RATE_MIN")),
-        tilt_rate_max=float(os.getenv("TILT_RATE_MAX")),
-        jpeg_resolution=os.getenv("JPEG_RESOLUTION"),
-        jpeg_compression=os.getenv("JPEG_COMPRESSION"),
-        use_mqtt=strtobool(os.getenv("USE_MQTT")),
-        use_camera=strtobool(os.getenv("USE_CAMERA")),
-        include_age=strtobool(os.getenv("INCLUDE_AGE")),
-        log_to_mqtt=strtobool(os.getenv("LOG_TO_MQTT")),
+        config_topic=os.getenv("CONFIG_TOPIC", ""),
+        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
+        logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        heartbeat_interval=float(os.getenv("HEARTBEAT_INTERVAL", 10.0)),
+        lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
+        varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
+        h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
+        update_interval=float(os.getenv("UPDATE_INTERVAL", 0.1)),
+        capture_interval=float(os.getenv("CAPTURE_INTERVAL", 2.0)),
+        capture_dir=os.getenv("CAPTURE_DIR", "."),
+        lead_time=float(os.getenv("LEAD_TIME", 0.5)),
+        pan_gain=float(os.getenv("PAN_GAIN", 0.2)),
+        pan_rate_min=float(os.getenv("PAN_RATE_MIN", 1.8)),
+        pan_rate_max=float(os.getenv("PAN_RATE_MAX", 150.0)),
+        tilt_gain=float(os.getenv("TILT_GAIN", 0.2)),
+        tilt_rate_min=float(os.getenv("TILT_RATE_MIN", 1.8)),
+        tilt_rate_max=float(os.getenv("TILT_RATE_MAX", 150.0)),
+        jpeg_resolution=os.getenv("JPEG_RESOLUTION", "1920x1080"),
+        jpeg_compression=int(os.getenv("JPEG_COMPRESSION", 5)),
+        use_mqtt=ast.literal_eval(os.getenv("USE_MQTT", "True")),
+        use_camera=ast.literal_eval(os.getenv("USE_CAMERA", "True")),
+        include_age=ast.literal_eval(os.getenv("INCLUDE_AGE", "True")),
+        log_to_mqtt=ast.literal_eval(os.getenv("LOG_TO_MQTT", "False")),
     )
 
 

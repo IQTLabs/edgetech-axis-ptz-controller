@@ -28,7 +28,7 @@ class MessageHandler(BaseMQTTPubSub):
     """Subscribe to all required topics, and open files for logging."""
 
     def __init__(
-        self: Any,
+        self,
         config_topic: str,
         calibration_topic: str,
         flight_topic: str,
@@ -87,7 +87,7 @@ class MessageHandler(BaseMQTTPubSub):
         ]
         self.camera_pointing_file.write(",".join(self.camera_pointing_keys) + "\n")
 
-    def decode_payload(self, payload):
+    def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
         """
         Decode the payload carried by a message.
 
@@ -105,7 +105,7 @@ class MessageHandler(BaseMQTTPubSub):
         return data
 
     def _logger_callback(
-        self: Any, _client: mqtt.Client, _userdata: Dict[Any, Any], msg: Any
+        self, _client: mqtt.Client, _userdata: Dict[Any, Any], msg: mqtt.MQTTMessage
     ) -> None:
         """
         Process logging message based on keys.
@@ -133,7 +133,7 @@ class MessageHandler(BaseMQTTPubSub):
             logger.info(data["info"]["message"])
 
 
-def make_handler():
+def make_handler() -> MessageHandler:
     """Construct a MessageHandler.
 
     Note that an MQTT broker must be started manually.
@@ -148,16 +148,16 @@ def make_handler():
         The message handler
     """
     handler = MessageHandler(
-        mqtt_ip=os.getenv("MQTT_IP"),
-        config_topic=os.getenv("CONFIG_TOPIC"),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC"),
-        flight_topic=os.getenv("FLIGHT_TOPIC"),
-        logger_topic=os.getenv("LOGGER_TOPIC"),
+        mqtt_ip=os.getenv("MQTT_IP", ""),
+        config_topic=os.getenv("CONFIG_TOPIC", ""),
+        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        logger_topic=os.getenv("LOGGER_TOPIC", ""),
     )
     return handler
 
 
-def main():
+def main() -> None:
     """Read a track file and publish the corresponding messages using
     MQTT. Subscribe to the logger topic and process log messages to
     collect camera pointing time series for plotting.

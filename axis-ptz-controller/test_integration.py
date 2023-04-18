@@ -3,10 +3,10 @@ import json
 import logging
 import os
 import time
+from typing import Any, Dict
 
 from matplotlib import pyplot as plt
 import pandas as pd
-import schedule
 
 import axis_ptz_controller
 
@@ -27,7 +27,7 @@ logger = logging.getLogger("ptz-integration")
 logger.setLevel(logging.INFO)
 
 
-def make_controller(use_mqtt):
+def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
     """Construct a controller.
 
     Note that if use_mqtt = True then an MQTT broker must be started
@@ -43,15 +43,15 @@ def make_controller(use_mqtt):
     None
     """
     controller = axis_ptz_controller.AxisPtzController(
-        camera_ip=os.getenv("CAMERA_IP"),
-        camera_user=os.getenv("CAMERA_USER"),
-        camera_password=os.getenv("CAMERA_PASSWORD"),
-        mqtt_ip=os.getenv("MQTT_IP"),
-        config_topic=os.getenv("CONFIG_TOPIC"),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC"),
-        flight_topic=os.getenv("FLIGHT_TOPIC"),
-        capture_topic=os.getenv("CAPTURE_TOPIC"),
-        logger_topic=os.getenv("LOGGER_TOPIC"),
+        camera_ip=os.getenv("CAMERA_IP", ""),
+        camera_user=os.getenv("CAMERA_USER", ""),
+        camera_password=os.getenv("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.getenv("MQTT_IP", ""),
+        config_topic=os.getenv("CONFIG_TOPIC", ""),
+        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
+        logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         update_interval=UPDATE_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
@@ -71,7 +71,7 @@ def make_controller(use_mqtt):
     return controller
 
 
-def get_config_msg():
+def get_config_msg() -> Dict[Any, Any]:
     """Populate a config message, reading actual, by private longitude
     and latitude from the environment.
 
@@ -81,10 +81,10 @@ def get_config_msg():
 
     Returns
     -------
-    msg : dict
+    msg : Dict[Any, Any]
         The configuration message
     """
-    msg = {}
+    msg: Dict[Any, Any] = {}
     msg["data"] = {}
     msg["data"]["camera"] = {}
     msg["data"]["camera"]["tripod_longitude"] = float(
@@ -97,7 +97,7 @@ def get_config_msg():
     return msg
 
 
-def get_calibration_msg():
+def get_calibration_msg() -> Dict[Any, Any]:
     """Populate a calibration message with all 0 deg angles.
 
     Parameters
@@ -114,7 +114,7 @@ def get_calibration_msg():
     return msg
 
 
-def make_flight_msg(track, index):
+def make_flight_msg(track: pd.DataFrame, index: int) -> Dict[Any, Any]:
     """Populate a flight message with track data at the specified
     index.
 
@@ -135,7 +135,7 @@ def make_flight_msg(track, index):
     return msg
 
 
-def read_track_data(track_id):
+def read_track_data(track_id: str) -> pd.Dataframe:
     """Read a track file and convert to standard units of measure.
 
     Parameters
@@ -157,7 +157,7 @@ def read_track_data(track_id):
     return track
 
 
-def plot_time_series(ts):
+def plot_time_series(ts: pd.Dataframe) -> None:
     """Plot time series produced by processing messages.
 
     Parameters
@@ -210,7 +210,7 @@ def plot_time_series(ts):
     plt.show()
 
 
-def main():
+def main() -> None:
     """Read a track file and process the corresponding messages using
     MQTT, or not.
 

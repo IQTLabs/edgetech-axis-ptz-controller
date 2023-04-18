@@ -3,8 +3,10 @@ from datetime import datetime
 import logging
 import math
 import os
+from typing import Generator, Tuple, Union
 
 import numpy as np
+import numpy.typing as npt
 import quaternion
 
 # WGS84 parameters
@@ -15,7 +17,7 @@ logger = logging.getLogger("ptz-utilities")
 logger.setLevel(logging.INFO)
 
 
-def compute_e_E_XYZ(d_lambda):
+def compute_e_E_XYZ(d_lambda: float) -> npt.NDArray[np.float64]:
     """Compute components of the east unit vector at a given geodetic
     longitude.
 
@@ -26,7 +28,7 @@ def compute_e_E_XYZ(d_lambda):
 
     Returns
     -------
-    e_E_XYZ : numpy.ndarray
+    e_E_XYZ : npt.NDArray[np.float64]
         Components of the east unit vector in an Earth fixed
         geocentric equatorial coordinate system
     """
@@ -35,7 +37,7 @@ def compute_e_E_XYZ(d_lambda):
     return e_E_XYZ
 
 
-def compute_e_N_XYZ(d_lambda, d_varphi):
+def compute_e_N_XYZ(d_lambda: float, d_varphi: float) -> npt.NDArray[np.float64]:
     """Compute components of the north unit vector at a given geodetic
     longitude and latitude.
 
@@ -48,7 +50,7 @@ def compute_e_N_XYZ(d_lambda, d_varphi):
 
     Returns
     -------
-    e_N_XYZ : numpy.ndarray
+    e_N_XYZ : npt.NDArray[np.float64]
         Components of the north unit vector in an Earth fixed
         geocentric equatorial coordinate system
     """
@@ -64,7 +66,7 @@ def compute_e_N_XYZ(d_lambda, d_varphi):
     return e_N_XYZ
 
 
-def compute_e_z_XYZ(d_lambda, d_varphi):
+def compute_e_z_XYZ(d_lambda: float, d_varphi: float) -> npt.NDArray[np.float64]:
     """Compute components of the zenith unit vector at a given
     geodetic longitude and latitude.
 
@@ -77,7 +79,7 @@ def compute_e_z_XYZ(d_lambda, d_varphi):
 
     Returns
     -------
-    e_z_XYZ : numpy.ndarray
+    e_z_XYZ : npt.NDArray[np.float64]
         Components of the zenith unit vector in an Earth fixed
         geocentric equatorial coordinate system
     """
@@ -93,7 +95,14 @@ def compute_e_z_XYZ(d_lambda, d_varphi):
     return e_z_XYZ
 
 
-def compute_E_XYZ_to_ENz(d_lambda, d_varphi):
+def compute_E_XYZ_to_ENz(
+    d_lambda: float, d_varphi: float
+) -> Tuple[
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+]:
     """Compute orthogonal transformation matrix from geocentric to
     topocentric coordinates.
 
@@ -106,7 +115,7 @@ def compute_E_XYZ_to_ENz(d_lambda, d_varphi):
 
     Returns
     -------
-    E_XYZ_to_ENz : numpy.ndarray
+    E_XYZ_to_ENz : npt.NDArray[np.float64]
         Orthogonal transformation matrix from geocentric to
         topocentric coordinates
     """
@@ -117,22 +126,26 @@ def compute_E_XYZ_to_ENz(d_lambda, d_varphi):
     return E_XYZ_to_ENz, e_E_XYZ, e_N_XYZ, e_z_XYZ
 
 
-def compute_r_XYZ(d_lambda, d_varphi, o_h):
+def compute_r_XYZ(
+    d_lambda: Union[float, npt.NDArray[np.float64]],
+    d_varphi: Union[float, npt.NDArray[np.float64]],
+    o_h: Union[float, npt.NDArray[np.float64]],
+) -> npt.NDArray[np.float64]:
     """Compute the position given geodetic longitude and latitude, and
     altitude.
 
     Parameters
     ----------
-    d_lambda : float or numpy.ndarray
+    d_lambda : float | npt.NDArray[np.float64]
         Geodetic longitude [deg]
-    d_varphi : float or numpy.ndarray
+    d_varphi : float | npt.NDArray[np.float64]
         Geodetic latitude [deg]
-    o_h : float or numpy.ndarray
+    o_h : float | npt.NDArray[np.float64]
         Altitude [m]
 
     Returns
     -------
-    r_XYZ : numpy.ndarray
+    r_XYZ : npt.NDArray[np.float64]
         Position in an Earth fixed geocentric equatorial
         coordinate system [m]
     """
@@ -149,8 +162,8 @@ def compute_r_XYZ(d_lambda, d_varphi, o_h):
             ]
         )
     elif type(d_lambda) == np.ndarray:
-        r_lambda = np.radians(d_lambda)
-        r_varphi = np.radians(d_varphi)
+        r_lambda = np.radians(d_lambda)  # type: ignore
+        r_varphi = np.radians(d_varphi)  # type: ignore
         N = R_OPLUS / np.sqrt(1.0 - f * (2.0 - f) * np.sin(r_varphi) ** 2)
         r_XYZ = np.row_stack(
             (
@@ -162,14 +175,14 @@ def compute_r_XYZ(d_lambda, d_varphi, o_h):
     return r_XYZ
 
 
-def as_quaternion(s, v):
+def as_quaternion(s: float, v: npt.NDArray[np.float64]) -> quaternion.quaternion:
     """Construct a quaternion given a scalar and vector.
 
     Parameters
     ----------
     s : float
         A scalar value
-    v : numpy.ndarray
+    v : npt.NDArray[np.float64]
         A vector of floats
 
     Returns
@@ -177,10 +190,12 @@ def as_quaternion(s, v):
     quaternion.quaternion
         A quaternion with the specified scalar and vector parts
     """
-    return np.quaternion(s, v[0], v[1], v[2])
+    return np.quaternion(s, v[0], v[1], v[2])  # type: ignore
 
 
-def as_rotation_quaternion(d_omega, u):
+def as_rotation_quaternion(
+    d_omega: float, u: npt.NDArray[np.float64]
+) -> quaternion.quaternion:
     """Construct a rotation quaternion given an angle and direction of
     rotation.
 
@@ -188,7 +203,7 @@ def as_rotation_quaternion(d_omega, u):
     ----------
     d_omega : float
         An angle [deg]
-    u : numpy.ndarray
+    u : npt.NDArray[np.float64]
         A vector of floats
 
     Returns
@@ -198,10 +213,10 @@ def as_rotation_quaternion(d_omega, u):
     """
     r_omega = math.radians(d_omega)
     v = math.sin(r_omega / 2.0) * u
-    return np.quaternion(math.cos(r_omega / 2.0), v[0], v[1], v[2])
+    return np.quaternion(math.cos(r_omega / 2.0), v[0], v[1], v[2])  # type: ignore
 
 
-def as_vector(q):
+def as_vector(q: quaternion.quaternion) -> npt.NDArray[np.float64]:
     """Return the vector part of a quaternion.
 
     Parameters
@@ -212,25 +227,27 @@ def as_vector(q):
 
     Returns
     -------
-    numpy.ndarray
+    npt.NDArray[np.float64]
        A vector of floats
     """
     return np.array([q.x, q.y, q.z])
 
 
-def cross(u, v):
+def cross(
+    u: npt.NDArray[np.float64], v: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]:
     """Compute the cross product of two vectors.
 
     Parameters
     ----------
-    u: numpy.ndarray
+    u: npt.NDArray[np.float64]
        A vector of floats
-    v: numpy.ndarray
+    v: npt.NDArray[np.float64]
        A vector of floats
 
     Returns
     -------
-    v: numpy.ndarray
+    v: npt.NDArray[np.float64]
        The cross product vector of floats
     """
     w = np.array([0.0, 0.0, 0.0])
@@ -240,12 +257,12 @@ def cross(u, v):
     return w
 
 
-def norm(v):
+def norm(v: npt.NDArray[np.float64]) -> float:
     """Compute the Euclidean norm of a vector.
 
     Parameters
     ----------
-    v: numpy.ndarray
+    v: npt.NDArray[np.float64]
        A vector of floats
 
     Returns
@@ -259,18 +276,35 @@ def norm(v):
     return math.sqrt(s)
 
 
-def compute_camera_rotations(e_E_XYZ, e_N_XYZ, e_z_XYZ, alpha, beta, gamma, rho, tau):
+def compute_camera_rotations(
+    e_E_XYZ: npt.NDArray[np.float64],
+    e_N_XYZ: npt.NDArray[np.float64],
+    e_z_XYZ: npt.NDArray[np.float64],
+    alpha: float,
+    beta: float,
+    gamma: float,
+    rho: float,
+    tau: float,
+) -> Tuple[
+    quaternion.quaternion,
+    quaternion.quaternion,
+    quaternion.quaternion,
+    npt.NDArray[np.float64],
+    quaternion.quaternion,
+    quaternion.quaternion,
+    npt.NDArray[np.float64],
+]:
     """Compute the rotations from the geocentric (XYZ) coordinate
     system to the camera housing fixed (uvw) and camera fixed (rst)
     coordinate systems.
 
     Parameters
     ----------
-    e_E_XYZ : np.ndarray
+    e_E_XYZ : npt.NDArray[np.float64]
         East unit vector
-    e_N_XYZ : np.ndarray
+    e_N_XYZ : npt.NDArray[np.float64]
         North unit vector
-    e_z_XYZ : np.ndarray
+    e_z_XYZ : npt.NDArray[np.float64]
         Zenith unit vector
     alpha : float
         Yaw angle about -w axis [deg]
@@ -291,13 +325,13 @@ def compute_camera_rotations(e_E_XYZ, e_N_XYZ, e_z_XYZ, alpha, beta, gamma, rho,
         Pitch rotation quaternion
     q_gamma : quaternion.quaternion
         Roll rotation quaternion
-    E_XYZ_to_uvw : numpy.ndarray
+    E_XYZ_to_uvw : npt.NDArray[np.float64]
         Orthogonal transformation matrix from XYZ to uvw
     q_rho : quaternion.quaternion
         Pan rotation quaternion
     q_tau : quaternion.quaternion
         Tilt rotation quaternion
-    E_XYZ_to_rst : numpy.ndarray
+    E_XYZ_to_rst : npt.NDArray[np.float64]
         Orthogonal transformation matrix from XYZ to rst
     """
     # Assign unit vectors of the camera housing fixed (uvw) coordinate
@@ -400,7 +434,9 @@ def compute_camera_rotations(e_E_XYZ, e_N_XYZ, e_z_XYZ, alpha, beta, gamma, rho,
     return q_alpha, q_beta, q_gamma, E_XYZ_to_uvw, q_rho, q_tau, E_XYZ_to_rst
 
 
-def compute_great_circle_distance(lambda_1, varphi_1, lambda_2, varphi_2):
+def compute_great_circle_distance(
+    lambda_1: float, varphi_1: float, lambda_2: float, varphi_2: float
+) -> float:
     """Use the haversine formula to compute the great-circle distance
     between two points on a sphere given their longitudes and
     latitudes.
@@ -439,12 +475,12 @@ def compute_great_circle_distance(lambda_1, varphi_1, lambda_2, varphi_2):
     )
 
 
-def convert_time(time_a):
+def convert_time(time_a: Union[str, float]) -> datetime:
     """Convert aircraft time to datetime object.
 
     Parameters
     ----------
-    time_a : str
+    time_a : Union[str, float]
         Aircraft time reported by ADS-B
 
     Returns
@@ -454,7 +490,7 @@ def convert_time(time_a):
     """
     # Parse aircraft time as string with decimal seconds
     try:
-        datetime_a = datetime.strptime(time_a, "%Y-%m-%d %H:%M:%S.%f")
+        datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S.%f")
     except Exception as e:
         logger.warning(
             f"Could not parse aircraft time as string with decimal seconds: {e}"
@@ -462,13 +498,13 @@ def convert_time(time_a):
 
         # Parse aircraft time as string
         try:
-            datetime_a = datetime.strptime(time_a, "%Y-%m-%d %H:%M:%S")
+            datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S")
         except Exception as e:
             logger.warning(f"Could not parse aircraft time as string: {e}")
 
             # Construct datetime from aircraft time
             try:
-                datetime_a = datetime.fromtimestamp(time_a)
+                datetime_a = datetime.fromtimestamp(time_a)  # type: ignore
             except Exception as e:
                 logger.warning(f"Could not construct datetime from aircraft time: {e}")
 
@@ -476,7 +512,7 @@ def convert_time(time_a):
 
 
 @contextlib.contextmanager
-def pushd(new_dir):
+def pushd(new_dir: str) -> Generator[None, None, None]:
     """Change to a new working directory, and back.
 
     Parameters
