@@ -135,7 +135,7 @@ def make_flight_msg(track: pd.DataFrame, index: int) -> Dict[Any, Any]:
     return msg
 
 
-def read_track_data(track_id: str) -> pd.Dataframe:
+def read_track_data(track_id: str) -> pd.DataFrame:
     """Read a track file and convert to standard units of measure.
 
     Parameters
@@ -157,7 +157,7 @@ def read_track_data(track_id: str) -> pd.Dataframe:
     return track
 
 
-def plot_time_series(ts: pd.Dataframe) -> None:
+def plot_time_series(ts: pd.DataFrame) -> None:
     """Plot time series produced by processing messages.
 
     Parameters
