@@ -9,9 +9,6 @@ services:
     ports:
       - "1883:1883"
       - "9001:9001"
-    build:
-      context: ./axis-ptz-controller/mqtt
-      dockerfile: ./Dockerfile
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -19,7 +16,7 @@ services:
         max-size: "10M"
         max-file: "10"
   controller:
-    image: iqtlabs/skyscan-ptz-controller:latest
+    image: iqtlabs/edgetech-axis-ptz-controller:latest
     build:
       context: ./axis-ptz-controller
       dockerfile: ./Dockerfile
