@@ -22,7 +22,7 @@ If you do not have them installed, you can install them with `pip install "black
 
 **These are in an attempt to enforce conformity of all future commits. Please suggest via Pull Request any that should be added/amended.**
 
-All of the functionality should be encapsulated in the `*_pub_sub.py` file that sits in the `module/` directory (in this case `template`). Within this file, a single child class of `BaseMQTTPubSub` should be defined the encapsulates all of the functionality. 
+All of the functionality should be encapsulated in the `*_pub_sub.py` file that sits in the `module/` directory (in this case `template`). Within this file, a single child class of `BaseMQTTPubSub` should be defined that encapsulates all of the functionality. 
 
 All MQTT client setup and connection should be done using `BaseMQTTPubSub` functionality. If a feature does not exist, please suggest it in that [repository](https://github.com/IQTLabs/edgetech-core). 
 
