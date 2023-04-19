@@ -203,9 +203,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.gamma = 0.0  # [deg]
 
         # Tripod yaw, pitch, and roll rotation quaternions
-        self.q_alpha = np.quaternion()  # type: ignore
-        self.q_beta = np.quaternion()  # type: ignore
-        self.q_gamma = np.quaternion()  # type: ignore
+        self.q_alpha = quaternion.quaternion()
+        self.q_beta = quaternion.quaternion()
+        self.q_gamma = quaternion.quaternion()
 
         # Orthogonal transformation matrix from geocentric (XYZ) to
         # camera housing fixed (uvw) coordinates
@@ -228,8 +228,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tau_a = 0.0  # [deg]
 
         # Pan, and tilt rotation quaternions
-        self.q_row = np.quaternion()  # type: ignore
-        self.q_tau = np.quaternion()  # type: ignore
+        self.q_row = quaternion.quaternion()
+        self.q_tau = quaternion.quaternion()
 
         # Orthogonal transformation matrix from camera housing (uvw)
         # to camera fixed (rst) coordinates
