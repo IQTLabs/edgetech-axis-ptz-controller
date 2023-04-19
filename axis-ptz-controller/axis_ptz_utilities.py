@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 import math
 import os
-from typing import Generator, Tuple, Union
+from typing import cast, Generator, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -162,14 +162,14 @@ def compute_r_XYZ(
             ]
         )
     elif type(d_lambda) == np.ndarray:
-        r_lambda = np.radians(d_lambda)  # type: ignore
-        r_varphi = np.radians(d_varphi)  # type: ignore
-        N = R_OPLUS / np.sqrt(1.0 - f * (2.0 - f) * np.sin(r_varphi) ** 2)
+        r_lambda_np = np.radians(d_lambda)
+        r_varphi_np = np.radians(d_varphi)
+        N = R_OPLUS / np.sqrt(1.0 - f * (2.0 - f) * np.sin(r_varphi_np) ** 2)
         r_XYZ = np.row_stack(
             (
-                (N + o_h) * np.cos(r_varphi) * np.cos(r_lambda),
-                (N + o_h) * np.cos(r_varphi) * np.sin(r_lambda),
-                ((1.0 - f) ** 2 * N + o_h) * np.sin(r_varphi),
+                (N + o_h) * np.cos(r_varphi_np) * np.cos(r_lambda_np),
+                (N + o_h) * np.cos(r_varphi_np) * np.sin(r_lambda_np),
+                ((1.0 - f) ** 2 * N + o_h) * np.sin(r_varphi_np),
             ),
         )
     return r_XYZ
@@ -190,7 +190,7 @@ def as_quaternion(s: float, v: npt.NDArray[np.float64]) -> quaternion.quaternion
     quaternion.quaternion
         A quaternion with the specified scalar and vector parts
     """
-    return np.quaternion(s, v[0], v[1], v[2])  # type: ignore
+    return quaternion.quaternion(s, v[0], v[1], v[2])
 
 
 def as_rotation_quaternion(
@@ -213,7 +213,7 @@ def as_rotation_quaternion(
     """
     r_omega = math.radians(d_omega)
     v = math.sin(r_omega / 2.0) * u
-    return np.quaternion(math.cos(r_omega / 2.0), v[0], v[1], v[2])  # type: ignore
+    return quaternion.quaternion(math.cos(r_omega / 2.0), v[0], v[1], v[2])
 
 
 def as_vector(q: quaternion.quaternion) -> npt.NDArray[np.float64]:
@@ -504,7 +504,7 @@ def convert_time(time_a: Union[str, float]) -> datetime:
 
             # Construct datetime from aircraft time
             try:
-                datetime_a = datetime.fromtimestamp(time_a)  # type: ignore
+                datetime_a = datetime.fromtimestamp(cast(float, time_a))
             except Exception as e:
                 logger.warning(f"Could not construct datetime from aircraft time: {e}")
 
