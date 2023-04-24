@@ -583,7 +583,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.elv_a = math.degrees(
             math.atan2(r_ENz_a_1_t[2], axis_ptz_utilities.norm(r_ENz_a_1_t[0:2]))
         )  # [deg]
-        logger.debug(f"Aircraft azimuth and elevation: {self.azm_a}, {self.elv_a} [deg]")
+        logger.debug(
+            f"Aircraft azimuth and elevation: {self.azm_a}, {self.elv_a} [deg]"
+        )
 
         # Compute pan and tilt to point the camera at the aircraft
         r_uvw_a_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_a_1_t)
