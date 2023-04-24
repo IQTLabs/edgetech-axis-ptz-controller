@@ -59,7 +59,7 @@ class AxisPtzController(BaseMQTTPubSub):
         tilt_rate_min: float = 1.8,
         tilt_rate_max: float = 150.0,
         focus_slope: float = 0.0006,
-        focus_intercept: float = 54,
+        focus_intercept: float = 54.0,
         jpeg_resolution: str = "1920x1080",
         jpeg_compression: int = 5,
         use_mqtt: bool = True,
@@ -621,16 +621,11 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
             logger.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
-            # Compute camera focus
-            self.focus = (
-                self.focus_slope * self.distance3d + self.focus_intercept
-            )  # [%]
-
             # Point the camera at any new aircraft directly
             if self.icao24 != icao24:
                 self.icao24 = icao24
                 logger.info(
-                    f"Absolute move to pan: {self.rho_a}, and tilt: {self.tau_a}"
+                    f"Absolute move to pan: {self.rho_a}, and tilt: {self.tau_a}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
                 self.camera_control.absolute_move(
                     self.rho_a, self.tau_a, self.zoom, 50, self.focus
@@ -695,8 +690,15 @@ class AxisPtzController(BaseMQTTPubSub):
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
-        # Command camera rates, and begin capturing images
+        # Compute and set focus, command camera pan and tilt rates,
+        # and begin capturing images, if needed
         if self.use_camera:
+            self.focus = int(
+                self.focus_slope * self.distance3d + self.focus_intercept
+            )  # [%]
+            logger.debug(f"Commanding focus: {self.focus}")
+            self.camera_control.set_focus(self.focus)
+
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
             logger.debug(
