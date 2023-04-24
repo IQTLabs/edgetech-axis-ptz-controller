@@ -35,8 +35,7 @@
 
   <p align="center">
     This project provides a simple pan and tilt rate controller for
-    AXIS Communications PTZ network cameras, exemplified by the axis
-    <a
+    AXIS Communications PTZ network cameras, exemplified by the <a
     href="https://www.axis.com/dam/public/8d/ba/86/datasheet-axis-m5525%E2%80%93e-ptz-network-camera-en-US-294608.pdf">
     AXIS M5525–E PTZ Network Camera</a>. The controller parameters can
     be customized through environment variables, or using an MQTT
