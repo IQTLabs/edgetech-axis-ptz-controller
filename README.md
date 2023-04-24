@@ -1,15 +1,15 @@
 <a name="readme-top"></a>
 
-[contributors-shield]: https://img.shields.io/github/contributors/IQTLabs/edgetech-template.svg?style=for-the-badge
-[contributors-url]: https://github.com/IQTLabs/edgetech-template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/IQTLabs/edgetech-template.svg?style=for-the-badge
-[forks-url]: https://github.com/IQTLabs/edgetech-template/network/members
-[stars-shield]: https://img.shields.io/github/stars/IQTLabs/edgetech-template.svg?style=for-the-badge
-[stars-url]: https://github.com/IQTLabs/edgetech-template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/IQTLabs/edgetech-template.svg?style=for-the-badge
-[issues-url]: https://github.com/IQTLabs/edgetech-template/issues
-[license-shield]: https://img.shields.io/github/license/IQTLabs/edgetech-template.svg?style=for-the-badge
-[license-url]: https://github.com/IQTLabs/edgetech-template/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/IQTLabs/edgetech-axis-ptz-controller.svg?style=for-the-badge
+[contributors-url]: https://github.com/IQTLabs/edgetech-axis-ptz-controller/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/IQTLabs/edgetech-axis-ptz-controller.svg?style=for-the-badge
+[forks-url]: https://github.com/IQTLabs/edgetech-axis-ptz-controller/network/members
+[stars-shield]: https://img.shields.io/github/stars/IQTLabs/edgetech-axis-ptz-controller.svg?style=for-the-badge
+[stars-url]: https://github.com/IQTLabs/edgetech-axis-ptz-controller/stargazers
+[issues-shield]: https://img.shields.io/github/issues/IQTLabs/edgetech-axis-ptz-controller.svg?style=for-the-badge
+[issues-url]: https://github.com/IQTLabs/edgetech-axis-ptz-controller/issues
+[license-shield]: https://img.shields.io/github/license/IQTLabs/edgetech-axis-ptz-controller.svg?style=for-the-badge
+[license-url]: https://github.com/IQTLabs/edgetech-axis-ptz-controller/blob/master/LICENSE.txt
 [product-screenshot]: images/screenshot.png
 
 [Python]: https://img.shields.io/badge/python-000000?style=for-the-badge&logo=python
@@ -31,20 +31,33 @@
     <img src="images/logo.png" alt="Logo" width="331" height="153">
   </a>
 
-<h1 align="center">EdgeTech-Template</h1>
+<h1 align="center">Edgetech-Axis-Ptz-Controller</h1>
 
   <p align="center">
-    This repo is a template of how to build on <a href="https://github.com/IQTLabs/edgetech-core">IQT Labs EdgeTech-Core</a> functionality to instantiate an <a href="https://projects.eclipse.org/projects/iot.mosquitto">MQTT</a> client. The philosophy behind EdgeTech-Core is to minimize development requirements for standing up the software stack of an "edge" system. The template includes all of the files and code scaffolds required to build in the EdgeTech framework. All of this functionality is wrapped in a Docker container for cross-platform compatibility. 
+    This project provides a simple pan and tilt rate controller for
+    AXIS Communications PTZ network cameras, exemplified by the axis
+    <a
+    href="https://www.axis.com/dam/public/8d/ba/86/datasheet-axis-m5525%E2%80%93e-ptz-network-camera-en-US-294608.pdf",
+    AXIS M5525–E PTZ Network Camera</a>. The controller parameters can
+    be customized through environment variables, or using an MQTT
+    message published to a configuration topic. In addition, the
+    controller subscribes to an MQTT message topic for orientation
+    messages which set the yaw, pitch, and roll of the camera
+    housing. Finally, the controller subscribes to an MQTT message
+    topic for flight messages which describe the position of an
+    aircraft at a time. Rigorous coordinate transformations using the
+    WGS84, and quarternions to compute direction cosine matrices are
+    used to compute the required pan and tilt rate of the camera to
+    point at, and capture images of, the aircraft. Units of measure
+    are meters, seconds, and degrees, and operation of the controller
+    is extensively logged.
     <br/>
     <br/>
-    You'll need to rename various files and directories as well as customize based on your functional needs, but the EdgeTech framework and scaffolding should minimize the development requirements. If you don't find that to be the case, submit a pull request and help us make this repository better!
-    <br/>
-    <br/>
-    <a href="https://github.com/IQTLabs/edgetech-template/pulls">Make Contribution</a>
+    <a href="https://github.com/IQTLabs/edgetech-axis-ptz-controller/pulls">Make Contribution</a>
     ·
-    <a href="https://github.com/IQTLabs/edgetech-template/issues">Report Bug</a>
+    <a href="https://github.com/IQTLabs/edgetech-axis-ptz-controller/issues">Report Bug</a>
     ·
-    <a href="https://github.com/IQTLabs/edgetech-template/issues">Request Feature</a>
+    <a href="https://github.com/IQTLabs/edgetech-axis-ptz-controller/issues">Request Feature</a>
   </p>
 </div>
 
@@ -54,129 +67,58 @@
 [![Poetry][Poetry]][Poetry-url]
 [![Docker][Docker]][Docker-url]
 
-### Modules Built Based on this Template
+## Getting Started
 
-<p align="left">
-- <a href="https://github.com/IQTLabs/edgetech-daisy">edgetech-daisy</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-filesaver">edgetech-filesaver</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-audio-recorder">edgetech-audio-recorder</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-c2">edgetech-c2</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-telemetry-pinephone">edgetech-telemetry-pinephone</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-s3-uploader">edgetech-s3-uploader</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-couchdb-startup">edgetech-couchdb-startup</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-couchdb-saver">edgetech-couchdb-saver</a>
-<br/>
-- <a href="https://github.com/IQTLabs/edgetech-http-uploader">edgetech-http-uploader</a>
-<br/>
-</p>
+To run this repo, simply run:
 
-### Projects Built Using the EdgeTech Framework
+```
+docker-compose up
+```
 
-<p align="left">
-- <a href="https://github.com/IQTLabs/aisonobuoy-collector-pinephone">aisonobuoy-collector-pinephone</a>
-</p>
+The AXIS PTZ network camera controller is containerized and
+dependencies are managed using [poetry]("https://python-poetry.org").
 
 ### Prerequisites
 
-Running this repo requires that you have [Docker](https://www.docker.com) for containerization, [Poetry][Poetry-url] for dependency management, and [Python 3.11.1][Python-url] is the version we've been building with.
+Running this repo requires that you have
+[Docker](https://www.docker.com) installed.
 
 ## Usage
 
-Hit `Use this template` and `Create a new repository` to get started. Name it `edgetech-` plus whatever functionality you're adding. You'll also want to rename everything that says `template` in this repository with that name.
+Spinning up this system requires an MQTT server and this container to
+be included in your `docker-compose.yml`. You can find an example of
+this workflow in this repository's `docker-compose.yml`. Additionally,
+some editing of relevant environment variables will be required based
+upon your system's configuration of topics to subscribe to and MQTT
+configuration. Examples of these environment variables can be found in
+this repository's `template.axis-ptz-controller.env` file.
 
-Within the `template` directory, you should find several files: a `Dockerfile`, `pyproject.toml`, `poetry.lock`, and `template_pub_sub.py`. 
+Copying the project `docker-compose` statements into a master
+`docker-compose.yml` and `.env` files with your entire system of
+containers is the preferred workflow. Find an application architecture
+diagram example of how the usage of this module was envisioned below.
 
-`pyproject.toml` is generated by running `poetry init` as we recommend using [`poetry`][Poetry-url] to manage dependencies. 
+<!-- Use the Labs Brand Colors in Mermaid Diagrams: #80c342,  #181245,  #f9d308,  #0072bc, #f05343, #65cbe7, #6657d3, #5f6475, #ffee97, #d0d2d9 -->
 
-Once the `pyproject.toml` has been created, use `poetry install` to generate the `poetry.lock` file. You'll want to run `poetry config virtualenvs.create false` and `poetry install --no-dev` before calling `poetry install`. 
+```mermaid 
 
-### BaseMQTTPubSub Child Class
+flowchart TD
+    A(A) -- A Description of the Link --> B{B}
+    C{C} -- A Description of the Link --> A(A)
 
-The core module that is a python wrapper around interacting with MQTT system, heartbeats and tests. The `template_pub_sub.py` file includes examples of recommended usage of the `BaseMQTTPubSub` module and how to build a child class using it. 
+style A fill:#0072bc,color:#ffffff
+style B fill:#80c342,color:#ffffff
+style C fill:#f05343,color:#ffffff
 
-An outline of the basic functionality can be found below.
-
-Inheriting `BaseMQTTPubSub`:
-```python
-from base_mqtt_pub_sub import BaseMQTTPubSub
-
-class TemplatePubSub(BaseMQTTPubSub):
-    def __init__(
-        self: Any,
-        ...
-        **kwargs: Any,
-    ):
-        super().__init__(**kwargs)
-```
-The use of `**kwargs` allows you to override any of the class parameters set in the `BaseMQTTPubSub` constructor. 
-
-In the constructor of the child class, it is recommended that you connect to the MQTT client and publish a message to the `/registration` topic upon successful connection.
-```python
-self.connect_client()
-sleep(1)
-self.publish_registration("Template Module Registration")
 ```
 
-Every child class should include a `main()` function which includes a publishing to the `/heartbeat` channel to keep the connection alive and any subscriptions to other topics in the system. It should also include a `while True` loop to keep the main thread alive and flush all scheduled function calls.
-```python
-  def main(self: Any) -> None:
-        schedule.every(10).seconds.do(
-            self.publish_heartbeat, payload="Template Module Heartbeat"
-        )
+## Roadmap
 
-        self.add_subscribe_topic(self.example_topic, self._example_callback)
+- TBA
 
-        ...
-
-        while True:
-            try:
-                schedule.run_pending()
-                sleep(0.001)
-
-            except Exception as e:
-                if self.debug:
-                    print(e)
-```
-
-To call the child class see that the environment variables are passed via `docker-compose` and passed to the constructor. The `main()` function is then called.
-
-```python
-    template = TemplatePubSub(
-        ...,
-        mqtt_ip=os.environ.get("MQTT_IP"),
-    )
-    template.main()
-```
-
-### Docker
-
-Examples of a `Dockerfile` and `docker-compose.yaml` can also be found in this repo. Adding whatever environment variables that your class needs should go into your `.env` file after renaming the `template.env` and paths/names will need to be adjusted as well. The `Dockerfile` should only require script name/path changes as well. 
-
-### Topic Names
-
-Recommended topic names should follow the format specified below.
-
-```python
-f"{DEVICE}/{HOST_NAME}/{DATA_TYPE}/{CONTAINER_NAME}/{TYPE_LITERAL}"
-```
-
-Example:
-```python
-f"/AISonobuoy/{HOST_NAME}/AIS/edgetech-daisy/bytestring
-```
-
- ## Roadmap
-
-- how to write tests for a child class of the core module
-
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open
+issues](https://github.com/IQTLabs/edgetech-axis-ptz-controller/issues)
+for a full list of proposed features (and known issues).
 
 ## Contributing
 
@@ -184,6 +126,7 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 2. Create your Feature Branch (`git checkout -b dev`)
 3. Commit your Changes (`git commit -m 'adding some feature'`)
 4. Run (and make sure they pass):
+
 ```
 black --diff --check *.py
 
@@ -191,7 +134,9 @@ pylint --disable=all --enable=unused-import *.py
 
 mypy --allow-untyped-decorators --ignore-missing-imports --no-warn-return-any --strict --allow-subclassing-any *.py
 ```
-If you do not have them installed, you can install them with `pip install "black<23" pylint==v3.0.0a3 mypy==v0.991`.
+
+If you do not have them installed, you can install them with `pip
+install "black<23" pylint==v3.0.0a3 mypy==v0.991`.
 
 5. Push to the Branch (`git push origin dev`)
 6. Open a Pull Request
@@ -200,7 +145,9 @@ See `CONTRIBUTING.md` for more information.
 
 ## License
 
-Distributed under the [Apache 2.0](https://github.com/IQTLabs/edgetech-template/blob/main/LICENSE). See `LICENSE.txt` for more information.
+Distributed under the [Apache
+2.0](https://github.com/IQTLabs/edgetech-audio-recorder/blob/main/LICENSE). See
+`LICENSE.txt` for more information.
 
 ## Contact IQTLabs
 
