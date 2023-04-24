@@ -39,7 +39,7 @@ class AxisPtzController(BaseMQTTPubSub):
         camera_user: str,
         camera_password: str,
         config_topic: str,
-        calibration_topic: str,
+        orientation_topic: str,
         flight_topic: str,
         capture_topic: str,
         logger_topic: str,
@@ -78,8 +78,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Camera user password
         config_topic: str
             MQTT topic for subscribing to configuration messages
-        calibration_topic: str
-            MQTT topic for subscribing to calibration messages
+        orientation_topic: str
+            MQTT topic for subscribing to orientation messages
         flight_topic: str
             MQTT topic for subscribing to flight messages
         capture_topic: str
@@ -138,7 +138,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_user = camera_user
         self.camera_password = camera_password
         self.config_topic = config_topic
-        self.calibration_topic = calibration_topic
+        self.orientation_topic = orientation_topic
         self.flight_topic = flight_topic
         self.capture_topic = capture_topic
         self.logger_topic = logger_topic
@@ -276,7 +276,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
-        calibration_msg = {
+        orientation_msg = {
             "data": {
                 "camera": {
                     "tripod_yaw": self.alpha,
@@ -285,7 +285,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 }
             }
         }
-        self._calibration_callback(None, None, calibration_msg)
+        self._orientation_callback(None, None, orientation_msg)
 
         # Initialize camera pointing
         if self.use_camera:
@@ -300,7 +300,7 @@ class AxisPtzController(BaseMQTTPubSub):
     camera_user = {camera_user}
     camera_password = {camera_password}
     config_topic = {config_topic}
-    calibration_topic = {calibration_topic}
+    orientation_topic = {orientation_topic}
     flight_topic = {flight_topic}
     capture_topic = {capture_topic}
     logger_topic = {logger_topic}
@@ -414,14 +414,14 @@ class AxisPtzController(BaseMQTTPubSub):
             self.e_z_XYZ,
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(self.lambda_t, self.varphi_t)
 
-    def _calibration_callback(
+    def _orientation_callback(
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
         msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
     ) -> None:
         """
-        Process calibration message.
+        Process orientation message.
 
         Parameters
         ----------
@@ -856,7 +856,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
-            self.add_subscribe_topic(self.calibration_topic, self._calibration_callback)
+            self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
             self.add_subscribe_topic(self.flight_topic, self._flight_callback)
 
         if self.use_camera:
@@ -902,7 +902,7 @@ def make_controller() -> AxisPtzController:
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP"),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         flight_topic=os.getenv("FLIGHT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),

@@ -48,7 +48,7 @@ def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         flight_topic=os.getenv("FLIGHT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
@@ -97,8 +97,8 @@ def get_config_msg() -> Dict[Any, Any]:
     return msg
 
 
-def get_calibration_msg() -> Dict[Any, Any]:
-    """Populate a calibration message with all 0 deg angles.
+def get_orientation_msg() -> Dict[Any, Any]:
+    """Populate an orientation message with all 0 deg angles.
 
     Parameters
     ----------
@@ -107,9 +107,9 @@ def get_calibration_msg() -> Dict[Any, Any]:
     Returns
     -------
     msg : dict
-        The calibration message
+        The orientation message
     """
-    with open("data/calibration_msg_0s.json", "r") as f:
+    with open("data/orientation_msg_0s.json", "r") as f:
         msg = json.load(f)
     return msg
 
@@ -250,20 +250,20 @@ def main() -> None:
     controller = make_controller(args.use_mqtt)
     controller.add_subscribe_topic(controller.config_topic, controller._config_callback)
     controller.add_subscribe_topic(
-        controller.calibration_topic, controller._calibration_callback
+        controller.orientation_topic, controller._orientation_callback
     )
     controller.add_subscribe_topic(controller.flight_topic, controller._flight_callback)
     config_msg = get_config_msg()
-    calibration_msg = get_calibration_msg()
+    orientation_msg = get_orientation_msg()
     index = 0
     flight_msg = make_flight_msg(track, index)
     if controller.use_mqtt:
         logger.info(f"Publishing config msg: {config_msg}")
         controller.publish_to_topic(controller.config_topic, json.dumps(config_msg))
         time.sleep(UPDATE_INTERVAL)
-        logger.info(f"Publishing calibration msg: {calibration_msg}")
+        logger.info(f"Publishing orientation msg: {orientation_msg}")
         controller.publish_to_topic(
-            controller.calibration_topic, json.dumps(calibration_msg)
+            controller.orientation_topic, json.dumps(orientation_msg)
         )
         time.sleep(UPDATE_INTERVAL)
         logger.info(f"Publishing flight msg: {flight_msg}")
@@ -274,7 +274,7 @@ def main() -> None:
         _client = None
         _userdata = None
         controller._config_callback(_client, _userdata, config_msg)
-        controller._calibration_callback(_client, _userdata, calibration_msg)
+        controller._orientation_callback(_client, _userdata, orientation_msg)
         controller._flight_callback(_client, _userdata, flight_msg)
 
     # Initialize history for plotting

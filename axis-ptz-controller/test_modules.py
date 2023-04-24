@@ -61,7 +61,7 @@ def controller() -> axis_ptz_controller.AxisPtzController:
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         flight_topic=os.getenv("FLIGHT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
@@ -93,17 +93,17 @@ def config_msg() -> Dict[Any, Any]:
 
 
 @pytest.fixture
-def calibration_msg_0s() -> Dict[Any, Any]:
-    """Populate a calibration message with all 0 deg angles."""
-    with open("data/calibration_msg_0s.json", "r") as f:
+def orientation_msg_0s() -> Dict[Any, Any]:
+    """Populate an orientation message with all 0 deg angles."""
+    with open("data/orientation_msg_0s.json", "r") as f:
         msg = json.load(f)
     return msg
 
 
 @pytest.fixture
-def calibration_msg_90s() -> Dict[Any, Any]:
-    """Populate a calibration message with all 90 deg angles."""
-    with open("data/calibration_msg_90s.json", "r") as f:
+def orientation_msg_90s() -> Dict[Any, Any]:
+    """Populate an orientation message with all 90 deg angles."""
+    with open("data/orientation_msg_90s.json", "r") as f:
         msg = json.load(f)
     return msg
 
@@ -160,11 +160,11 @@ class TestAxisPtzController:
         assert np.linalg.norm(controller.e_N_XYZ - e_N_XYZ_exp) < PRECISION
         assert np.linalg.norm(controller.e_z_XYZ - e_z_XYZ_exp) < PRECISION
 
-    def test_calibration_callback(
+    def test_orientation_callback(
         self,
         controller: axis_ptz_controller.AxisPtzController,
         config_msg: Dict[Any, Any],
-        calibration_msg_90s: Dict[Any, Any],
+        orientation_msg_90s: Dict[Any, Any],
     ) -> None:
 
         # Align ENz with XYZ
@@ -173,7 +173,7 @@ class TestAxisPtzController:
         controller._config_callback(_client, _userdata, config_msg)
 
         # Use 90 degree rotations
-        controller._calibration_callback(_client, _userdata, calibration_msg_90s)
+        controller._orientation_callback(_client, _userdata, orientation_msg_90s)
 
         # Assign expected values by performing some mental rotation
         # gymnastics
@@ -216,7 +216,7 @@ class TestAxisPtzController:
         self,
         controller: axis_ptz_controller.AxisPtzController,
         config_msg: Dict[Any, Any],
-        calibration_msg_0s: Dict[Any, Any],
+        orientation_msg_0s: Dict[Any, Any],
         flight_msg: Dict[Any, Any],
     ) -> None:
 
@@ -226,7 +226,7 @@ class TestAxisPtzController:
         controller._config_callback(_client, _userdata, config_msg)
 
         # Use 0 degree rotations so uvw aligns with XYZ
-        controller._calibration_callback(_client, _userdata, calibration_msg_0s)
+        controller._orientation_callback(_client, _userdata, orientation_msg_0s)
 
         # Align velocity along the line of sight
         controller._flight_callback(_client, _userdata, flight_msg)
