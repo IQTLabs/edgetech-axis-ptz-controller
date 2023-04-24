@@ -492,7 +492,7 @@ def convert_time(time_a: Union[str, float]) -> datetime:
     try:
         datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S.%f")
     except Exception as e:
-        logger.warning(
+        logger.debug(
             f"Could not parse aircraft time as string with decimal seconds: {e}"
         )
 
@@ -500,13 +500,13 @@ def convert_time(time_a: Union[str, float]) -> datetime:
         try:
             datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S")
         except Exception as e:
-            logger.warning(f"Could not parse aircraft time as string: {e}")
+            logger.debug(f"Could not parse aircraft time as string: {e}")
 
             # Construct datetime from aircraft time
             try:
                 datetime_a = datetime.fromtimestamp(cast(float, time_a))
             except Exception as e:
-                logger.warning(f"Could not construct datetime from aircraft time: {e}")
+                logger.debug(f"Could not construct datetime from aircraft time: {e}")
 
     return datetime_a
 
