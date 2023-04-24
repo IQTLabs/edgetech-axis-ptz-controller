@@ -178,7 +178,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera_configuration = vapix_config.CameraConfiguration(
                 self.camera_ip, self.camera_user, self.camera_password
             )
-            self.camera_control = vapix_control.CameraControl(
+            self.camera_control = camera_control.CameraControl(
                 self.camera_ip, self.camera_user, self.camera_password
             )
 
