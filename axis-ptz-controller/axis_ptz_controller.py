@@ -14,10 +14,11 @@ import numpy as np
 import quaternion
 import paho.mqtt.client as mqtt
 import schedule
-from sensecam_control import vapix_config, vapix_control
+from sensecam_control import vapix_config
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
+import camera_control
 
 root_logger = logging.getLogger()
 ch = logging.StreamHandler()
@@ -57,6 +58,8 @@ class AxisPtzController(BaseMQTTPubSub):
         tilt_gain: float = 0.2,
         tilt_rate_min: float = 1.8,
         tilt_rate_max: float = 150.0,
+        focus_slope: float = 0.0006,
+        focus_intercept: float = 54,
         jpeg_resolution: str = "1920x1080",
         jpeg_compression: int = 5,
         use_mqtt: bool = True,
@@ -115,6 +118,10 @@ class AxisPtzController(BaseMQTTPubSub):
             Camera tilt rate minimum [deg/s]
         tilt_rate_max: float
             Camera tilt rate maximum [deg/s]
+        focus_slope: float
+            Focus slope [%/m]
+        focus_intercept: float
+            Focus intercept [%]
         jpeg_resolution: str
             Image capture resolution, for example, "1920x1080"
         jpeg_compression: int
@@ -156,6 +163,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tilt_gain = tilt_gain
         self.tilt_rate_min = tilt_rate_min
         self.tilt_rate_max = tilt_rate_max
+        self.focus_slope = focus_slope
+        self.focus_intercept = focus_intercept
         self.jpeg_resolution = jpeg_resolution
         self.jpeg_compression = jpeg_compression
         self.use_mqtt = use_mqtt
@@ -239,12 +248,13 @@ class AxisPtzController(BaseMQTTPubSub):
         self.rho_dot_a = 0.0  # [deg/s]
         self.tau_dot_a = 0.0  # [deg/s]
 
-        # Time of pointing update, camera pan and tilt angles, and
-        # zoom
+        # Time of pointing update, camera pan and tilt angles, zoom,
+        # and focus
         self.time_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
         self.zoom = 2000  # 1 to 9999 [-]
+        self.focus = 60  # 0 to 100 [%]
 
         # Camera pan and tilt rates
         self.rho_dot_c = 0.0  # [deg/s]
@@ -290,7 +300,9 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize camera pointing
         if self.use_camera:
             logger.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
-            self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
+            self.camera_control.absolute_move(
+                self.rho_c, self.tau_c, self.zoom, 50, self.focus
+            )
 
         # Log configuration parameters
         logger.info(
@@ -318,6 +330,8 @@ class AxisPtzController(BaseMQTTPubSub):
     tilt_gain = {tilt_gain}
     tilt_rate_min = {tilt_rate_min}
     tilt_rate_max = {tilt_rate_max}
+    focus_slope = {focus_slope}
+    focus_intercept = {focus_intercept}
     jpeg_resolution = {jpeg_resolution}
     jpeg_compression = {jpeg_compression}
     use_mqtt = {use_mqtt}
@@ -393,7 +407,8 @@ class AxisPtzController(BaseMQTTPubSub):
         )  # [s]
         self.capture_dir = camera.get("capture_dir", self.capture_dir)
         self.lead_time = camera.get("lead_time", self.lead_time)  # [s]
-        self.zoom = camera.get("zoom", self.zoom)  # [0-9999]
+        self.zoom = camera.get("zoom", self.zoom)  # [0-9999] [-]
+        self.focus = camera.get("focus", self.focus)  # [0-100] [%]
         self.pan_gain = camera.get("pan_gain", self.pan_gain)  # [1/s]
         self.tilt_gain = camera.get("tilt_gain", self.tilt_gain)  # [1/s]
         self.include_age = camera.get("include_age", self.include_age)
@@ -602,9 +617,14 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera_control.stop_move()
 
         if self.use_camera:
-            # Get camera pan, tilt, and zoom
-            self.rho_c, self.tau_c, _zoom = self.camera_control.get_ptz()
+            # Get camera pan and tilt
+            self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
             logger.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+
+            # Compute camera focus
+            self.focus = (
+                self.focus_slope * self.distance3d + self.focus_intercept
+            )  # [%]
 
             # Point the camera at any new aircraft directly
             if self.icao24 != icao24:
@@ -612,7 +632,9 @@ class AxisPtzController(BaseMQTTPubSub):
                 logger.info(
                     f"Absolute move to pan: {self.rho_a}, and tilt: {self.tau_a}"
                 )
-                self.camera_control.absolute_move(self.rho_a, self.tau_a, self.zoom, 50)
+                self.camera_control.absolute_move(
+                    self.rho_a, self.tau_a, self.zoom, 50, self.focus
+                )
                 duration = max(
                     math.fabs(self.rho_c - self.rho_a) / (self.pan_rate_max / 2),
                     math.fabs(self.tau_c - self.tau_a) / (self.tilt_rate_max / 2),
@@ -801,7 +823,7 @@ class AxisPtzController(BaseMQTTPubSub):
             # Populate and publish image metadata, getting current pan
             # and tilt, and accounting for flight message age relative
             # to the image capture
-            rho_c, tau_c, _zoom = self.camera_control.get_ptz()
+            rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
             flight_msg_age = (datetime_c - self.datetime_a).total_seconds()  # [s]
             image_metadata = {
                 "timestamp": timestamp,
@@ -922,6 +944,8 @@ def make_controller() -> AxisPtzController:
         tilt_gain=float(os.getenv("TILT_GAIN", 0.2)),
         tilt_rate_min=float(os.getenv("TILT_RATE_MIN", 1.8)),
         tilt_rate_max=float(os.getenv("TILT_RATE_MAX", 150.0)),
+        focus_slope=float(os.getenv("FOCUS_SLOPE", 0.0006)),
+        focus_intercept=float(os.getenv("FOCUS_INTERCEPT", 54)),
         jpeg_resolution=os.getenv("JPEG_RESOLUTION", "1920x1080"),
         jpeg_compression=int(os.getenv("JPEG_COMPRESSION", 5)),
         use_mqtt=ast.literal_eval(os.getenv("USE_MQTT", "True")),

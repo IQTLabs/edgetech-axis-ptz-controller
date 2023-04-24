@@ -4,12 +4,10 @@ from typing import Tuple, Union
 
 class CameraControl(vapix_control.CameraControl):
     """
-    Extends module for control cameras AXIS using Vapix found at https://github.com/smartsenselab/sensecam-control.
-    Allows focus to be gettable and settable.
+    Extends module for control cameras AXIS using Vapix found at
+    https://github.com/smartsenselab/sensecam-control.  Allows focus
+    to be gettable and settable.
     """
-
-    def __init__(self) -> None:
-        super().__init__()
 
     def absolute_move(
         self,

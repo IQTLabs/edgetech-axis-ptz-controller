@@ -8,5 +8,6 @@ RUN poetry install --without dev
 
 COPY ./axis_ptz_controller.py .
 COPY ./axis_ptz_utilities.py .
+COPY ./camera_control.py .
 RUN mkdir -p /data/tosort
 ENTRYPOINT [ "python3", "axis_ptz_controller.py" ]
