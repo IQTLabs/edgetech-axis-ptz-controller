@@ -60,6 +60,8 @@ class AxisPtzController(BaseMQTTPubSub):
         tilt_rate_max: float = 150.0,
         focus_slope: float = 0.0006,
         focus_intercept: float = 54.0,
+        focus_min: int = 5555,
+        focus_max: int = 9999,
         jpeg_resolution: str = "1920x1080",
         jpeg_compression: int = 5,
         use_mqtt: bool = True,
@@ -69,75 +71,79 @@ class AxisPtzController(BaseMQTTPubSub):
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
-        and message broker, and initializing data attributes.
+                and message broker, and initializing data attributes.
 
-        Parameters
-        ----------
-        camera_ip: str
-            Camera IP address
-        camera_user: str
-            Camera user name
-        camera_password: str
-            Camera user password
-        config_topic: str
-            MQTT topic for subscribing to configuration messages
-        orientation_topic: str
-            MQTT topic for subscribing to orientation messages
-        flight_topic: str
-            MQTT topic for subscribing to flight messages
-        capture_topic: str
-            MQTT topic for publising capture messages
-        logger_topic: str
-            MQTT topic for publishing logger messages
-        heartbeat_interval: float
-            Interval at which heartbeat message is to be published [s]
-        lambda_t: float
-            Tripod geodetic longitude [deg]
-        varphi_t: float = 0.0,
-            Tripod geodetic latitude [deg]
-        h_t: float = 0.0,
-            Tripod geodetic altitude [deg]
-        update_interval: float
-            Interval at which pointing of the camera is computed [s]
-        capture_interval: float
-            Interval at which the camera image is captured [s]
-        capture_dir: str
-            Directory in which to place captured images
-        lead_time: float
-            Lead time used when computing camera pointing to the
-            aircraft [s]
-        pan_gain: float
-            Proportional control gain for pan error [1/s]
-        pan_rate_min: float
-            Camera pan rate minimum [deg/s]
-        pan_rate_max: float
-            Camera pan rate maximum [deg/s]
-        tilt_gain: float
-            Proportional control gain for tilt error [1/s]
-        tilt_rate_min: float
-            Camera tilt rate minimum [deg/s]
-        tilt_rate_max: float
-            Camera tilt rate maximum [deg/s]
-        focus_slope: float
-            Focus slope [%/m]
-        focus_intercept: float
-            Focus intercept [%]
-        jpeg_resolution: str
-            Image capture resolution, for example, "1920x1080"
-        jpeg_compression: int
-            Image compression: 0 to 100
-        use_mqtt: bool
-            Flag to use MQTT, or not
-        use_camera: bool
-            Flag to use camera configuration and control, or not
-        include_age: bool
-            Flag to include flight message age in lead time, or not
-        log_to_mqtt: bool
-            Flag to publish logger messages to MQTT, or not
+                Parameters
+                ----------
+                camera_ip: str
+                    Camera IP address
+                camera_user: str
+                    Camera user name
+                camera_password: str
+                    Camera user password
+                config_topic: str
+                    MQTT topic for subscribing to configuration messages
+                orientation_topic: str
+                    MQTT topic for subscribing to orientation messages
+                flight_topic: str
+                    MQTT topic for subscribing to flight messages
+                capture_topic: str
+                    MQTT topic for publising capture messages
+                logger_topic: str
+                    MQTT topic for publishing logger messages
+                heartbeat_interval: float
+                    Interval at which heartbeat message is to be published [s]
+                lambda_t: float
+                    Tripod geodetic longitude [deg]
+                varphi_t: float = 0.0,
+                    Tripod geodetic latitude [deg]
+                h_t: float = 0.0,
+                    Tripod geodetic altitude [deg]
+                update_interval: float
+                    Interval at which pointing of the camera is computed [s]
+                capture_interval: float
+                    Interval at which the camera image is captured [s]
+                capture_dir: str
+                    Directory in which to place captured images
+                lead_time: float
+                    Lead time used when computing camera pointing to the
+                    aircraft [s]
+                pan_gain: float
+                    Proportional control gain for pan error [1/s]
+                pan_rate_min: float
+                    Camera pan rate minimum [deg/s]
+                pan_rate_max: float
+                    Camera pan rate maximum [deg/s]
+                tilt_gain: float
+                    Proportional control gain for tilt error [1/s]
+                tilt_rate_min: float
+                    Camera tilt rate minimum [deg/s]
+                tilt_rate_max: float
+                    Camera tilt rate maximum [deg/s]
+                focus_slope: float
+                    Focus slope from measurement [%/m]
+                focus_intercept: float
+                    Focus intercept from measurement [%]
+                focus_min: int
+                    Focus minimum from settings
+                focus_max: int
+        t            Focus maximum from settings
+                jpeg_resolution: str
+                    Image capture resolution, for example, "1920x1080"
+                jpeg_compression: int
+                    Image compression: 0 to 100
+                use_mqtt: bool
+                    Flag to use MQTT, or not
+                use_camera: bool
+                    Flag to use camera configuration and control, or not
+                include_age: bool
+                    Flag to include flight message age in lead time, or not
+                log_to_mqtt: bool
+                    Flag to publish logger messages to MQTT, or not
 
-        Returns
-        -------
-        AxisPtzController
+                Returns
+                -------
+                AxisPtzController
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
@@ -165,6 +171,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tilt_rate_max = tilt_rate_max
         self.focus_slope = focus_slope
         self.focus_intercept = focus_intercept
+        self.focus_min = focus_min
+        self.focus_max = focus_max
         self.jpeg_resolution = jpeg_resolution
         self.jpeg_compression = jpeg_compression
         self.use_mqtt = use_mqtt
@@ -332,6 +340,8 @@ class AxisPtzController(BaseMQTTPubSub):
     tilt_rate_max = {tilt_rate_max}
     focus_slope = {focus_slope}
     focus_intercept = {focus_intercept}
+    focus_min = {focus_min}
+    focus_max = {focus_max}
     jpeg_resolution = {jpeg_resolution}
     jpeg_compression = {jpeg_compression}
     use_mqtt = {use_mqtt}
@@ -694,7 +704,10 @@ class AxisPtzController(BaseMQTTPubSub):
         # and begin capturing images, if needed
         if self.use_camera:
             self.focus = int(
-                4444 * (self.focus_slope * self.distance3d + self.focus_intercept) / 100 + 5555
+                (self.focus_max - self.focus_min)
+                * (self.focus_slope * self.distance3d + self.focus_intercept)
+                / 100.0
+                + self.focus_min
             )  # [%]
             logger.debug(f"Commanding focus: {self.focus}")
             self.camera_control.set_focus(self.focus)
@@ -948,6 +961,8 @@ def make_controller() -> AxisPtzController:
         tilt_rate_max=float(os.getenv("TILT_RATE_MAX", 150.0)),
         focus_slope=float(os.getenv("FOCUS_SLOPE", 0.0006)),
         focus_intercept=float(os.getenv("FOCUS_INTERCEPT", 54)),
+        focus_min=int(os.getenv("FOCUS_MIN", 5555)),
+        focus_max=int(os.getenv("FOCUS_MAX", 9999)),
         jpeg_resolution=os.getenv("JPEG_RESOLUTION", "1920x1080"),
         jpeg_compression=int(os.getenv("JPEG_COMPRESSION", 5)),
         use_mqtt=ast.literal_eval(os.getenv("USE_MQTT", "True")),
