@@ -14,11 +14,11 @@ import numpy as np
 import quaternion
 import paho.mqtt.client as mqtt
 import schedule
-from sensecam_control import vapix_config
+from sensecam_control.vapix_config import CameraConfiguration
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
-import camera_control
+from camera_control import CameraControl
 
 root_logger = logging.getLogger()
 ch = logging.StreamHandler()
@@ -180,19 +180,15 @@ class AxisPtzController(BaseMQTTPubSub):
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
 
-        # Construct camera configuration and control
-        if self.use_camera:
-            logger.info("Constructing camera configuration and control")
-            self.camera_configuration = vapix_config.CameraConfiguration(
-                self.camera_ip, self.camera_user, self.camera_password
-            )
-            self.camera_control = camera_control.CameraControl(
-                self.camera_ip, self.camera_user, self.camera_password
-            )
-
-        else:
-            self.camera_configuration = None
-            self.camera_control = None
+        # Always construct camera configuration and control since
+        # instantiation only assigns arguments
+        logger.info("Constructing camera configuration and control")
+        self.camera_configuration = CameraConfiguration(
+            self.camera_ip, self.camera_user, self.camera_password
+        )
+        self.camera_control = CameraControl(
+            self.camera_ip, self.camera_user, self.camera_password
+        )
 
         # Connect MQTT client
         if self.use_mqtt:
