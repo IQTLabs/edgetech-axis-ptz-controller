@@ -694,7 +694,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # and begin capturing images, if needed
         if self.use_camera:
             self.focus = int(
-                self.focus_slope * self.distance3d + self.focus_intercept
+                4444 * (self.focus_slope * self.distance3d + self.focus_intercept) / 100 + 5555
             )  # [%]
             logger.debug(f"Commanding focus: {self.focus}")
             self.camera_control.set_focus(self.focus)
