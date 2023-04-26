@@ -44,6 +44,7 @@
     adjust camera focus based on range to the aircraft from the
     camera, and periodically capture images of the aircraft.
     <br/>
+    <br/>
     In more detail, the controller subscribes to an MQTT message topic
     for ADS-B, or flight, messages, which provide the aircraft
     latitude, longitude, altitude, and ground and vertical speeds at
