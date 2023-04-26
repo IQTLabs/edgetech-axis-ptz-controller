@@ -34,22 +34,40 @@
 <h1 align="center">Edgetech-Axis-Ptz-Controller</h1>
 
   <p align="center">
-    This project provides a simple pan and tilt rate controller for
-    AXIS Communications PTZ network cameras, exemplified by the <a
-    href="https://www.axis.com/dam/public/8d/ba/86/datasheet-axis-m5525%E2%80%93e-ptz-network-camera-en-US-294608.pdf">
-    AXIS M5525–E PTZ Network Camera</a>. The controller parameters can
-    be customized through environment variables, or using an MQTT
-    message published to a configuration topic. In addition, the
+  This project provides a simple pan and tilt rate controller for AXIS
+    Communications PTZ network cameras, exemplified by the <a
+    href="https://www.axis.com/dam/public/8d/ba/86/datasheet-axis-m5525%E2%80%93e-ptz-network-camera-en-US-294608.pdf">AXIS
+    M5525–E PTZ Network Camera</a>, for pointing the camera at an
+    aircraft. The controller uses the position of the aircraft
+    reported by aircraft broadcast ADS-B, and pan and tilt of the
+    camera, to determine pan and tilt rates to follow the aircraft,
+    adjust camera focus based on range to the aircraft from the
+    camera, and periodically capture images of the aircraft.
+    <br/>
+    In more detail, the controller subscribes to an MQTT message topic
+    for ADS-B, or flight, messages, which provide the aircraft
+    latitude, longitude, altitude, and ground and vertical speeds at
+    the message time which are used to compute geocentric, and
+    topocentric position and velocity at the processing time using
+    WGS84 and linear extrapolation. Camera housing orientation is
+    represented by yaw, pitch, and roll, and these rotations are
+    represented by quaternions which are used to compute direction
+    cosine matrices for transformation between coordinate systems. The
     controller subscribes to an MQTT message topic for orientation
-    messages which set the yaw, pitch, and roll of the camera
-    housing. Finally, the controller subscribes to an MQTT message
-    topic for flight messages which describe the position of an
-    aircraft at a time. Rigorous coordinate transformations using the
-    WGS84, and quarternions to compute direction cosine matrices are
-    used to compute the required pan and tilt rate of the camera to
-    point at, and capture images of, the aircraft. Units of measure
-    are meters, seconds, and degrees, and operation of the controller
-    is extensively logged.
+    messages, such as those published by the EdgeTech-Auto-Orienter,
+    to set the yaw, pitch, and roll. The controller computes the pan
+    and tilt of the camera required to point at the aircraft, queries
+    the camera for its current pan and tilt, then commands a pan and
+    tilt rate proportional to the pan and tilt differences. The
+    controller assumes camera focus varies linearly with range to the
+    aircraft from the camera, then computes and sets focus whenever a
+    flight message is received. The controller begins capturing images
+    whenever a new aircraft is encountered, and stops capturing images
+    if a flight message has not been received in a specified
+    interval. All controller parameters can be customized through
+    environment variables, or using an MQTT message published to a
+    configuration topic. Units of measure are meters, seconds, and
+    degrees, and operation of the controller is extensively logged.
     <br/>
     <br/>
     <a href="https://github.com/IQTLabs/edgetech-axis-ptz-controller/pulls">Make Contribution</a>
@@ -97,17 +115,22 @@ Copying the project `docker-compose` statements into a master
 containers is the preferred workflow. Find an application architecture
 diagram example of how the usage of this module was envisioned below.
 
-<!-- Use the Labs Brand Colors in Mermaid Diagrams: #80c342,  #181245,  #f9d308,  #0072bc, #f05343, #65cbe7, #6657d3, #5f6475, #ffee97, #d0d2d9 -->
-
 ```mermaid 
 
 flowchart TD
-    A(A) -- A Description of the Link --> B{B}
-    C{C} -- A Description of the Link --> A(A)
+    configdata(Config Data) -- Config Topic --> mqtt{MQTT}
+    orientationdata(Orientation Data) -- Orientation Topic --> mqtt{MQTT}
+    flightdata(Flight Data) -- Flight Topic --> mqtt{MQTT}
+    mqtt{MQTT} -- Config, Orientation, and Flight Topics --> controller(Controller)
+    controller(Controller) --> capturedata(Capture Data)
+    capturedata(Capture Data) -- Capture Topic --> mqtt{MQTT}
 
-style A fill:#0072bc,color:#ffffff
-style B fill:#80c342,color:#ffffff
-style C fill:#f05343,color:#ffffff
+style mqtt fill:#0072bc,color:#ffffff
+style configdata fill:#80c342,color:#ffffff
+style orientationdata fill:#80c342,color:#ffffff
+style flightdata fill:#80c342,color:#ffffff
+style controller fill:#F9D308,color:#ffffff
+style capturedata fill:#80c342,color:#ffffff
 
 ```
 
