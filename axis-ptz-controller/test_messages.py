@@ -13,7 +13,7 @@ from base_mqtt_pub_sub import BaseMQTTPubSub
 from test_integration import (
     read_track_data,
     get_config_msg,
-    get_calibration_msg,
+    get_orientation_msg,
     make_flight_msg,
     plot_time_series,
 )
@@ -30,7 +30,7 @@ class MessageHandler(BaseMQTTPubSub):
     def __init__(
         self,
         config_topic: str,
-        calibration_topic: str,
+        orientation_topic: str,
         flight_topic: str,
         logger_topic: str,
         **kwargs: Any,
@@ -44,8 +44,8 @@ class MessageHandler(BaseMQTTPubSub):
         config_topic: str
             MQTT topic for publishing or subscribing to configuration
             messages
-        calibration_topic: str
-            MQTT topic for publishing or subscribing to calibration
+        orientation_topic: str
+            MQTT topic for publishing or subscribing to orientation
             messages
         flight_topic: str
             MQTT topic for publishing or subscribing to flight
@@ -61,7 +61,7 @@ class MessageHandler(BaseMQTTPubSub):
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
         self.config_topic = config_topic
-        self.calibration_topic = calibration_topic
+        self.orientation_topic = orientation_topic
         self.flight_topic = flight_topic
         self.logger_topic = logger_topic
 
@@ -150,7 +150,7 @@ def make_handler() -> MessageHandler:
     handler = MessageHandler(
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         flight_topic=os.getenv("FLIGHT_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
     )
@@ -201,17 +201,17 @@ def main() -> None:
     }
     handler.publish_to_topic(handler.logger_topic, json.dumps(logger_msg))
 
-    # Publish the configuration and calibration message, and the first
+    # Publish the configuration and orientation message, and the first
     # flight message
     config_msg = get_config_msg()
-    calibration_msg = get_calibration_msg()
+    orientation_msg = get_orientation_msg()
     index = 0
     flight_msg = make_flight_msg(track, index)
     logger.info(f"Publishing config msg: {config_msg}")
     handler.publish_to_topic(handler.config_topic, json.dumps(config_msg))
     time.sleep(UPDATE_INTERVAL)
-    logger.info(f"Publishing calibration msg: {calibration_msg}")
-    handler.publish_to_topic(handler.calibration_topic, json.dumps(calibration_msg))
+    logger.info(f"Publishing orientation msg: {orientation_msg}")
+    handler.publish_to_topic(handler.orientation_topic, json.dumps(orientation_msg))
     time.sleep(UPDATE_INTERVAL)
     logger.info(f"Publishing flight msg: {flight_msg}")
     handler.publish_to_topic(handler.flight_topic, json.dumps(flight_msg))

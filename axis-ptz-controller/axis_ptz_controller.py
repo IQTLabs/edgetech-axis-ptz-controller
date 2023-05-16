@@ -39,7 +39,7 @@ class AxisPtzController(BaseMQTTPubSub):
         camera_user: str,
         camera_password: str,
         config_topic: str,
-        calibration_topic: str,
+        orientation_topic: str,
         flight_topic: str,
         capture_topic: str,
         logger_topic: str,
@@ -78,8 +78,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Camera user password
         config_topic: str
             MQTT topic for subscribing to configuration messages
-        calibration_topic: str
-            MQTT topic for subscribing to calibration messages
+        orientation_topic: str
+            MQTT topic for subscribing to orientation messages
         flight_topic: str
             MQTT topic for subscribing to flight messages
         capture_topic: str
@@ -138,7 +138,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_user = camera_user
         self.camera_password = camera_password
         self.config_topic = config_topic
-        self.calibration_topic = calibration_topic
+        self.orientation_topic = orientation_topic
         self.flight_topic = flight_topic
         self.capture_topic = capture_topic
         self.logger_topic = logger_topic
@@ -276,7 +276,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
-        calibration_msg = {
+        orientation_msg = {
             "data": {
                 "camera": {
                     "tripod_yaw": self.alpha,
@@ -285,11 +285,11 @@ class AxisPtzController(BaseMQTTPubSub):
                 }
             }
         }
-        self._calibration_callback(None, None, calibration_msg)
+        self._orientation_callback(None, None, orientation_msg)
 
         # Initialize camera pointing
         if self.use_camera:
-            logger.info(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
+            logger.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
             self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
 
         # Log configuration parameters
@@ -300,7 +300,7 @@ class AxisPtzController(BaseMQTTPubSub):
     camera_user = {camera_user}
     camera_password = {camera_password}
     config_topic = {config_topic}
-    calibration_topic = {calibration_topic}
+    orientation_topic = {orientation_topic}
     flight_topic = {flight_topic}
     capture_topic = {capture_topic}
     logger_topic = {logger_topic}
@@ -414,14 +414,14 @@ class AxisPtzController(BaseMQTTPubSub):
             self.e_z_XYZ,
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(self.lambda_t, self.varphi_t)
 
-    def _calibration_callback(
+    def _orientation_callback(
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
         msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
     ) -> None:
         """
-        Process calibration message.
+        Process orientation message.
 
         Parameters
         ----------
@@ -441,7 +441,7 @@ class AxisPtzController(BaseMQTTPubSub):
             data = self.decode_payload(msg.payload)
         else:
             data = msg["data"]
-        logger.info(f"Processing calibration msg data: {data}")
+        logger.info(f"Processing orientation msg data: {data}")
         camera = data["camera"]
         self.alpha = camera["tripod_yaw"]  # [deg]
         self.beta = camera["tripod_pitch"]  # [deg]
@@ -449,7 +449,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
-        logger.info(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logger.debug(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
         (
             self.q_alpha,
             self.q_beta,
@@ -468,7 +468,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c,
             self.tau_c,
         )
-        logger.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logger.debug(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
     def _flight_callback(
         self,
@@ -539,9 +539,9 @@ class AxisPtzController(BaseMQTTPubSub):
             flight_msg_age = (
                 datetime.utcnow() - self.datetime_a
             ).total_seconds()  # [s]
-            logger.info(f"Flight msg age: {flight_msg_age} [s]")
+            logger.debug(f"Flight msg age: {flight_msg_age} [s]")
             lead_time += flight_msg_age
-        logger.info(f"Using lead time: {lead_time} [s]")
+        logger.debug(f"Using lead time: {lead_time} [s]")
 
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the aircraft relative to the tripod at
@@ -583,7 +583,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.elv_a = math.degrees(
             math.atan2(r_ENz_a_1_t[2], axis_ptz_utilities.norm(r_ENz_a_1_t[0:2]))
         )  # [deg]
-        logger.info(f"Aircraft azimuth and elevation: {self.azm_a}, {self.elv_a} [deg]")
+        logger.debug(
+            f"Aircraft azimuth and elevation: {self.azm_a}, {self.elv_a} [deg]"
+        )
 
         # Compute pan and tilt to point the camera at the aircraft
         r_uvw_a_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_a_1_t)
@@ -591,18 +593,18 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tau_a = math.degrees(
             math.atan2(r_uvw_a_1_t[2], axis_ptz_utilities.norm(r_uvw_a_1_t[0:2]))
         )  # [deg]
-        logger.info(f"Aircraft pan and tilt: {self.rho_a}, {self.tau_a} [deg]")
+        logger.debug(f"Aircraft pan and tilt: {self.rho_a}, {self.tau_a} [deg]")
         icao24 = data["icao24"]
         if self.use_camera and self.tau_a < 0:
-            logger.info(f"Stopping image capture of aircraft: {icao24}")
+            logger.debug(f"Stopping image capture of aircraft: {icao24}")
             self.do_capture = False
-            logger.info("Stopping continuous pan and tilt")
+            logger.debug("Stopping continuous pan and tilt")
             self.camera_control.stop_move()
 
         if self.use_camera:
             # Get camera pan, tilt, and zoom
             self.rho_c, self.tau_c, _zoom = self.camera_control.get_ptz()
-            logger.info(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logger.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
             # Point the camera at any new aircraft directly
             if self.icao24 != icao24:
@@ -620,12 +622,12 @@ class AxisPtzController(BaseMQTTPubSub):
                 return
 
         else:
-            logger.info(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logger.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
         # Compute slew rate differences
         self.delta_rho_dot_c = self.pan_gain * (self.rho_a - self.rho_c)
         self.delta_tau_dot_c = self.tilt_gain * (self.tau_a - self.tau_c)
-        logger.info(
+        logger.debug(
             f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
         )
 
@@ -660,14 +662,14 @@ class AxisPtzController(BaseMQTTPubSub):
         )
         self.rho_dot_a = math.degrees(-omega[2])
         self.tau_dot_a = math.degrees(omega[0])
-        logger.info(
+        logger.debug(
             f"Aircraft pan and tilt rates: {self.rho_dot_a}, {self.tau_dot_a} [deg/s]"
         )
 
         # Update camera pan and tilt rate
         self.rho_dot_c = self.rho_dot_a + self.delta_rho_dot_c
         self.tau_dot_c = self.tau_dot_a + self.delta_tau_dot_c
-        logger.info(
+        logger.debug(
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
@@ -675,7 +677,7 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera:
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
-            logger.info(
+            logger.debug(
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
             self.camera_control.continuous_move(
@@ -706,7 +708,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     }
                 },
             }
-            logger.info(f"Publishing logger msg: {msg}")
+            logger.debug(f"Publishing logger msg: {msg}")
             self.publish_to_topic(self.logger_topic, json.dumps(msg))
 
     def _compute_pan_rate_index(self, rho_dot: float) -> int:
@@ -817,7 +819,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     "v_ENz_a_0_t": self.v_ENz_a_0_t.tolist(),
                 },
             }
-            logger.info(
+            logger.debug(
                 f"Publishing metadata: {image_metadata}, for aircraft: {self.icao24}, at: {self.capture_time}"
             )
             self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
@@ -856,7 +858,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
-            self.add_subscribe_topic(self.calibration_topic, self._calibration_callback)
+            self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
             self.add_subscribe_topic(self.flight_topic, self._flight_callback)
 
         if self.use_camera:
@@ -902,7 +904,7 @@ def make_controller() -> AxisPtzController:
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP"),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        calibration_topic=os.getenv("CALIBRATION_TOPIC", ""),
+        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         flight_topic=os.getenv("FLIGHT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
