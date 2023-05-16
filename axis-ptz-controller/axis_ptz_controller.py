@@ -6,6 +6,7 @@ import math
 import os
 from pathlib import Path
 import shutil
+import signal
 import tempfile
 from time import sleep, time
 from typing import Any, Dict, Union
@@ -291,6 +292,10 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera:
             logger.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
             self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
+
+        # Handle the interrupt and terminate signals
+        signal.signal(signal.SIGINT, self.exit)
+        signal.signal(signal.SIGTERM, self.exit)
 
         # Log configuration parameters
         logger.info(
@@ -842,6 +847,22 @@ class AxisPtzController(BaseMQTTPubSub):
         self.time_c += self.update_interval
         self.rho_c += self.rho_dot_c * self.update_interval
         self.tau_c += self.tau_dot_c * self.update_interval
+
+    def exit(self) -> None:
+        """Exit the controller gracefully by stopping continuous pan
+        and tilt.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        if self.use_camera:
+            logger.debug("Stopping continuous pan and tilt")
+            self.camera_control.stop_move()
 
     def main(self) -> None:
         """Schedule module heartbeat and image capture, subscribe to
