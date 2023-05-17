@@ -9,7 +9,8 @@ import shutil
 import signal
 import tempfile
 from time import sleep, time
-from typing import Any, Dict, Union
+from types import FrameType
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import quaternion
@@ -294,8 +295,8 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
 
         # Handle the interrupt and terminate signals
-        signal.signal(signal.SIGINT, self.exit)
-        signal.signal(signal.SIGTERM, self.exit)
+        signal.signal(signal.SIGINT, self._exit_handler)
+        signal.signal(signal.SIGTERM, self._exit_handler)
 
         # Log configuration parameters
         logger.info(
@@ -848,13 +849,17 @@ class AxisPtzController(BaseMQTTPubSub):
         self.rho_c += self.rho_dot_c * self.update_interval
         self.tau_c += self.tau_dot_c * self.update_interval
 
-    def exit(self) -> None:
+    def _exit_handler(self, signum: int, frame: Optional[FrameType]) -> None:
         """Exit the controller gracefully by stopping continuous pan
         and tilt.
 
         Parameters
         ----------
-        None
+        signum : int
+            The signal number
+
+        frame : Optional[FrameType]
+            The current stack frame (None or a frame object)
 
         Returns
         -------
