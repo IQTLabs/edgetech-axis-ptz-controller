@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import sys
 import tempfile
 from time import sleep, time
 from types import FrameType
@@ -868,6 +869,8 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera:
             logger.debug("Stopping continuous pan and tilt")
             self.camera_control.stop_move()
+        logger.info("Exiting")
+        sys.exit()
 
     def main(self) -> None:
         """Schedule module heartbeat and image capture, subscribe to
