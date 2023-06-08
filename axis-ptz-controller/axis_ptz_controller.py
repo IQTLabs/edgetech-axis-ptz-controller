@@ -74,7 +74,7 @@ class AxisPtzController(BaseMQTTPubSub):
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
-                and message broker, and initializing data attributes.
+        and message broker, and initializing data attributes.
 
         Parameters
         ----------
