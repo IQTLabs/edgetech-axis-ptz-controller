@@ -76,77 +76,77 @@ class AxisPtzController(BaseMQTTPubSub):
         """Instantiate the PTZ controller by connecting to the camera
                 and message broker, and initializing data attributes.
 
-                Parameters
-                ----------
-                camera_ip: str
-                    Camera IP address
-                camera_user: str
-                    Camera user name
-                camera_password: str
-                    Camera user password
-                config_topic: str
-                    MQTT topic for subscribing to configuration messages
-                orientation_topic: str
-                    MQTT topic for subscribing to orientation messages
-                flight_topic: str
-                    MQTT topic for subscribing to flight messages
-                capture_topic: str
-                    MQTT topic for publising capture messages
-                logger_topic: str
-                    MQTT topic for publishing logger messages
-                heartbeat_interval: float
-                    Interval at which heartbeat message is to be published [s]
-                lambda_t: float
-                    Tripod geodetic longitude [deg]
-                varphi_t: float = 0.0,
-                    Tripod geodetic latitude [deg]
-                h_t: float = 0.0,
-                    Tripod geodetic altitude [deg]
-                update_interval: float
-                    Interval at which pointing of the camera is computed [s]
-                capture_interval: float
-                    Interval at which the camera image is captured [s]
-                capture_dir: str
-                    Directory in which to place captured images
-                lead_time: float
-                    Lead time used when computing camera pointing to the
-                    aircraft [s]
-                pan_gain: float
-                    Proportional control gain for pan error [1/s]
-                pan_rate_min: float
-                    Camera pan rate minimum [deg/s]
-                pan_rate_max: float
-                    Camera pan rate maximum [deg/s]
-                tilt_gain: float
-                    Proportional control gain for tilt error [1/s]
-                tilt_rate_min: float
-                    Camera tilt rate minimum [deg/s]
-                tilt_rate_max: float
-                    Camera tilt rate maximum [deg/s]
-                focus_slope: float
-                    Focus slope from measurement [%/m]
-                focus_intercept: float
-                    Focus intercept from measurement [%]
-                focus_min: int
-                    Focus minimum from settings
-                focus_max: int
-        t            Focus maximum from settings
-                jpeg_resolution: str
-                    Image capture resolution, for example, "1920x1080"
-                jpeg_compression: int
-                    Image compression: 0 to 100
-                use_mqtt: bool
-                    Flag to use MQTT, or not
-                use_camera: bool
-                    Flag to use camera configuration and control, or not
-                include_age: bool
-                    Flag to include flight message age in lead time, or not
-                log_to_mqtt: bool
-                    Flag to publish logger messages to MQTT, or not
+        Parameters
+        ----------
+        camera_ip: str
+            Camera IP address
+        camera_user: str
+            Camera user name
+        camera_password: str
+            Camera user password
+        config_topic: str
+            MQTT topic for subscribing to configuration messages
+        orientation_topic: str
+            MQTT topic for subscribing to orientation messages
+        flight_topic: str
+            MQTT topic for subscribing to flight messages
+        capture_topic: str
+            MQTT topic for publising capture messages
+        logger_topic: str
+            MQTT topic for publishing logger messages
+        heartbeat_interval: float
+            Interval at which heartbeat message is to be published [s]
+        lambda_t: float
+            Tripod geodetic longitude [deg]
+        varphi_t: float = 0.0,
+            Tripod geodetic latitude [deg]
+        h_t: float = 0.0,
+            Tripod geodetic altitude [deg]
+        update_interval: float
+            Interval at which pointing of the camera is computed [s]
+        capture_interval: float
+            Interval at which the camera image is captured [s]
+        capture_dir: str
+            Directory in which to place captured images
+        lead_time: float
+            Lead time used when computing camera pointing to the
+            aircraft [s]
+        pan_gain: float
+            Proportional control gain for pan error [1/s]
+        pan_rate_min: float
+            Camera pan rate minimum [deg/s]
+        pan_rate_max: float
+            Camera pan rate maximum [deg/s]
+        tilt_gain: float
+            Proportional control gain for tilt error [1/s]
+        tilt_rate_min: float
+            Camera tilt rate minimum [deg/s]
+        tilt_rate_max: float
+            Camera tilt rate maximum [deg/s]
+        focus_slope: float
+            Focus slope from measurement [%/m]
+        focus_intercept: float
+            Focus intercept from measurement [%]
+        focus_min: int
+            Focus minimum from settings
+        focus_max: int
+             Focus maximum from settings
+        jpeg_resolution: str
+            Image capture resolution, for example, "1920x1080"
+        jpeg_compression: int
+            Image compression: 0 to 100
+        use_mqtt: bool
+            Flag to use MQTT, or not
+        use_camera: bool
+            Flag to use camera configuration and control, or not
+        include_age: bool
+            Flag to include flight message age in lead time, or not
+        log_to_mqtt: bool
+            Flag to publish logger messages to MQTT, or not
 
-                Returns
-                -------
-                AxisPtzController
+        Returns
+        -------
+        AxisPtzController
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
