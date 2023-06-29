@@ -476,37 +476,37 @@ def compute_great_circle_distance(
 
 
 def convert_time(time_a: Union[str, float]) -> datetime:
-    """Convert aircraft time to datetime object.
+    """Convert object time to datetime object.
 
     Parameters
     ----------
     time_a : Union[str, float]
-        Aircraft time reported by ADS-B
+        Object time reported by ADS-B
 
     Returns
     -------
     datetime_a : datetime
-        Aircraft datetime object
+        Object datetime object
     """
-    # Parse aircraft time as string with decimal seconds
+    # Parse object time as string with decimal seconds
     try:
         datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S.%f")
     except Exception as e:
         logger.debug(
-            f"Could not parse aircraft time as string with decimal seconds: {e}"
+            f"Could not parse object time as string with decimal seconds: {e}"
         )
 
-        # Parse aircraft time as string
+        # Parse object time as string
         try:
             datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S")
         except Exception as e:
-            logger.debug(f"Could not parse aircraft time as string: {e}")
+            logger.debug(f"Could not parse object time as string: {e}")
 
-            # Construct datetime from aircraft time
+            # Construct datetime from object time
             try:
                 datetime_a = datetime.fromtimestamp(cast(float, time_a))
             except Exception as e:
-                logger.debug(f"Could not construct datetime from aircraft time: {e}")
+                logger.debug(f"Could not construct datetime from object time: {e}")
 
     return datetime_a
 
