@@ -1,0 +1,21 @@
+# Prior to building, copy the following resources from
+# IQTLabs/edgetech-core to the build directory (axis-ptz-controller):
+#   - core/base_mqtt_pub_sub.py
+#   - mqtt/*
+version: "3"
+services:
+  controller:
+    image: iqtlabs/edgetech-axis-ptz-controller:latest
+    build:
+      context: ./axis-ptz-controller
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    env_file:
+      - axis-ptz-controller-wo-mqtt.env
+    volumes:
+      - /flash/raw:/data/tosort
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10M"
+        max-file: "10"
