@@ -223,6 +223,16 @@ class AxisPtzController(BaseMQTTPubSub):
         self.q_beta = quaternion.quaternion()
         self.q_gamma = quaternion.quaternion()
 
+        # Tripod position in the geocentric (XYZ) coordinate system
+        self.r_XYZ_t = np.zeros((3,))
+
+        # Compute orthogonal transformation matrix from geocentric
+        # (XYZ) to topocentric (ENz) coordinates
+        self.E_XYZ_to_ENz = np.zeros((3, 3))
+        self.e_E_XYZ = np.zeros((3,))
+        self.e_N_XYZ = np.zeros((3,))
+        self.e_z_XYZ = np.zeros((3,))
+
         # Orthogonal transformation matrix from geocentric (XYZ) to
         # camera housing fixed (uvw) coordinates
         self.E_XYZ_to_uvw = np.zeros((3, 3))
@@ -281,7 +291,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # North, and zenith unit vectors
         config_msg = {
             "data": {
-                "camera": {
+                "axis-ptz-controller": {
                     "lambda_t": self.lambda_t,
                     "varphi_t": self.varphi_t,
                     "h_t": self.h_t,
@@ -293,6 +303,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
+        # TODO: Fix key?
         orientation_msg = {
             "data": {
                 "camera": {
@@ -523,33 +534,34 @@ class AxisPtzController(BaseMQTTPubSub):
         # Assign identifier, time, position, and velocity of the
         # object
         if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)
+            data = json.loads(self.decode_payload(msg.payload)["Selected Object"])
         else:
             data = msg["data"]
         if not set(
             [
                 "object_id",
-                "latLonTime",
-                "lon",
-                "lat",
+                "object_type",
+                "timestamp",
+                "latitude",
+                "longitude",
                 "altitude",
                 "track",
-                "groundSpeed",
-                "verticalRate",
+                "horizontal_velocity",
+                "vertical_velocity",
             ]
         ) <= set(data.keys()):
             logger.info(f"Required keys missing from object message data: {data}")
             return
         logger.info(f"Processing object msg data: {data}")
-        self.timestamp_o = data["latLonTime"]  # [s]
+        self.timestamp_o = data["timestamp"]  # [s]
         self.datetime_o = axis_ptz_utilities.convert_time(self.timestamp_o)
         self.time_c = self.timestamp_o
-        self.lambda_o = data["lon"]  # [deg]
-        self.varphi_o = data["lat"]  # [deg]
+        self.lambda_o = data["longitude"]  # [deg]
+        self.varphi_o = data["latitude"]  # [deg]
         self.h_o = data["altitude"]  # [m]
         track_o = data["track"]  # [deg]
-        ground_speed_o = data["groundSpeed"]  # [m/s]
-        vertical_rate_o = data["verticalRate"]  # [m/s]
+        ground_speed_o = data["horizontal_velocity"]  # [m/s]
+        vertical_rate_o = data["vertical_velocity"]  # [m/s]
 
         # Compute position in the geocentric (XYZ) coordinate system
         # of the object relative to the tripod at time zero, the
@@ -610,9 +622,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.elv_o = math.degrees(
             math.atan2(r_ENz_o_1_t[2], axis_ptz_utilities.norm(r_ENz_o_1_t[0:2]))
         )  # [deg]
-        logger.debug(
-            f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]"
-        )
+        logger.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
 
         # Compute pan and tilt to point the camera at the object
         r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_o_1_t)
@@ -813,7 +823,6 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.do_capture:
-
             # Capture an image in JPEG format
             self.capture_time = time()
             datetime_c = datetime.now()
@@ -841,7 +850,7 @@ class AxisPtzController(BaseMQTTPubSub):
             # and tilt, and accounting for object message age relative
             # to the image capture
             rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            flight_msg_age = (datetime_c - self.datetime_a).total_seconds()  # [s]
+            object_msg_age = (datetime_c - self.datetime_a).total_seconds()  # [s]
             image_metadata = {
                 "timestamp": timestamp,
                 "imagefile": str(image_filepath),
@@ -911,7 +920,6 @@ class AxisPtzController(BaseMQTTPubSub):
         capturing images after twice the capture interval has elapsed.
         """
         if self.use_mqtt:
-
             # Schedule module heartbeat
             heartbeat_job = schedule.every(self.heartbeat_interval).seconds.do(
                 self.publish_heartbeat, payload="PTZ Controller Module Heartbeat"
@@ -923,7 +931,6 @@ class AxisPtzController(BaseMQTTPubSub):
             self.add_subscribe_topic(self.object_topic, self._object_callback)
 
         if self.use_camera:
-
             # Schedule image capture
             capture_job = schedule.every(self.capture_interval).seconds.do(
                 self._capture_image
