@@ -1,3 +1,4 @@
+import coloredlogs
 import contextlib
 from datetime import datetime
 import logging
@@ -13,8 +14,25 @@ import quaternion
 R_OPLUS = 6378137  # [m]
 F_INV = 298.257223563
 
-logger = logging.getLogger("ptz-utilities")
-logger.setLevel(logging.INFO)
+STYLES = {
+    "critical": {"bold": True, "color": "red"},
+    "debug": {"color": "green"},
+    "error": {"color": "red"},
+    "info": {"color": "white"},
+    "notice": {"color": "magenta"},
+    "spam": {"color": "green", "faint": True},
+    "success": {"bold": True, "color": "green"},
+    "verbose": {"color": "blue"},
+    "warning": {"color": "yellow"},
+}
+coloredlogs.install(
+    level=logging.INFO,
+    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
+    ""
+    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
+    "%(message)s",
+    level_styles=STYLES,
+)
 
 
 def compute_e_E_XYZ(d_lambda: float) -> npt.NDArray[np.float64]:
@@ -492,21 +510,19 @@ def convert_time(time_a: Union[str, float]) -> datetime:
     try:
         datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S.%f")
     except Exception as e:
-        logger.debug(
-            f"Could not parse object time as string with decimal seconds: {e}"
-        )
+        logging.debug(f"Could not parse object time as string with decimal seconds: {e}")
 
         # Parse object time as string
         try:
             datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S")
         except Exception as e:
-            logger.debug(f"Could not parse object time as string: {e}")
+            logging.debug(f"Could not parse object time as string: {e}")
 
             # Construct datetime from object time
             try:
                 datetime_a = datetime.fromtimestamp(cast(float, time_a))
             except Exception as e:
-                logger.debug(f"Could not construct datetime from object time: {e}")
+                logging.debug(f"Could not construct datetime from object time: {e}")
 
     return datetime_a
 

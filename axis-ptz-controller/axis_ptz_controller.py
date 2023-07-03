@@ -1,4 +1,5 @@
 import ast
+import coloredlogs
 from datetime import datetime
 import json
 import logging
@@ -23,14 +24,25 @@ from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
 from camera_control import CameraControl
 
-root_logger = logging.getLogger()
-ch = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-root_logger.addHandler(ch)
-
-logger = logging.getLogger("ptz-controller")
-logger.setLevel(logging.INFO)
+STYLES = {
+    "critical": {"bold": True, "color": "red"},
+    "debug": {"color": "green"},
+    "error": {"color": "red"},
+    "info": {"color": "white"},
+    "notice": {"color": "magenta"},
+    "spam": {"color": "green", "faint": True},
+    "success": {"bold": True, "color": "green"},
+    "verbose": {"color": "blue"},
+    "warning": {"color": "yellow"},
+}
+coloredlogs.install(
+    level=logging.INFO,
+    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
+    ""
+    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
+    "%(message)s",
+    level_styles=STYLES,
+)
 
 
 class AxisPtzController(BaseMQTTPubSub):
@@ -185,7 +197,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
-        logger.info("Constructing camera configuration and control")
+        logging.info("Constructing camera configuration and control")
         self.camera_configuration = CameraConfiguration(
             self.camera_ip, self.camera_user, self.camera_password
         )
@@ -195,7 +207,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Connect MQTT client
         if self.use_mqtt:
-            logger.info("Connecting MQTT client")
+            logging.info("Connecting MQTT client")
             self.connect_client()
             sleep(1)
             self.publish_registration("PTZ Controller Module Registration")
@@ -317,7 +329,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Initialize camera pointing
         if self.use_camera:
-            logger.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
+            logging.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
             self.camera_control.absolute_move(
                 self.rho_c, self.tau_c, self.zoom, 50, self.focus
             )
@@ -327,7 +339,7 @@ class AxisPtzController(BaseMQTTPubSub):
         signal.signal(signal.SIGTERM, self._exit_handler)
 
         # Log configuration parameters
-        logger.info(
+        logging.info(
             f"""AxisPtzController initialized with parameters:
 
     camera_ip = {camera_ip}
@@ -417,7 +429,7 @@ class AxisPtzController(BaseMQTTPubSub):
             data = msg["data"]
         if "axis-ptz-controller" not in data:
             return
-        logger.info(f"Processing config msg data: {data}")
+        logging.info(f"Processing config msg data: {data}")
         # TODO: Use module specific key?
         config = data["axis-ptz-controller"]
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
@@ -479,7 +491,7 @@ class AxisPtzController(BaseMQTTPubSub):
             data = self.decode_payload(msg.payload)
         else:
             data = msg["data"]
-        logger.info(f"Processing orientation msg data: {data}")
+        logging.info(f"Processing orientation msg data: {data}")
         camera = data["camera"]
         self.alpha = camera["tripod_yaw"]  # [deg]
         self.beta = camera["tripod_pitch"]  # [deg]
@@ -487,7 +499,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
-        logger.debug(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logging.debug(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
         (
             self.q_alpha,
             self.q_beta,
@@ -506,7 +518,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c,
             self.tau_c,
         )
-        logger.debug(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logging.debug(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
     def _object_callback(
         self,
@@ -550,9 +562,9 @@ class AxisPtzController(BaseMQTTPubSub):
                 "vertical_velocity",
             ]
         ) <= set(data.keys()):
-            logger.info(f"Required keys missing from object message data: {data}")
+            logging.info(f"Required keys missing from object message data: {data}")
             return
-        logger.info(f"Processing object msg data: {data}")
+        logging.info(f"Processing object msg data: {data}")
         self.timestamp_o = data["timestamp"]  # [s]
         self.datetime_o = axis_ptz_utilities.convert_time(self.timestamp_o)
         self.time_c = self.timestamp_o
@@ -578,9 +590,9 @@ class AxisPtzController(BaseMQTTPubSub):
             object_msg_age = (
                 datetime.utcnow() - self.datetime_o
             ).total_seconds()  # [s]
-            logger.debug(f"Object msg age: {object_msg_age} [s]")
+            logging.debug(f"Object msg age: {object_msg_age} [s]")
             lead_time += object_msg_age
-        logger.debug(f"Using lead time: {lead_time} [s]")
+        logging.debug(f"Using lead time: {lead_time} [s]")
 
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
@@ -622,7 +634,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.elv_o = math.degrees(
             math.atan2(r_ENz_o_1_t[2], axis_ptz_utilities.norm(r_ENz_o_1_t[0:2]))
         )  # [deg]
-        logger.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
+        logging.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
 
         # Compute pan and tilt to point the camera at the object
         r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_o_1_t)
@@ -630,23 +642,23 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tau_o = math.degrees(
             math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
         )  # [deg]
-        logger.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
+        logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
         object_id = data["object_id"]
         if self.use_camera and self.tau_o < 0:
-            logger.info(f"Stopping image capture of object: {object_id}")
+            logging.info(f"Stopping image capture of object: {object_id}")
             self.do_capture = False
-            logger.info("Stopping continuous pan and tilt")
+            logging.info("Stopping continuous pan and tilt")
             self.camera_control.stop_move()
 
         if self.use_camera:
             # Get camera pan and tilt
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            logger.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
             # Point the camera at any new object directly
             if self.object_id != object_id:
                 self.object_id = object_id
-                logger.info(
+                logging.info(
                     f"Absolute move to pan: {self.rho_a}, and tilt: {self.tau_a}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
                 self.camera_control.absolute_move(
@@ -656,17 +668,17 @@ class AxisPtzController(BaseMQTTPubSub):
                     math.fabs(self.rho_c - self.rho_o) / (self.pan_rate_max / 2),
                     math.fabs(self.tau_c - self.tau_o) / (self.tilt_rate_max / 2),
                 )
-                logger.info(f"Sleeping: {duration} [s]")
+                logging.info(f"Sleeping: {duration} [s]")
                 sleep(duration)
                 return
 
         else:
-            logger.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
         # Compute slew rate differences
         self.delta_rho_dot_c = self.pan_gain * (self.rho_o - self.rho_c)
         self.delta_tau_dot_c = self.tilt_gain * (self.tau_o - self.tau_c)
-        logger.debug(
+        logging.debug(
             f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
         )
 
@@ -701,14 +713,14 @@ class AxisPtzController(BaseMQTTPubSub):
         )
         self.rho_dot_o = math.degrees(-omega[2])
         self.tau_dot_o = math.degrees(omega[0])
-        logger.debug(
+        logging.debug(
             f"Object pan and tilt rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s]"
         )
 
         # Update camera pan and tilt rate
         self.rho_dot_c = self.rho_dot_o + self.delta_rho_dot_c
         self.tau_dot_c = self.tau_dot_o + self.delta_tau_dot_c
-        logger.debug(
+        logging.info(
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
@@ -721,12 +733,12 @@ class AxisPtzController(BaseMQTTPubSub):
                 / 100.0
                 + self.focus_min
             )  # [%]
-            logger.debug(f"Commanding focus: {self.focus}")
+            logging.debug(f"Commanding focus: {self.focus}")
             self.camera_control.set_focus(self.focus)
 
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
-            logger.debug(
+            logging.debug(
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
             self.camera_control.continuous_move(
@@ -735,7 +747,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 0.0,
             )
             if not self.do_capture:
-                logger.info(f"Starting image capture of object: {self.object_id}")
+                logging.info(f"Starting image capture of object: {self.object_id}")
                 self.do_capture = True
                 self.capture_time = time()
 
@@ -757,7 +769,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     }
                 },
             }
-            logger.debug(f"Publishing logger msg: {msg}")
+            logging.debug(f"Publishing logger msg: {msg}")
             self.publish_to_topic(self.logger_topic, json.dumps(msg))
 
     def _compute_pan_rate_index(self, rho_dot: float) -> int:
@@ -834,7 +846,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 int(self.distance3d),
                 timestamp,
             )
-            logger.info(
+            logging.info(
                 f"Capturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
             )
             with tempfile.TemporaryDirectory() as d:
@@ -867,7 +879,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     "v_ENz_o_0_t": self.v_ENz_o_0_t.tolist(),
                 },
             }
-            logger.debug(
+            logging.debug(
                 f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
             self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
@@ -908,9 +920,9 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.use_camera:
-            logger.info("Stopping continuous pan and tilt")
+            logging.info("Stopping continuous pan and tilt")
             self.camera_control.stop_move()
-        logger.info("Exiting")
+        logging.info("Exiting")
         sys.exit()
 
     def main(self) -> None:
@@ -955,14 +967,14 @@ class AxisPtzController(BaseMQTTPubSub):
                     self.do_capture
                     and time() - self.capture_time > 2.0 * self.capture_interval
                 ):
-                    logger.info(f"Stopping image capture of object: {self.object_id}")
+                    logging.info(f"Stopping image capture of object: {self.object_id}")
                     self.do_capture = False
                     if self.use_camera:
-                        logger.info("Stopping continuous pan and tilt")
+                        logging.info("Stopping continuous pan and tilt")
                         self.camera_control.stop_move()
 
             except Exception as e:
-                logger.error(f"Main loop exception: {e}")
+                logging.error(f"Main loop exception: {e}")
                 break
 
 
