@@ -1,0 +1,14 @@
+{
+    "timestamp": "2023-01-01-00-00-00",
+    "data": {
+        "object_id": "a1e946",
+        "object_type": "aircraft",
+        "timestamp": 1.0,
+        "latitude": 89.99,
+        "longitude": 270.0,
+        "altitude": 1000.0,
+        "track": 0.0,
+        "horizontal_velocity": -74.4999211024472,
+        "vertical_velocity": 66.7065345804228
+    }
+}
