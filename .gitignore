@@ -131,7 +131,10 @@ dmypy.json
 # Developer files
 *~
 *#
+.bashrc
 .dir-locals.el
+.DS_Store
+.idea
 .pre-commit-config.yaml
 .requirements.txt
 axis-ptz-controller.env
