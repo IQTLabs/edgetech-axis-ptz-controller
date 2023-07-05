@@ -86,14 +86,14 @@ def get_config_msg() -> Dict[Any, Any]:
     """
     msg: Dict[Any, Any] = {}
     msg["data"] = {}
-    msg["data"]["camera"] = {}
-    msg["data"]["camera"]["tripod_longitude"] = float(
+    msg["data"]["axis-ptz-controller"] = {}
+    msg["data"]["axis-ptz-controller"]["tripod_longitude"] = float(
         os.getenv("TRIPOD_LONGITUDE", "-77.0")
     )  # [deg]
-    msg["data"]["camera"]["tripod_latitude"] = float(
+    msg["data"]["axis-ptz-controller"]["tripod_latitude"] = float(
         os.getenv("TRIPOD_LATITUDE", "38.0")
     )  # [deg]
-    msg["data"]["camera"]["tripod_altitude"] = 86.46  # [m]
+    msg["data"]["axis-ptz-controller"]["tripod_altitude"] = 86.46  # [m]
     return msg
 
 
