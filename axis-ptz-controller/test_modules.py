@@ -20,10 +20,10 @@ LAMBDA_T = 270.0  # [deg]
 VARPHI_T = 90.0  # [deg]
 H_T = 0.0  # [m]
 
-# Places aircraft south of tripod
-LAMBDA_A = 270.0  # [deg]
-VARPHI_A = 89.99  # [deg]
-H_A = 1000.0  # [m]
+# Places object south of tripod
+LAMBDA_O = 270.0  # [deg]
+VARPHI_O = 89.99  # [deg]
+H_O = 1000.0  # [m]
 AIR_SPEED = 100.0  # [m/s]
 
 HEARTBEAT_INTERVAL = 10.0
@@ -62,7 +62,7 @@ def controller() -> axis_ptz_controller.AxisPtzController:
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
         orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        object_topic=os.getenv("OBJECT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
@@ -109,21 +109,21 @@ def orientation_msg_90s() -> Dict[Any, Any]:
 
 
 @pytest.fixture
-def flight_msg() -> Dict[Any, Any]:
-    """Populate a flight message with velocity along the line of
+def object_msg() -> Dict[Any, Any]:
+    """Populate a object message with velocity along the line of
     sight, using the calculation noted below.
 
     # ENz at the tripod aligns with XYZ, and the tripod remains stationary
     r_XYZ_t = axis_ptz_utilities.compute_r_XYZ(LAMBDA_T, VARPHI_T, H_T)
-    r_XYZ_a = axis_ptz_utilities.compute_r_XYZ(LAMBDA_A, VARPHI_A, H_A)
-    r_XYZ_a_t = r_XYZ_a - r_XYZ_t
-    v_ENz_T_a = AIR_SPEED * r_XYZ_a_t / axis_ptz_utilities.norm(r_XYZ_a_t)
+    r_XYZ_o = axis_ptz_utilities.compute_r_XYZ(LAMBDA_O, VARPHI_O, H_O)
+    r_XYZ_o_t = r_XYZ_o - r_XYZ_t
+    v_ENz_T_o = AIR_SPEED * r_XYZ_o_t / axis_ptz_utilities.norm(r_XYZ_o_t)
 
-    # ENz directly below the aircraft miss-aligns with XYZ slightly
-    E_XYZ_to_ENz, _, _, _ = axis_ptz_utilities.compute_E_XYZ_to_ENz(LAMBDA_A, VARPHI_A)
-    v_ENz_A_a = np.matmul(E_XYZ_to_ENz, v_ENz_T_a)
+    # ENz directly below the object miss-aligns with XYZ slightly
+    E_XYZ_to_ENz, _, _, _ = axis_ptz_utilities.compute_E_XYZ_to_ENz(LAMBDA_O, VARPHI_O)
+    v_ENz_A_o = np.matmul(E_XYZ_to_ENz, v_ENz_T_o)
     """
-    with open("data/flight_msg.json", "r") as f:
+    with open("data/object_msg.json", "r") as f:
         msg = json.load(f)
     return msg
 
@@ -212,12 +212,12 @@ class TestAxisPtzController:
         assert controller._compute_tilt_rate_index(0.0) == 0
         assert controller._compute_tilt_rate_index(TILT_RATE_MAX * 2.0) == +100
 
-    def test_flight_callback(
+    def test_object_callback(
         self,
         controller: axis_ptz_controller.AxisPtzController,
         config_msg: Dict[Any, Any],
         orientation_msg_0s: Dict[Any, Any],
-        flight_msg: Dict[Any, Any],
+        object_msg: Dict[Any, Any],
     ) -> None:
 
         # Align ENz with XYZ
@@ -229,32 +229,32 @@ class TestAxisPtzController:
         controller._orientation_callback(_client, _userdata, orientation_msg_0s)
 
         # Align velocity along the line of sight
-        controller._flight_callback(_client, _userdata, flight_msg)
+        controller._object_callback(_client, _userdata, object_msg)
 
         # Compute expected values
         r_uvw_t = axis_ptz_utilities.compute_r_XYZ(LAMBDA_T, VARPHI_T, H_T)
-        r_uvw_a = axis_ptz_utilities.compute_r_XYZ(LAMBDA_A, VARPHI_A, H_A)
-        r_uvw_a_t = r_uvw_a - r_uvw_t
+        r_uvw_o = axis_ptz_utilities.compute_r_XYZ(LAMBDA_O, VARPHI_O, H_O)
+        r_uvw_o_t = r_uvw_o - r_uvw_t
         # Expect +/-180.0
-        rho_a_exp = math.fabs(math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1])))
-        tau_a_exp = math.degrees(
-            math.atan2(r_uvw_a_t[2], math.sqrt(r_uvw_a_t[0] ** 2 + r_uvw_a_t[1] ** 2))
+        rho_o_exp = math.fabs(math.degrees(math.atan2(r_uvw_o_t[0], r_uvw_o_t[1])))
+        tau_o_exp = math.degrees(
+            math.atan2(r_uvw_o_t[2], math.sqrt(r_uvw_o_t[0] ** 2 + r_uvw_o_t[1] ** 2))
         )
-        delta_rho_dot_c_exp = PAN_GAIN * rho_a_exp  # Since rho_c = 0.0
-        delta_tau_dot_c_exp = TILT_GAIN * tau_a_exp  # Since tau_c = 0.0
-        r_rst_a_0_t = np.array([0.0, axis_ptz_utilities.norm(r_uvw_a_t), 0.0])
-        v_rst_a_0_t = np.array([0.0, AIR_SPEED, 0.0])
+        delta_rho_dot_c_exp = PAN_GAIN * rho_o_exp  # Since rho_c = 0.0
+        delta_tau_dot_c_exp = TILT_GAIN * tau_o_exp  # Since tau_c = 0.0
+        r_rst_o_0_t = np.array([0.0, axis_ptz_utilities.norm(r_uvw_o_t), 0.0])
+        v_rst_o_0_t = np.array([0.0, AIR_SPEED, 0.0])
 
-        assert math.fabs(controller.rho_a) == rho_a_exp
-        assert controller.tau_a == tau_a_exp
+        assert math.fabs(controller.rho_o) == rho_o_exp
+        assert controller.tau_o == tau_o_exp
         assert controller.delta_rho_dot_c == delta_rho_dot_c_exp
         assert controller.delta_tau_dot_c == delta_tau_dot_c_exp
-        assert np.linalg.norm(controller.r_rst_a_0_t - r_rst_a_0_t) < PRECISION
+        assert np.linalg.norm(controller.r_rst_o_0_t - r_rst_o_0_t) < PRECISION
         # Magnitude of velocity difference less than 0.02% of velocity magnitude
         assert (
             100
-            * np.linalg.norm(controller.v_rst_a_0_t - v_rst_a_0_t)
-            / np.linalg.norm(v_rst_a_0_t)
+            * np.linalg.norm(controller.v_rst_o_0_t - v_rst_o_0_t)
+            / np.linalg.norm(v_rst_o_0_t)
             < RELATIVE_DIFFERENCE / 100
         )
 
