@@ -12,7 +12,7 @@ import sys
 import tempfile
 from time import sleep, time
 from types import FrameType
-from typing import Any, Dict, Optional, Union
+from typing import cast, Any, Dict, Optional, Union
 
 import numpy as np
 import quaternion
@@ -212,13 +212,12 @@ class AxisPtzController(BaseMQTTPubSub):
             sleep(1)
             self.publish_registration("PTZ Controller Module Registration")
 
-        # Object id, timestamp and datetime of object message and
-        # corresponding object longitude, latitude, and altitude, and
-        # position and velocity relative to the tripod in the camera
-        # fixed (rst) coordinate system
+        # Object id, timestamp of object message and corresponding
+        # object longitude, latitude, and altitude, and position and
+        # velocity relative to the tripod in the camera fixed (rst)
+        # coordinate system
         self.object_id = "NA"
         self.timestamp_o = 0.0  # [s]
-        self.datetime_o = datetime.utcnow()
         self.lambda_o = 0.0  # [deg]
         self.varphi_o = 0.0  # [deg]
         self.h_o = 0.0  # [m]
@@ -279,7 +278,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Time of pointing update, camera pan and tilt angles, zoom,
         # and focus
-        self.time_c = 0.0  # [s]
+        self.timestamp_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
         self.zoom = 2000  # 1 to 9999 [-]
@@ -566,8 +565,7 @@ class AxisPtzController(BaseMQTTPubSub):
             return
         logging.info(f"Processing object msg data: {data}")
         self.timestamp_o = data["timestamp"]  # [s]
-        self.datetime_o = axis_ptz_utilities.convert_time(self.timestamp_o)
-        self.time_c = self.timestamp_o
+        self.timestamp_c = self.timestamp_o
         self.lambda_o = data["longitude"]  # [deg]
         self.varphi_o = data["latitude"]  # [deg]
         self.h_o = data["altitude"]  # [m]
@@ -588,11 +586,11 @@ class AxisPtzController(BaseMQTTPubSub):
         lead_time = self.lead_time  # [s]
         if self.include_age:
             object_msg_age = (
-                datetime.utcnow() - self.datetime_o
+                datetime.utcnow().timestamp() - self.timestamp_o
             ).total_seconds()  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
             lead_time += object_msg_age
-        logging.debug(f"Using lead time: {lead_time} [s]")
+        logging.info(f"Using lead time: {lead_time} [s]")
 
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
@@ -659,10 +657,10 @@ class AxisPtzController(BaseMQTTPubSub):
             if self.object_id != object_id:
                 self.object_id = object_id
                 logging.info(
-                    f"Absolute move to pan: {self.rho_a}, and tilt: {self.tau_a}, with zoom: {self.zoom}, and focus: {self.focus}"
+                    f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
                 self.camera_control.absolute_move(
-                    self.rho_a, self.tau_a, self.zoom, 50, self.focus
+                    self.rho_o, self.tau_o, self.zoom, 50, self.focus
                 )
                 duration = max(
                     math.fabs(self.rho_c - self.rho_o) / (self.pan_rate_max / 2),
@@ -754,10 +752,10 @@ class AxisPtzController(BaseMQTTPubSub):
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
             msg = {
-                "timestamp": str(int(datetime.utcnow().timestamp())),
+                "timestamp": datetime.utcnow().timestamp(),
                 "data": {
                     "camera-pointing": {
-                        "time_c": self.time_c,
+                        "timestamp_c": self.timestamp_c,
                         "rho_o": self.rho_o,
                         "tau_o": self.tau_o,
                         "rho_dot_o": self.rho_dot_o,
@@ -837,14 +835,14 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.do_capture:
             # Capture an image in JPEG format
             self.capture_time = time()
-            datetime_c = datetime.now()
-            timestamp = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
+            datetime_c = datetime.utcnow()
+            timestr = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
             image_filepath = Path(self.capture_dir) / "{}_{}_{}_{}_{}.jpg".format(
                 self.object_id,
                 int(self.azm_o) % 360,
                 int(self.elv_o),
                 int(self.distance3d),
-                timestamp,
+                timestr,
             )
             logging.info(
                 f"Capturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
@@ -862,9 +860,9 @@ class AxisPtzController(BaseMQTTPubSub):
             # and tilt, and accounting for object message age relative
             # to the image capture
             rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            object_msg_age = (datetime_c - self.datetime_a).total_seconds()  # [s]
+            object_msg_age = datetime_c.timestamp() - self.timestamp_0  # [s]
             image_metadata = {
-                "timestamp": timestamp,
+                "timestamp": timestr,
                 "imagefile": str(image_filepath),
                 "camera": {
                     "rho_c": rho_c,
@@ -899,7 +897,7 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         None
         """
-        self.time_c += self.update_interval
+        self.timestamp_c += self.update_interval
         self.rho_c += self.rho_dot_c * self.update_interval
         self.tau_c += self.tau_dot_c * self.update_interval
 
