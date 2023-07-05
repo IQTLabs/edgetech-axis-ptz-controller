@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from datetime import datetime
 import json
 import logging
 import os
@@ -261,13 +262,28 @@ def main() -> None:
         logger.info(f"Publishing config msg: {config_msg}")
         controller.publish_to_topic(controller.config_topic, json.dumps(config_msg))
         time.sleep(UPDATE_INTERVAL)
+
         logger.info(f"Publishing orientation msg: {orientation_msg}")
         controller.publish_to_topic(
             controller.orientation_topic, json.dumps(orientation_msg)
         )
         time.sleep(UPDATE_INTERVAL)
+
         logger.info(f"Publishing object msg: {object_msg}")
-        controller.publish_to_topic(controller.object_topic, json.dumps(object_msg))
+        payload_json = controller.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type="TBC",
+            id_="TBC",
+            deployment_id="TBC",
+            current_location="TBC",
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type="Selected Object",
+            data_payload=json.dumps(object_msg["data"]),
+        )
+        controller.publish_to_topic(controller.object_topic, payload_json)
         time.sleep(UPDATE_INTERVAL)
 
     else:
@@ -299,11 +315,22 @@ def main() -> None:
         if timestamp_c >= track["timestamp"][index + 1]:
             index = track["timestamp"][timestamp_c >= track["timestamp"]].index[-1]
             object_msg = make_object_msg(track, index)
-            logger.info(f"Publishing object msg: {object_msg}")
             if controller.use_mqtt:
-                controller.publish_to_topic(
-                    controller.object_topic, json.dumps(object_msg)
+                logger.info(f"Publishing object msg: {object_msg}")
+                payload_json = controller.generate_payload_json(
+                    push_timestamp=int(datetime.utcnow().timestamp()),
+                    device_type="TBC",
+                    id_="TBC",
+                    deployment_id="TBC",
+                    current_location="TBC",
+                    status="Debug",
+                    message_type="Event",
+                    model_version="null",
+                    firmware_version="v0.0.0",
+                    data_payload_type="Selected Object",
+                    data_payload=json.dumps(object_msg["data"]),
                 )
+                controller.publish_to_topic(controller.object_topic, payload_json)
                 time.sleep(UPDATE_INTERVAL)
 
             else:
