@@ -585,9 +585,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # message, if enabled
         lead_time = self.lead_time  # [s]
         if self.include_age:
-            object_msg_age = (
-                datetime.utcnow().timestamp() - self.timestamp_o
-            ).total_seconds()  # [s]
+            object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
             lead_time += object_msg_age
         logging.info(f"Using lead time: {lead_time} [s]")
