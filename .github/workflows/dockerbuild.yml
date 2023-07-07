@@ -1,6 +1,6 @@
 name: Container Processing
 
-on: [pull_request]
+on: push
 
 jobs:
   build:
