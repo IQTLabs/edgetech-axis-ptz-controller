@@ -12,7 +12,7 @@ import sys
 import tempfile
 from time import sleep, time
 from types import FrameType
-from typing import cast, Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import quaternion
@@ -59,12 +59,12 @@ class AxisPtzController(BaseMQTTPubSub):
         object_topic: str,
         capture_topic: str,
         logger_topic: str,
-        heartbeat_interval: float,
+        heartbeat_interval: int,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
         update_interval: float = 0.1,
-        capture_interval: float = 2.0,
+        capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
         pan_gain: float = 0.2,
@@ -106,7 +106,7 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for publising capture messages
         logger_topic: str
             MQTT topic for publishing logger messages
-        heartbeat_interval: float
+        heartbeat_interval: int
             Interval at which heartbeat message is to be published [s]
         lambda_t: float
             Tripod geodetic longitude [deg]
@@ -116,7 +116,7 @@ class AxisPtzController(BaseMQTTPubSub):
             Tripod geodetic altitude [deg]
         update_interval: float
             Interval at which pointing of the camera is computed [s]
-        capture_interval: float
+        capture_interval: int
             Interval at which the camera image is captured [s]
         capture_dir: str
             Directory in which to place captured images
@@ -858,7 +858,7 @@ class AxisPtzController(BaseMQTTPubSub):
             # and tilt, and accounting for object message age relative
             # to the image capture
             rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            object_msg_age = datetime_c.timestamp() - self.timestamp_0  # [s]
+            object_msg_age = datetime_c.timestamp() - self.timestamp_o  # [s]
             image_metadata = {
                 "timestamp": timestr,
                 "imagefile": str(image_filepath),
@@ -985,12 +985,12 @@ def make_controller() -> AxisPtzController:
         object_topic=os.getenv("OBJECT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
-        heartbeat_interval=float(os.getenv("HEARTBEAT_INTERVAL", 10.0)),
+        heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
         lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
         h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
         update_interval=float(os.getenv("UPDATE_INTERVAL", 0.1)),
-        capture_interval=float(os.getenv("CAPTURE_INTERVAL", 2.0)),
+        capture_interval=int(os.getenv("CAPTURE_INTERVAL", 2)),
         capture_dir=os.getenv("CAPTURE_DIR", "."),
         lead_time=float(os.getenv("LEAD_TIME", 0.5)),
         pan_gain=float(os.getenv("PAN_GAIN", 0.2)),

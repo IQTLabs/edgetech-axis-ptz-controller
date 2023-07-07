@@ -14,7 +14,7 @@ from test_integration import (
     read_track_data,
     get_config_msg,
     get_orientation_msg,
-    make_flight_msg,
+    make_object_msg,
     plot_time_series,
 )
 
@@ -31,7 +31,7 @@ class MessageHandler(BaseMQTTPubSub):
         self,
         config_topic: str,
         orientation_topic: str,
-        flight_topic: str,
+        object_topic: str,
         logger_topic: str,
         **kwargs: Any,
     ):
@@ -47,8 +47,8 @@ class MessageHandler(BaseMQTTPubSub):
         orientation_topic: str
             MQTT topic for publishing or subscribing to orientation
             messages
-        flight_topic: str
-            MQTT topic for publishing or subscribing to flight
+        object_topic: str
+            MQTT topic for publishing or subscribing to object
             messages
         logger_topic: str
             MQTT topic for publishing or subscribing to logger
@@ -62,7 +62,7 @@ class MessageHandler(BaseMQTTPubSub):
         super().__init__(**kwargs)
         self.config_topic = config_topic
         self.orientation_topic = orientation_topic
-        self.flight_topic = flight_topic
+        self.object_topic = object_topic
         self.logger_topic = logger_topic
 
         # Connect MQTT client
@@ -151,7 +151,7 @@ def make_handler() -> MessageHandler:
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
         orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        object_topic=os.getenv("OBJECT_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
     )
     return handler
@@ -202,19 +202,19 @@ def main() -> None:
     handler.publish_to_topic(handler.logger_topic, json.dumps(logger_msg))
 
     # Publish the configuration and orientation message, and the first
-    # flight message
+    # object message
     config_msg = get_config_msg()
     orientation_msg = get_orientation_msg()
     index = 0
-    flight_msg = make_flight_msg(track, index)
+    object_msg = make_object_msg(track, index)
     logger.info(f"Publishing config msg: {config_msg}")
     handler.publish_to_topic(handler.config_topic, json.dumps(config_msg))
     time.sleep(UPDATE_INTERVAL)
     logger.info(f"Publishing orientation msg: {orientation_msg}")
     handler.publish_to_topic(handler.orientation_topic, json.dumps(orientation_msg))
     time.sleep(UPDATE_INTERVAL)
-    logger.info(f"Publishing flight msg: {flight_msg}")
-    handler.publish_to_topic(handler.flight_topic, json.dumps(flight_msg))
+    logger.info(f"Publishing object msg: {object_msg}")
+    handler.publish_to_topic(handler.object_topic, json.dumps(object_msg))
     time.sleep(UPDATE_INTERVAL)
 
     # Loop in camera time
@@ -224,12 +224,12 @@ def main() -> None:
         time.sleep(UPDATE_INTERVAL)
         time_c += dt_c
 
-        # Process each flight message when received
+        # Process each object message when received
         if time_c >= track["latLonTime"][index + 1]:
             index = track["latLonTime"][time_c >= track["latLonTime"]].index[-1]
-            flight_msg = make_flight_msg(track, index)
-            logger.info(f"Publishing flight msg: {flight_msg}")
-            handler.publish_to_topic(handler.flight_topic, json.dumps(flight_msg))
+            object_msg = make_object_msg(track, index)
+            logger.info(f"Publishing object msg: {object_msg}")
+            handler.publish_to_topic(handler.object_topic, json.dumps(object_msg))
 
     # Read camera pointing file as a dataframe, and plot
     handler.camera_pointing_file.close()

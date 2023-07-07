@@ -26,9 +26,9 @@ VARPHI_O = 89.99  # [deg]
 H_O = 1000.0  # [m]
 AIR_SPEED = 100.0  # [m/s]
 
-HEARTBEAT_INTERVAL = 10.0
+HEARTBEAT_INTERVAL = 10
 UPDATE_INTERVAL = 0.10
-CAPTURE_INTERVAL = 2.0
+CAPTURE_INTERVAL = 2
 LEAD_TIME = 0.0
 PAN_GAIN = 0.2
 PAN_RATE_MIN = 1.0
@@ -136,7 +136,6 @@ class TestAxisPtzController:
         controller: axis_ptz_controller.AxisPtzController,
         config_msg: Dict[Any, Any],
     ) -> None:
-
         # Align ENz with XYZ
         _client = None
         _userdata = None
@@ -166,7 +165,6 @@ class TestAxisPtzController:
         config_msg: Dict[Any, Any],
         orientation_msg_90s: Dict[Any, Any],
     ) -> None:
-
         # Align ENz with XYZ
         _client = None
         _userdata = None
@@ -219,7 +217,6 @@ class TestAxisPtzController:
         orientation_msg_0s: Dict[Any, Any],
         object_msg: Dict[Any, Any],
     ) -> None:
-
         # Align ENz with XYZ
         _client = None
         _userdata = None
@@ -421,7 +418,6 @@ class TestAxisPtzUtilities:
     # Compute camera rotations aligning ENz with XYZ and using only 90
     # deg rotations
     def test_compute_camera_rotations(self) -> None:
-
         # Align ENz with XYZ
         o_lambda = 270.0
         o_varphi = 90.0

@@ -510,7 +510,9 @@ def convert_time(time_a: Union[str, float]) -> datetime:
     try:
         datetime_a = datetime.strptime(str(time_a), "%Y-%m-%d %H:%M:%S.%f")
     except Exception as e:
-        logging.debug(f"Could not parse object time as string with decimal seconds: {e}")
+        logging.debug(
+            f"Could not parse object time as string with decimal seconds: {e}"
+        )
 
         # Parse object time as string
         try:
