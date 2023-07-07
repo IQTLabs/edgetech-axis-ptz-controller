@@ -1,17 +1,13 @@
 name: Container Processing
 
-on:
-  push:
-    branches: [ "main" ]
+on: [push, pull_request]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
+
     - name: Get tag
       id: get_tag
       run: |
@@ -36,15 +32,16 @@ jobs:
       uses: jitterbit/get-changed-files@v1
     - run: |
         echo ${{ steps.files.output.all }}
+
     - name: Build Images
       env: 
         # Every folder in the repo that has a Dockerfile within it, comma separated 
-        DOCKERFOLDERS: "axis-ptz-controller"
-        DOCKERNAMESPACE: ${{ secrets.DOCKER_NAMESPACE }}
+        DOCKER_FOLDERS: "axis-ptz-controller"
+        DOCKER_NAMESPACE: ${{ secrets.DOCKER_NAMESPACE }}
         PROJECT_NAME: "edgetech"
       run: |
         IFS=","
-        read -ra ARR <<< "$DOCKERFOLDERS"
+        read -ra ARR <<< "$DOCKER_FOLDERS"
         for folder in "${ARR[@]}"
         do 
           IFS="/"
@@ -58,7 +55,7 @@ jobs:
           fi
           echo "Building $folder"
           docker buildx build "$folder" --push \
-          --tag $DOCKERNAMESPACE/$PUBLISHNAME:latest \
-          --tag $DOCKERNAMESPACE/$PUBLISHNAME:${{ steps.get_tag.outputs.IMAGE_TAG }} \
+          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:latest \
+          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:${{ steps.get_tag.outputs.IMAGE_TAG }} \
           --platform linux/arm64,linux/amd64 
         done
