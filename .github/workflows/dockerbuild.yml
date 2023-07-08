@@ -25,7 +25,7 @@ jobs:
         version: latest
 
     - name: Docker Login
-      run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login --username "${{ vars.DOCKER_USERNAME }}" --password-stdin
 
     - name: Get Changes
       id: identify
@@ -42,7 +42,7 @@ jobs:
 
         # Directiory containing the Dockerfile, and Docker namespace
         DOCKER_FOLDER: "axis-ptz-controller"
-        DOCKER_NAMESPACE: ${{ secrets.DOCKER_NAMESPACE }}
+        DOCKER_NAMESPACE: ${{ vars.DOCKER_NAMESPACE }}
 
       run: |
         GITHUB_REPO=$(basename $GITHUB_OWNER_REPO)
