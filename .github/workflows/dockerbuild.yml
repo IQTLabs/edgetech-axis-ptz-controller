@@ -35,27 +35,20 @@ jobs:
 
     - name: Build Images
       env: 
-        # Every folder in the repo that has a Dockerfile within it, comma separated 
-        DOCKER_FOLDERS: "axis-ptz-controller"
+        # The owner and repository name (for example,
+        # iqtlabs/edgetech-daisy), and repository token
+        GITHUB_OWNER_REPO: ${{ github.repository }}
+        # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        # Directiory containing the Dockerfile, and Docker namespace
+        DOCKER_FOLDER: "axis-ptz-controller"
         DOCKER_NAMESPACE: ${{ secrets.DOCKER_NAMESPACE }}
-        PROJECT_NAME: "edgetech"
+
       run: |
-        IFS=","
-        read -ra ARR <<< "$DOCKER_FOLDERS"
-        for folder in "${ARR[@]}"
-        do 
-          IFS="/"
-          read -ra NAMEFOLDER <<< $folder
-          SUBNAME=${NAMEFOLDER[0]}
-          PUBLISHNAME=""
-          if [ $NAMEFOLDER != $SUBNAME ]; then
-            PUBLISHNAME=$PROJECT_NAME-$folder-$SUBNAME
-          else
-            PUBLISHNAME=$PROJECT_NAME-$folder
-          fi
-          echo "Building $folder"
-          docker buildx build "$folder" --push \
-          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:latest \
-          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:${{ steps.get_tag.outputs.IMAGE_TAG }} \
-          --platform linux/arm64,linux/amd64 
-        done
+        GITHUB_REPO=$(basename $GITHUB_OWNER_REPO)
+        echo $DOCKER_NAMESPACE/$GITHUB_REPO:latest \
+        echo $DOCKER_NAMESPACE/$GITHUB_REPO:${{ steps.get_tag.outputs.IMAGE_TAG }}
+#          docker buildx build "$folder" --push \
+#          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:latest \
+#          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:${{ steps.get_tag.outputs.IMAGE_TAG }} \
+#          --platform linux/arm64,linux/amd64 

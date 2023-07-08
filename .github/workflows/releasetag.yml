@@ -20,10 +20,10 @@ jobs:
       - name: Build Images
         env: 
           # Every folder in the repo that has a Dockerfile within it, comma separated 
-          DOCKER_FOLDERS: "dump1090-json"
+          DOCKER_FOLDERS: "axis-ptz-controller"
           DOCKER_NAMESPACE: ${{ secrets.DOCKER_NAMESPACE }}
           PROJECT_NAME: "edgetech"
-          RELEASENAME: ${{ github.event.release.name }}
+          RELEASE_NAME: ${{ github.event.release.name }}
         run: |
           IFS=","
           read -ra ARR <<< "$DOCKER_FOLDERS"
@@ -40,6 +40,6 @@ jobs:
             fi
             echo "TAGGING..."
             echo $PUBLISHNAME
-            echo $RELEASENAME
-            docker buildx imagetools create $DOCKER_NAMESPACE/$PUBLISHNAME:latest --tag $DOCKER_NAMESPACE/$PUBLISHNAME:$RELEASENAME
+            echo $RELEASE_NAME
+            docker buildx imagetools create $DOCKER_NAMESPACE/$PUBLISHNAME:latest --tag $DOCKER_NAMESPACE/$PUBLISHNAME:$RELEASE_NAME
           done
