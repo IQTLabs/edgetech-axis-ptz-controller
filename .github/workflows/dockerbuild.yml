@@ -46,7 +46,7 @@ jobs:
 
       run: |
         GITHUB_REPO=$(basename $GITHUB_OWNER_REPO)
-        echo $DOCKER_NAMESPACE/$GITHUB_REPO:latest \
+        echo ${DOCKER_NAMESPACE}/$GITHUB_REPO:latest \
         echo $DOCKER_NAMESPACE/$GITHUB_REPO:${{ steps.get_tag.outputs.IMAGE_TAG }}
 #          docker buildx build "$folder" --push \
 #          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:latest \
