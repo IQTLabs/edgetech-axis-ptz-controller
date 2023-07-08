@@ -36,20 +36,15 @@ jobs:
 
     - name: Build image
       env: 
-        # The owner and repository name (for example,
-        # iqtlabs/edgetech-daisy), and repository token
-        GITHUB_OWNER_REPO: ${{ github.repository }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
         REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-
-        # Directiory containing the Dockerfile, and Docker namespace
         DOCKER_FOLDER: "axis-ptz-controller"
         DOCKER_NAMESPACE: ${{ vars.DOCKER_NAMESPACE }}
-
+        TAG_NAME: ${{ steps.get_tag.outputs.IMAGE_TAG }}
       run: |
-        GITHUB_REPO=$(basename $GITHUB_OWNER_REPO)
-        echo ${DOCKER_NAMESPACE}/$GITHUB_REPO:latest \
-        echo $DOCKER_NAMESPACE/$GITHUB_REPO:${{ steps.get_tag.outputs.IMAGE_TAG }}
-#          docker buildx build "$folder" --push \
-#          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:latest \
-#          --tag $DOCKER_NAMESPACE/$PUBLISHNAME:${{ steps.get_tag.outputs.IMAGE_TAG }} \
-#          --platform linux/arm64,linux/amd64 
+        GITHUB_REPO=$(basename $GITHUB_REPOSITORY)
+        docker buildx build $DOCKER_FOLDER \
+        --platform linux/arm64,linux/amd64 \
+        --push \
+        --tag $DOCKER_NAMESPACE/$GITHUB_REPO:latest \
+        --tag $DOCKER_NAMESPACE/$GITHUB_REPO:$TAG_NAME
