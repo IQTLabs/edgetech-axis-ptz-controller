@@ -4,27 +4,14 @@
 #   - mqtt/*
 version: "3"
 services:
-  mqtt:
-    image: iqtlabs/edgetech-mqtt:latest
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10M"
-        max-file: "10"
   controller:
     image: iqtlabs/edgetech-axis-ptz-controller:latest
     build:
       context: ./axis-ptz-controller
       dockerfile: ./Dockerfile
     restart: unless-stopped
-    depends_on:
-      - mqtt
     env_file:
-      - axis-ptz-controller.env
+      - axis-ptz-controller-wo-mqtt.env
     volumes:
       - /flash/raw:/data/tosort
     logging:

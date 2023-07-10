@@ -129,8 +129,17 @@ dmypy.json
 .pyre/
 
 # Developer files
+*~
+*#
+.bashrc
 .dir-locals.el
+.DS_Store
+.idea
 .pre-commit-config.yaml
 .requirements.txt
 axis-ptz-controller.env
+base_mqtt_pub_sub.py
+camera-pointing.csv
 local.*
+mqtt/
+vapix.log

@@ -1,4 +1,5 @@
 import ast
+import coloredlogs
 from datetime import datetime
 import json
 import logging
@@ -23,18 +24,29 @@ from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
 from camera_control import CameraControl
 
-root_logger = logging.getLogger()
-ch = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-root_logger.addHandler(ch)
-
-logger = logging.getLogger("ptz-controller")
-logger.setLevel(logging.INFO)
+STYLES = {
+    "critical": {"bold": True, "color": "red"},
+    "debug": {"color": "green"},
+    "error": {"color": "red"},
+    "info": {"color": "white"},
+    "notice": {"color": "magenta"},
+    "spam": {"color": "green", "faint": True},
+    "success": {"bold": True, "color": "green"},
+    "verbose": {"color": "blue"},
+    "warning": {"color": "yellow"},
+}
+coloredlogs.install(
+    level=logging.INFO,
+    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
+    ""
+    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
+    "%(message)s",
+    level_styles=STYLES,
+)
 
 
 class AxisPtzController(BaseMQTTPubSub):
-    """Point the camera at the aircraft using a proportional rate
+    """Point the camera at an object using a proportional rate
     controller, and capture images while in track."""
 
     def __init__(
@@ -44,15 +56,15 @@ class AxisPtzController(BaseMQTTPubSub):
         camera_password: str,
         config_topic: str,
         orientation_topic: str,
-        flight_topic: str,
+        object_topic: str,
         capture_topic: str,
         logger_topic: str,
-        heartbeat_interval: float,
+        heartbeat_interval: int,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
         update_interval: float = 0.1,
-        capture_interval: float = 2.0,
+        capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
         pan_gain: float = 0.2,
@@ -88,13 +100,13 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for subscribing to configuration messages
         orientation_topic: str
             MQTT topic for subscribing to orientation messages
-        flight_topic: str
-            MQTT topic for subscribing to flight messages
+        object_topic: str
+            MQTT topic for subscribing to object messages
         capture_topic: str
             MQTT topic for publising capture messages
         logger_topic: str
             MQTT topic for publishing logger messages
-        heartbeat_interval: float
+        heartbeat_interval: int
             Interval at which heartbeat message is to be published [s]
         lambda_t: float
             Tripod geodetic longitude [deg]
@@ -104,13 +116,13 @@ class AxisPtzController(BaseMQTTPubSub):
             Tripod geodetic altitude [deg]
         update_interval: float
             Interval at which pointing of the camera is computed [s]
-        capture_interval: float
+        capture_interval: int
             Interval at which the camera image is captured [s]
         capture_dir: str
             Directory in which to place captured images
         lead_time: float
             Lead time used when computing camera pointing to the
-            aircraft [s]
+            object [s]
         pan_gain: float
             Proportional control gain for pan error [1/s]
         pan_rate_min: float
@@ -140,7 +152,7 @@ class AxisPtzController(BaseMQTTPubSub):
         use_camera: bool
             Flag to use camera configuration and control, or not
         include_age: bool
-            Flag to include flight message age in lead time, or not
+            Flag to include object message age in lead time, or not
         log_to_mqtt: bool
             Flag to publish logger messages to MQTT, or not
 
@@ -155,7 +167,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_password = camera_password
         self.config_topic = config_topic
         self.orientation_topic = orientation_topic
-        self.flight_topic = flight_topic
+        self.object_topic = object_topic
         self.capture_topic = capture_topic
         self.logger_topic = logger_topic
         self.heartbeat_interval = heartbeat_interval
@@ -185,7 +197,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
-        logger.info("Constructing camera configuration and control")
+        logging.info("Constructing camera configuration and control")
         self.camera_configuration = CameraConfiguration(
             self.camera_ip, self.camera_user, self.camera_password
         )
@@ -195,23 +207,22 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Connect MQTT client
         if self.use_mqtt:
-            logger.info("Connecting MQTT client")
+            logging.info("Connecting MQTT client")
             self.connect_client()
             sleep(1)
             self.publish_registration("PTZ Controller Module Registration")
 
-        # Aircraft identifier, time and datetime of flight message and
-        # corresponding aircraft longitude, latitude, and altitude,
-        # and position and velocity relative to the tripod in the
-        # camera fixed (rst) coordinate system
-        self.icao24 = "NA"
-        self.time_a = 0.0  # [s]
-        self.datetime_a = datetime.utcnow()
-        self.lambda_a = 0.0  # [deg]
-        self.varphi_a = 0.0  # [deg]
-        self.h_a = 0.0  # [m]
-        self.r_rst_a_0_t = np.zeros((3,))  # [m/s]
-        self.v_rst_a_0_t = np.zeros((3,))  # [m/s]
+        # Object id, timestamp of object message and corresponding
+        # object longitude, latitude, and altitude, and position and
+        # velocity relative to the tripod in the camera fixed (rst)
+        # coordinate system
+        self.object_id = "NA"
+        self.timestamp_o = 0.0  # [s]
+        self.lambda_o = 0.0  # [deg]
+        self.varphi_o = 0.0  # [deg]
+        self.h_o = 0.0  # [m]
+        self.r_rst_o_0_t = np.zeros((3,))  # [m/s]
+        self.v_rst_o_0_t = np.zeros((3,))  # [m/s]
 
         # Tripod yaw, pitch, and roll angles
         self.alpha = 0.0  # [deg]
@@ -223,25 +234,35 @@ class AxisPtzController(BaseMQTTPubSub):
         self.q_beta = quaternion.quaternion()
         self.q_gamma = quaternion.quaternion()
 
+        # Tripod position in the geocentric (XYZ) coordinate system
+        self.r_XYZ_t = np.zeros((3,))
+
+        # Compute orthogonal transformation matrix from geocentric
+        # (XYZ) to topocentric (ENz) coordinates
+        self.E_XYZ_to_ENz = np.zeros((3, 3))
+        self.e_E_XYZ = np.zeros((3,))
+        self.e_N_XYZ = np.zeros((3,))
+        self.e_z_XYZ = np.zeros((3,))
+
         # Orthogonal transformation matrix from geocentric (XYZ) to
         # camera housing fixed (uvw) coordinates
         self.E_XYZ_to_uvw = np.zeros((3, 3))
 
         # Position and velocity in the topocentric (ENz) coordinate
-        # system of the aircraft relative to the tripod at time zero
-        self.r_ENz_a_0_t = np.zeros((3,))
-        self.v_ENz_a_0_t = np.zeros((3,))
+        # system of the object relative to the tripod at time zero
+        self.r_ENz_o_0_t = np.zeros((3,))
+        self.v_ENz_o_0_t = np.zeros((3,))
 
-        # Distance between the aircraft and the tripod at time one
+        # Distance between the object and the tripod at time one
         self.distance3d = 0.0  # [m]
 
-        # Aircraft azimuth and elevation angles
-        self.azm_a = 0.0  # [deg]
-        self.elv_a = 0.0  # [deg]
+        # Object azimuth and elevation angles
+        self.azm_o = 0.0  # [deg]
+        self.elv_o = 0.0  # [deg]
 
-        # Aircraft pan and tilt angles
-        self.rho_a = 0.0  # [deg]
-        self.tau_a = 0.0  # [deg]
+        # Object pan and tilt angles
+        self.rho_o = 0.0  # [deg]
+        self.tau_o = 0.0  # [deg]
 
         # Pan, and tilt rotation quaternions
         self.q_row = quaternion.quaternion()
@@ -251,13 +272,13 @@ class AxisPtzController(BaseMQTTPubSub):
         # to camera fixed (rst) coordinates
         self.E_XYZ_to_rst = np.zeros((3, 3))
 
-        # Aircraft pan and tilt rates
-        self.rho_dot_a = 0.0  # [deg/s]
-        self.tau_dot_a = 0.0  # [deg/s]
+        # Object pan and tilt rates
+        self.rho_dot_o = 0.0  # [deg/s]
+        self.tau_dot_o = 0.0  # [deg/s]
 
         # Time of pointing update, camera pan and tilt angles, zoom,
         # and focus
-        self.time_c = 0.0  # [s]
+        self.timestamp_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
         self.zoom = 2000  # 1 to 9999 [-]
@@ -281,7 +302,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # North, and zenith unit vectors
         config_msg = {
             "data": {
-                "camera": {
+                "axis-ptz-controller": {
                     "lambda_t": self.lambda_t,
                     "varphi_t": self.varphi_t,
                     "h_t": self.h_t,
@@ -293,6 +314,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
+        # TODO: Fix key?
         orientation_msg = {
             "data": {
                 "camera": {
@@ -306,7 +328,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Initialize camera pointing
         if self.use_camera:
-            logger.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
+            logging.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
             self.camera_control.absolute_move(
                 self.rho_c, self.tau_c, self.zoom, 50, self.focus
             )
@@ -316,7 +338,7 @@ class AxisPtzController(BaseMQTTPubSub):
         signal.signal(signal.SIGTERM, self._exit_handler)
 
         # Log configuration parameters
-        logger.info(
+        logging.info(
             f"""AxisPtzController initialized with parameters:
 
     camera_ip = {camera_ip}
@@ -324,7 +346,7 @@ class AxisPtzController(BaseMQTTPubSub):
     camera_password = {camera_password}
     config_topic = {config_topic}
     orientation_topic = {orientation_topic}
-    flight_topic = {flight_topic}
+    object_topic = {object_topic}
     capture_topic = {capture_topic}
     logger_topic = {logger_topic}
     heartbeat_interval = {heartbeat_interval}
@@ -404,28 +426,27 @@ class AxisPtzController(BaseMQTTPubSub):
             data = self.decode_payload(msg.payload)
         else:
             data = msg["data"]
-        if "camera" not in data:
+        if "axis-ptz-controller" not in data:
             return
-        logger.info(f"Processing config msg data: {data}")
+        logging.info(f"Processing config msg data: {data}")
         # TODO: Use module specific key?
-        camera = data["camera"]
-        self.lambda_t = camera.get("tripod_longitude", self.lambda_t)  # [deg]
-        self.varphi_t = camera.get("tripod_latitude", self.varphi_t)  # [deg]
-        self.h_t = camera.get("tripod_altitude", self.h_t)  # [m]
-        self.update_interval = camera.get(
+        config = data["axis-ptz-controller"]
+        self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
+        self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
+        self.h_t = config.get("tripod_altitude", self.h_t)  # [m]
+        self.update_interval = config.get(
             "update_interval", self.update_interval
         )  # [s]
-        self.capture_interval = camera.get(
+        self.capture_interval = config.get(
             "capture_interval", self.capture_interval
         )  # [s]
-        self.capture_dir = camera.get("capture_dir", self.capture_dir)
-        self.lead_time = camera.get("lead_time", self.lead_time)  # [s]
-        self.zoom = camera.get("zoom", self.zoom)  # [0-9999] [-]
-        self.focus = camera.get("focus", self.focus)  # [0-100] [%]
-        self.pan_gain = camera.get("pan_gain", self.pan_gain)  # [1/s]
-        self.tilt_gain = camera.get("tilt_gain", self.tilt_gain)  # [1/s]
-        self.include_age = camera.get("include_age", self.include_age)
-        self.log_to_mqtt = camera.get("log_to_mqtt", self.log_to_mqtt)
+        self.capture_dir = config.get("capture_dir", self.capture_dir)
+        self.lead_time = config.get("lead_time", self.lead_time)  # [s]
+        self.zoom = config.get("zoom", self.zoom)  # [0-9999]
+        self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
+        self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
+        self.include_age = config.get("include_age", self.include_age)
+        self.log_to_mqtt = config.get("log_to_mqtt", self.log_to_mqtt)
 
         # Compute tripod position in the geocentric (XYZ) coordinate
         # system
@@ -469,7 +490,7 @@ class AxisPtzController(BaseMQTTPubSub):
             data = self.decode_payload(msg.payload)
         else:
             data = msg["data"]
-        logger.info(f"Processing orientation msg data: {data}")
+        logging.info(f"Processing orientation msg data: {data}")
         camera = data["camera"]
         self.alpha = camera["tripod_yaw"]  # [deg]
         self.beta = camera["tripod_pitch"]  # [deg]
@@ -477,7 +498,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
-        logger.debug(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logging.debug(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
         (
             self.q_alpha,
             self.q_beta,
@@ -496,16 +517,16 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c,
             self.tau_c,
         )
-        logger.debug(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logging.debug(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
-    def _flight_callback(
+    def _object_callback(
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
         msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
     ) -> None:
         """
-        Process flight message.
+        Process object message.
 
         Parameters
         ----------
@@ -522,148 +543,144 @@ class AxisPtzController(BaseMQTTPubSub):
 
         """
         # Assign identifier, time, position, and velocity of the
-        # aircraft
+        # object
         if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)
+            data = json.loads(self.decode_payload(msg.payload)["Selected Object"])
         else:
             data = msg["data"]
         if not set(
             [
-                "icao24",
-                "latLonTime",
-                "lon",
-                "lat",
+                "object_id",
+                "object_type",
+                "timestamp",
+                "latitude",
+                "longitude",
                 "altitude",
                 "track",
-                "groundSpeed",
-                "verticalRate",
+                "horizontal_velocity",
+                "vertical_velocity",
             ]
         ) <= set(data.keys()):
-            logger.info(f"Required keys missing from flight message data: {data}")
+            logging.info(f"Required keys missing from object message data: {data}")
             return
-        logger.info(f"Processing flight msg data: {data}")
-        self.time_a = data["latLonTime"]  # [s]
-        self.datetime_a = axis_ptz_utilities.convert_time(self.time_a)
-        self.time_c = self.time_a
-        self.lambda_a = data["lon"]  # [deg]
-        self.varphi_a = data["lat"]  # [deg]
-        self.h_a = data["altitude"]  # [m]
-        track_a = data["track"]  # [deg]
-        ground_speed_a = data["groundSpeed"]  # [m/s]
-        vertical_rate_a = data["verticalRate"]  # [m/s]
+        logging.info(f"Processing object msg data: {data}")
+        self.timestamp_o = float(data["timestamp"])  # [s]
+        self.timestamp_c = self.timestamp_o
+        self.lambda_o = data["longitude"]  # [deg]
+        self.varphi_o = data["latitude"]  # [deg]
+        self.h_o = data["altitude"]  # [m]
+        track_o = data["track"]  # [deg]
+        ground_speed_o = data["horizontal_velocity"]  # [m/s]
+        vertical_rate_o = data["vertical_velocity"]  # [m/s]
 
         # Compute position in the geocentric (XYZ) coordinate system
-        # of the aircraft relative to the tripod at time zero, the
+        # of the object relative to the tripod at time zero, the
         # observation time
-        r_XYZ_a_0 = axis_ptz_utilities.compute_r_XYZ(
-            self.lambda_a, self.varphi_a, self.h_a
+        r_XYZ_o_0 = axis_ptz_utilities.compute_r_XYZ(
+            self.lambda_o, self.varphi_o, self.h_o
         )
-        r_XYZ_a_0_t = r_XYZ_a_0 - self.r_XYZ_t
+        r_XYZ_o_0_t = r_XYZ_o_0 - self.r_XYZ_t
 
-        # Assign lead time, computing and adding age of flight
+        # Assign lead time, computing and adding age of object
         # message, if enabled
         lead_time = self.lead_time  # [s]
         if self.include_age:
-            flight_msg_age = (
-                datetime.utcnow() - self.datetime_a
-            ).total_seconds()  # [s]
-            logger.debug(f"Flight msg age: {flight_msg_age} [s]")
-            lead_time += flight_msg_age
-        logger.debug(f"Using lead time: {lead_time} [s]")
+            object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
+            logging.debug(f"Object msg age: {object_msg_age} [s]")
+            lead_time += object_msg_age
+        logging.info(f"Using lead time: {lead_time} [s]")
 
         # Compute position and velocity in the topocentric (ENz)
-        # coordinate system of the aircraft relative to the tripod at
+        # coordinate system of the object relative to the tripod at
         # time zero, and position at slightly later time one
-        self.r_ENz_a_0_t = np.matmul(self.E_XYZ_to_ENz, r_XYZ_a_0_t)
-        track_a = math.radians(track_a)
-        self.v_ENz_a_0_t = np.array(
+        self.r_ENz_o_0_t = np.matmul(self.E_XYZ_to_ENz, r_XYZ_o_0_t)
+        track_o = math.radians(track_o)
+        self.v_ENz_o_0_t = np.array(
             [
-                ground_speed_a * math.sin(track_a),
-                ground_speed_a * math.cos(track_a),
-                vertical_rate_a,
+                ground_speed_o * math.sin(track_o),
+                ground_speed_o * math.cos(track_o),
+                vertical_rate_o,
             ]
         )
-        r_ENz_a_1_t = self.r_ENz_a_0_t + self.v_ENz_a_0_t * lead_time
+        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * lead_time
 
         # Compute position, at time one, and velocity, at time zero,
-        # in the geocentric (XYZ) coordinate system of the aircraft
+        # in the geocentric (XYZ) coordinate system of the object
         # relative to the tripod
-        r_XYZ_a_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_a_1_t)
-        v_XYZ_a_0_t = np.matmul(self.E_XYZ_to_ENz.transpose(), self.v_ENz_a_0_t)
+        r_XYZ_o_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_1_t)
+        v_XYZ_o_0_t = np.matmul(self.E_XYZ_to_ENz.transpose(), self.v_ENz_o_0_t)
 
-        # Compute the distance between the aircraft and the tripod at
+        # Compute the distance between the object and the tripod at
         # time one
-        self.distance3d = axis_ptz_utilities.norm(r_ENz_a_1_t)
+        self.distance3d = axis_ptz_utilities.norm(r_ENz_o_1_t)
 
         # TODO: Restore?
-        # Compute the distance between the aircraft and the tripod
+        # Compute the distance between the object and the tripod
         # along the surface of a spherical Earth
         # distance2d = axis_ptz_utilities.compute_great_circle_distance(
         #     self.self.lambda_t,
         #     self.varphi_t,
-        #     self.lambda_a,
-        #     self.varphi_a,
+        #     self.lambda_o,
+        #     self.varphi_o,
         # )  # [m]
 
-        # Compute the aircraft azimuth and elevation relative to the
+        # Compute the object azimuth and elevation relative to the
         # tripod
-        self.azm_a = math.degrees(math.atan2(r_ENz_a_1_t[0], r_ENz_a_1_t[1]))  # [deg]
-        self.elv_a = math.degrees(
-            math.atan2(r_ENz_a_1_t[2], axis_ptz_utilities.norm(r_ENz_a_1_t[0:2]))
+        self.azm_o = math.degrees(math.atan2(r_ENz_o_1_t[0], r_ENz_o_1_t[1]))  # [deg]
+        self.elv_o = math.degrees(
+            math.atan2(r_ENz_o_1_t[2], axis_ptz_utilities.norm(r_ENz_o_1_t[0:2]))
         )  # [deg]
-        logger.debug(
-            f"Aircraft azimuth and elevation: {self.azm_a}, {self.elv_a} [deg]"
-        )
+        logging.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
 
-        # Compute pan and tilt to point the camera at the aircraft
-        r_uvw_a_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_a_1_t)
-        self.rho_a = math.degrees(math.atan2(r_uvw_a_1_t[0], r_uvw_a_1_t[1]))  # [deg]
-        self.tau_a = math.degrees(
-            math.atan2(r_uvw_a_1_t[2], axis_ptz_utilities.norm(r_uvw_a_1_t[0:2]))
+        # Compute pan and tilt to point the camera at the object
+        r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_o_1_t)
+        self.rho_o = math.degrees(math.atan2(r_uvw_o_1_t[0], r_uvw_o_1_t[1]))  # [deg]
+        self.tau_o = math.degrees(
+            math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
         )  # [deg]
-        logger.debug(f"Aircraft pan and tilt: {self.rho_a}, {self.tau_a} [deg]")
-        icao24 = data["icao24"]
-        if self.use_camera and self.tau_a < 0:
-            logger.debug(f"Stopping image capture of aircraft: {icao24}")
+        logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
+        object_id = data["object_id"]
+        if self.use_camera and self.tau_o < 0:
+            logging.info(f"Stopping image capture of object: {object_id}")
             self.do_capture = False
-            logger.debug("Stopping continuous pan and tilt")
+            logging.info("Stopping continuous pan and tilt")
             self.camera_control.stop_move()
 
         if self.use_camera:
             # Get camera pan and tilt
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            logger.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
-            # Point the camera at any new aircraft directly
-            if self.icao24 != icao24:
-                self.icao24 = icao24
-                logger.info(
-                    f"Absolute move to pan: {self.rho_a}, and tilt: {self.tau_a}, with zoom: {self.zoom}, and focus: {self.focus}"
+            # Point the camera at any new object directly
+            if self.object_id != object_id:
+                self.object_id = object_id
+                logging.info(
+                    f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
                 self.camera_control.absolute_move(
-                    self.rho_a, self.tau_a, self.zoom, 50, self.focus
+                    self.rho_o, self.tau_o, self.zoom, 50, self.focus
                 )
                 duration = max(
-                    math.fabs(self.rho_c - self.rho_a) / (self.pan_rate_max / 2),
-                    math.fabs(self.tau_c - self.tau_a) / (self.tilt_rate_max / 2),
+                    math.fabs(self.rho_c - self.rho_o) / (self.pan_rate_max / 2),
+                    math.fabs(self.tau_c - self.tau_o) / (self.tilt_rate_max / 2),
                 )
-                logger.info(f"Sleeping: {duration} [s]")
+                logging.info(f"Sleeping: {duration} [s]")
                 sleep(duration)
                 return
 
         else:
-            logger.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
         # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * (self.rho_a - self.rho_c)
-        self.delta_tau_dot_c = self.tilt_gain * (self.tau_a - self.tau_c)
-        logger.debug(
+        self.delta_rho_dot_c = self.pan_gain * (self.rho_o - self.rho_c)
+        self.delta_tau_dot_c = self.tilt_gain * (self.tau_o - self.tau_c)
+        logging.debug(
             f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
         )
 
         # Compute position and velocity in the camera fixed (rst)
-        # coordinate system of the aircraft relative to the tripod at
-        # time zero after pointing the camera at the aircraft
+        # coordinate system of the object relative to the tripod at
+        # time zero after pointing the camera at the object
         (
             _,
             _,
@@ -679,27 +696,27 @@ class AxisPtzController(BaseMQTTPubSub):
             self.alpha,
             self.beta,
             self.gamma,
-            self.rho_a,
-            self.tau_a,
+            self.rho_o,
+            self.tau_o,
         )
-        self.r_rst_a_0_t = np.matmul(self.E_XYZ_to_rst, r_XYZ_a_0_t)
-        self.v_rst_a_0_t = np.matmul(self.E_XYZ_to_rst, v_XYZ_a_0_t)
+        self.r_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, r_XYZ_o_0_t)
+        self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, v_XYZ_o_0_t)
 
-        # Compute aircraft slew rate
+        # Compute object slew rate
         omega = (
-            axis_ptz_utilities.cross(self.r_rst_a_0_t, self.v_rst_a_0_t)
-            / axis_ptz_utilities.norm(self.r_rst_a_0_t) ** 2
+            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
+            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
         )
-        self.rho_dot_a = math.degrees(-omega[2])
-        self.tau_dot_a = math.degrees(omega[0])
-        logger.debug(
-            f"Aircraft pan and tilt rates: {self.rho_dot_a}, {self.tau_dot_a} [deg/s]"
+        self.rho_dot_o = math.degrees(-omega[2])
+        self.tau_dot_o = math.degrees(omega[0])
+        logging.debug(
+            f"Object pan and tilt rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s]"
         )
 
         # Update camera pan and tilt rate
-        self.rho_dot_c = self.rho_dot_a + self.delta_rho_dot_c
-        self.tau_dot_c = self.tau_dot_a + self.delta_tau_dot_c
-        logger.debug(
+        self.rho_dot_c = self.rho_dot_o + self.delta_rho_dot_c
+        self.tau_dot_c = self.tau_dot_o + self.delta_tau_dot_c
+        logging.info(
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
@@ -712,12 +729,12 @@ class AxisPtzController(BaseMQTTPubSub):
                 / 100.0
                 + self.focus_min
             )  # [%]
-            logger.debug(f"Commanding focus: {self.focus}")
+            logging.debug(f"Commanding focus: {self.focus}")
             self.camera_control.set_focus(self.focus)
 
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
-            logger.debug(
+            logging.debug(
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
             self.camera_control.continuous_move(
@@ -726,21 +743,21 @@ class AxisPtzController(BaseMQTTPubSub):
                 0.0,
             )
             if not self.do_capture:
-                logger.info(f"Starting image capture of aircraft: {self.icao24}")
+                logging.info(f"Starting image capture of object: {self.object_id}")
                 self.do_capture = True
                 self.capture_time = time()
 
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
             msg = {
-                "timestamp": str(int(datetime.utcnow().timestamp())),
+                "timestamp": datetime.utcnow().timestamp(),
                 "data": {
                     "camera-pointing": {
-                        "time_c": self.time_c,
-                        "rho_a": self.rho_a,
-                        "tau_a": self.tau_a,
-                        "rho_dot_a": self.rho_dot_a,
-                        "tau_dot_a": self.tau_dot_a,
+                        "timestamp_c": self.timestamp_c,
+                        "rho_o": self.rho_o,
+                        "tau_o": self.tau_o,
+                        "rho_dot_o": self.rho_dot_o,
+                        "tau_dot_o": self.tau_dot_o,
                         "rho_c": self.rho_c,
                         "tau_c": self.tau_c,
                         "rho_dot_c": self.rho_dot_c,
@@ -748,7 +765,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     }
                 },
             }
-            logger.debug(f"Publishing logger msg: {msg}")
+            logging.debug(f"Publishing logger msg: {msg}")
             self.publish_to_topic(self.logger_topic, json.dumps(msg))
 
     def _compute_pan_rate_index(self, rho_dot: float) -> int:
@@ -814,20 +831,19 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.do_capture:
-
             # Capture an image in JPEG format
             self.capture_time = time()
-            datetime_c = datetime.now()
-            timestamp = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
+            datetime_c = datetime.utcnow()
+            timestr = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
             image_filepath = Path(self.capture_dir) / "{}_{}_{}_{}_{}.jpg".format(
-                self.icao24,
-                int(self.azm_a) % 360,
-                int(self.elv_a),
+                self.object_id,
+                int(self.azm_o) % 360,
+                int(self.elv_o),
                 int(self.distance3d),
-                timestamp,
+                timestr,
             )
-            logger.info(
-                f"Capturing image of aircraft: {self.icao24}, at: {self.capture_time}, in: {image_filepath}"
+            logging.info(
+                f"Capturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
             )
             with tempfile.TemporaryDirectory() as d:
                 with axis_ptz_utilities.pushd(d):
@@ -839,12 +855,12 @@ class AxisPtzController(BaseMQTTPubSub):
                     shutil.move(list(Path(d).glob("*.jpg"))[0], image_filepath)
 
             # Populate and publish image metadata, getting current pan
-            # and tilt, and accounting for flight message age relative
+            # and tilt, and accounting for object message age relative
             # to the image capture
             rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            flight_msg_age = (datetime_c - self.datetime_a).total_seconds()  # [s]
+            object_msg_age = datetime_c.timestamp() - self.timestamp_o  # [s]
             image_metadata = {
-                "timestamp": timestamp,
+                "timestamp": timestr,
                 "imagefile": str(image_filepath),
                 "camera": {
                     "rho_c": rho_c,
@@ -853,14 +869,14 @@ class AxisPtzController(BaseMQTTPubSub):
                     "varphi_t": self.varphi_t,
                     "zoom": self.zoom,
                 },
-                "aircraft": {
-                    "flight_msg_age": flight_msg_age,
-                    "r_ENz_a_0_t": self.r_ENz_a_0_t.tolist(),
-                    "v_ENz_a_0_t": self.v_ENz_a_0_t.tolist(),
+                "object": {
+                    "object_msg_age": object_msg_age,
+                    "r_ENz_o_0_t": self.r_ENz_o_0_t.tolist(),
+                    "v_ENz_o_0_t": self.v_ENz_o_0_t.tolist(),
                 },
             }
-            logger.debug(
-                f"Publishing metadata: {image_metadata}, for aircraft: {self.icao24}, at: {self.capture_time}"
+            logging.debug(
+                f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
             self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
 
@@ -868,7 +884,7 @@ class AxisPtzController(BaseMQTTPubSub):
         """Update values of camera pan and tilt using current pan and
         tilt rate. Note that these value likely differ slightly from
         the actual camera pan and tilt angles, and will be overwritten
-        when processing a flight message. The values are used for
+        when processing a object message. The values are used for
         development and testing.
 
         Parameters
@@ -879,7 +895,7 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         None
         """
-        self.time_c += self.update_interval
+        self.timestamp_c += self.update_interval
         self.rho_c += self.rho_dot_c * self.update_interval
         self.tau_c += self.tau_dot_c * self.update_interval
 
@@ -900,9 +916,9 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.use_camera:
-            logger.debug("Stopping continuous pan and tilt")
+            logging.info("Stopping continuous pan and tilt")
             self.camera_control.stop_move()
-        logger.info("Exiting")
+        logging.info("Exiting")
         sys.exit()
 
     def main(self) -> None:
@@ -912,7 +928,6 @@ class AxisPtzController(BaseMQTTPubSub):
         capturing images after twice the capture interval has elapsed.
         """
         if self.use_mqtt:
-
             # Schedule module heartbeat
             heartbeat_job = schedule.every(self.heartbeat_interval).seconds.do(
                 self.publish_heartbeat, payload="PTZ Controller Module Heartbeat"
@@ -921,10 +936,9 @@ class AxisPtzController(BaseMQTTPubSub):
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
             self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
-            self.add_subscribe_topic(self.flight_topic, self._flight_callback)
+            self.add_subscribe_topic(self.object_topic, self._object_callback)
 
         if self.use_camera:
-
             # Schedule image capture
             capture_job = schedule.every(self.capture_interval).seconds.do(
                 self._capture_image
@@ -943,20 +957,21 @@ class AxisPtzController(BaseMQTTPubSub):
                     self._update_pointing()
 
                 # Command zero camera pan and tilt rates, and stop
-                # capturing images if a flight message has not been
+                # capturing images if a object message has not been
                 # received in twice the capture interval
                 if (
                     self.do_capture
                     and time() - self.capture_time > 2.0 * self.capture_interval
                 ):
-                    logger.info(f"Stopping image capture of aircraft: {self.icao24}")
+                    logging.info(f"Stopping image capture of object: {self.object_id}")
                     self.do_capture = False
                     if self.use_camera:
-                        logger.info("Stopping continuous pan and tilt")
+                        logging.info("Stopping continuous pan and tilt")
                         self.camera_control.stop_move()
 
             except Exception as e:
-                logger.error(f"Main loop exception: {e}")
+                logging.error(f"Main loop exception: {e}")
+                break
 
 
 def make_controller() -> AxisPtzController:
@@ -967,15 +982,15 @@ def make_controller() -> AxisPtzController:
         mqtt_ip=os.getenv("MQTT_IP"),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
         orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        flight_topic=os.getenv("FLIGHT_TOPIC", ""),
+        object_topic=os.getenv("OBJECT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
-        heartbeat_interval=float(os.getenv("HEARTBEAT_INTERVAL", 10.0)),
+        heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
         lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
         h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
         update_interval=float(os.getenv("UPDATE_INTERVAL", 0.1)),
-        capture_interval=float(os.getenv("CAPTURE_INTERVAL", 2.0)),
+        capture_interval=int(os.getenv("CAPTURE_INTERVAL", 2)),
         capture_dir=os.getenv("CAPTURE_DIR", "."),
         lead_time=float(os.getenv("LEAD_TIME", 0.5)),
         pan_gain=float(os.getenv("PAN_GAIN", 0.2)),
