@@ -564,7 +564,7 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.info(f"Required keys missing from object message data: {data}")
             return
         logging.info(f"Processing object msg data: {data}")
-        self.timestamp_o = data["timestamp"]  # [s]
+        self.timestamp_o = float(data["timestamp"])  # [s]
         self.timestamp_c = self.timestamp_o
         self.lambda_o = data["longitude"]  # [deg]
         self.varphi_o = data["latitude"]  # [deg]
