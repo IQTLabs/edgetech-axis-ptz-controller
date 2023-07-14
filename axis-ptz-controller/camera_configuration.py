@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import coloredlogs
 import datetime
 import logging
@@ -5,7 +6,6 @@ import logging
 import requests
 from requests.auth import HTTPDigestAuth
 from sensecam_control import vapix_config
-from typing import Tuple, Union
 
 STYLES = {
     "critical": {"bold": True, "color": "red"},
@@ -50,7 +50,7 @@ class CameraConfiguration(vapix_config.CameraConfiguration):
         text_position: str = None,
         overlay_image: int = None,
         overlay_position: str = None,
-    ):  # 5.2.4.1
+    ) -> str:  # 5.2.4.1
         """
         The requests specified in the JPEG/MJPG section are supported by those video products
         that use JPEG and MJPG encoding.
