@@ -24,6 +24,7 @@ coloredlogs.install(
     level_styles=STYLES,
 )
 
+
 class CameraControl(vapix_control.CameraControl):
     """
     Extends module for control cameras AXIS using Vapix found at
