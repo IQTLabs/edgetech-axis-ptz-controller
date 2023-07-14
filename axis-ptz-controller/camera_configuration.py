@@ -2,6 +2,7 @@ import coloredlogs
 import logging
 
 import requests
+from requests.auth import HTTPDigestAuth
 from sensecam_control import vapix_config
 from typing import Tuple, Union
 
