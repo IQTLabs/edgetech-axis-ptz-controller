@@ -33,13 +33,23 @@ class CameraConfiguration(vapix_config.CameraConfiguration):
     https://github.com/smartsenselab/sensecam-control.
     """
 
-    def get_jpeg_request(self, resolution: str = None, camera: str = None,
-                         square_pixel: int = None, compression: int = None,
-                         clock: int = None, date: int = None, text: int = None,
-                         text_string: str = None, text_color: str = None,
-                         text_background_color: str = None, rotation: int = None,
-                         text_position: str = None, overlay_image: int = None,
-                         overlay_position: str = None):  # 5.2.4.1
+    def get_jpeg_request(
+        self,
+        resolution: str = None,
+        camera: str = None,
+        square_pixel: int = None,
+        compression: int = None,
+        clock: int = None,
+        date: int = None,
+        text: int = None,
+        text_string: str = None,
+        text_color: str = None,
+        text_background_color: str = None,
+        rotation: int = None,
+        text_position: str = None,
+        overlay_image: int = None,
+        overlay_position: str = None,
+    ):  # 5.2.4.1
         """
         The requests specified in the JPEG/MJPG section are supported by those video products
         that use JPEG and MJPG encoding.
@@ -68,31 +78,33 @@ class CameraConfiguration(vapix_config.CameraConfiguration):
 
         """
         payload = {
-            'resolution': resolution,
-            'camera': camera,
-            'square_pixel': square_pixel,
-            'compression': compression,
-            'clock': clock,
-            'date': date,
-            'text': text,
-            'text_string': text_string,
-            'text_color': text_color,
-            'text_background_color': text_background_color,
-            'rotation': rotation,
-            'text_position': text_position,
-            'overlay_image': overlay_image,
-            'overlay_position': overlay_position
+            "resolution": resolution,
+            "camera": camera,
+            "square_pixel": square_pixel,
+            "compression": compression,
+            "clock": clock,
+            "date": date,
+            "text": text,
+            "text_string": text_string,
+            "text_color": text_color,
+            "text_background_color": text_background_color,
+            "rotation": rotation,
+            "text_position": text_position,
+            "overlay_image": overlay_image,
+            "overlay_position": overlay_position,
         }
-        url = 'http://' + self.cam_ip + '/axis-cgi/jpg/image.cgi'
-        logging.info(f"url: {url}")
-        resp = requests.get(url, auth=HTTPDigestAuth(self.cam_user, self.cam_password),
-                            params=payload)
+        url = "http://" + self.cam_ip + "/axis-cgi/jpg/image.cgi"
+        logging.debug(f"url: {url}")
+        logging.debug(f"payload: {payload}")
+        resp = requests.get(
+            url, auth=HTTPDigestAuth(self.cam_user, self.cam_password), params=payload
+        )
 
         if resp.status_code == 200:
             now = datetime.datetime.now()
-            with open(str(now.strftime("%d-%m-%Y_%Hh%Mm%Ss")) + ".jpg", 'wb') as var:
+            with open(str(now.strftime("%d-%m-%Y_%Hh%Mm%Ss")) + ".jpg", "wb") as var:
                 var.write(resp.content)
-            return str('Image saved')
+            return str("Image saved")
 
         text = str(resp)
         text += str(resp.text)
