@@ -30,7 +30,7 @@ jobs:
 
     - name: Build image
       env: 
-        DOCKER_FOLDER: "object-ledger"
+        DOCKER_FOLDER: "axis-ptz-controller"
       run: |
         docker buildx build $DOCKER_FOLDER \
         --platform linux/arm64,linux/amd64
