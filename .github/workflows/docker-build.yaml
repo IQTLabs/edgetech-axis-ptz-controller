@@ -2,7 +2,7 @@ name: Container Processing
 
 on:
   push:
-  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
