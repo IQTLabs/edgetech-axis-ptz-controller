@@ -18,10 +18,10 @@ import numpy as np
 import quaternion
 import paho.mqtt.client as mqtt
 import schedule
-from sensecam_control.vapix_config import CameraConfiguration
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
+from camera_configuration import CameraConfiguration
 from camera_control import CameraControl
 
 STYLES = {
@@ -847,12 +847,16 @@ class AxisPtzController(BaseMQTTPubSub):
             )
             with tempfile.TemporaryDirectory() as d:
                 with axis_ptz_utilities.pushd(d):
-                    self.camera_configuration.get_jpeg_request(
-                        camera=1,
-                        resolution=self.jpeg_resolution,
-                        compression=self.jpeg_compression,
-                    )
-                    shutil.move(list(Path(d).glob("*.jpg"))[0], image_filepath)
+                    try:
+                        text = self.camera_configuration.get_jpeg_request(
+                            resolution=self.jpeg_resolution,
+                            compression=self.jpeg_compression,
+                        )
+                        logging.info(f"Camera configuration response: {text}")
+                        shutil.move(list(Path(d).glob("*.jpg"))[0], image_filepath)
+                    except Exception as e:
+                        logging.error(f"Could not capture image to directory: {d}: {e}")
+                        return
 
             # Populate and publish image metadata, getting current pan
             # and tilt, and accounting for object message age relative
