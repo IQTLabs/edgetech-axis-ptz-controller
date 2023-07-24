@@ -11,6 +11,7 @@ import signal
 import sys
 import tempfile
 from time import sleep, time
+import traceback
 from types import FrameType
 from typing import Any, Dict, Optional, Union
 
@@ -83,6 +84,7 @@ class AxisPtzController(BaseMQTTPubSub):
         use_camera: bool = True,
         include_age: bool = True,
         log_to_mqtt: bool = False,
+        continue_on_exception: bool = False,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -155,6 +157,9 @@ class AxisPtzController(BaseMQTTPubSub):
             Flag to include object message age in lead time, or not
         log_to_mqtt: bool
             Flag to publish logger messages to MQTT, or not
+        continue_on_exception: bool
+            Continue on unhandled exceptions if True, raise exception
+            if False (the default)
 
         Returns
         -------
@@ -194,6 +199,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.use_camera = use_camera
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
+        self.continue_on_exception = continue_on_exception
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -373,6 +379,7 @@ class AxisPtzController(BaseMQTTPubSub):
     use_camera = {use_camera}
     include_age = {include_age}
     log_to_mqtt = {log_to_mqtt}
+    continue_on_exception = {continue_on_exception}
             """
         )
 
@@ -974,8 +981,11 @@ class AxisPtzController(BaseMQTTPubSub):
                         self.camera_control.stop_move()
 
             except Exception as e:
-                logging.error(f"Main loop exception: {e}")
-                break
+                # Optionally continue on exception
+                if self.continue_on_exception:
+                    traceback.print_exc()
+                else:
+                    raise
 
 
 def make_controller() -> AxisPtzController:
@@ -1013,6 +1023,9 @@ def make_controller() -> AxisPtzController:
         use_camera=ast.literal_eval(os.getenv("USE_CAMERA", "True")),
         include_age=ast.literal_eval(os.getenv("INCLUDE_AGE", "True")),
         log_to_mqtt=ast.literal_eval(os.getenv("LOG_TO_MQTT", "False")),
+        continue_on_exception=ast.literal_eval(
+            os.environ.get("CONTINUE_ON_EXCEPTION", "False")
+        ),
     )
 
 
