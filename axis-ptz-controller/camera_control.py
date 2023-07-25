@@ -1,5 +1,6 @@
 import coloredlogs
 import logging
+import os
 
 from sensecam_control import vapix_control
 from typing import Tuple, Union
@@ -16,7 +17,7 @@ STYLES = {
     "warning": {"color": "yellow"},
 }
 coloredlogs.install(
-    level=logging.INFO,
+    level=os.environ.get("LOG_LEVEL", "INFO"),
     fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
     ""
     "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "

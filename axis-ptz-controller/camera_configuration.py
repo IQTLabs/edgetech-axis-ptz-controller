@@ -2,6 +2,7 @@
 import coloredlogs
 import datetime
 import logging
+import os
 
 import requests
 from requests.auth import HTTPDigestAuth
@@ -19,7 +20,7 @@ STYLES = {
     "warning": {"color": "yellow"},
 }
 coloredlogs.install(
-    level=logging.INFO,
+    level=os.environ.get("LOG_LEVEL", "INFO"),
     fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
     ""
     "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
