@@ -1,3 +1,8 @@
+"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
+method for making AxisPtzController instances. Instatiates an
+AxisPtzController, and executes its main() method when run as a
+module.
+"""
 import ast
 import coloredlogs
 from datetime import datetime
@@ -344,44 +349,7 @@ class AxisPtzController(BaseMQTTPubSub):
         signal.signal(signal.SIGTERM, self._exit_handler)
 
         # Log configuration parameters
-        logging.info(
-            f"""AxisPtzController initialized with parameters:
-
-    camera_ip = {camera_ip}
-    camera_user = {camera_user}
-    camera_password = {camera_password}
-    config_topic = {config_topic}
-    orientation_topic = {orientation_topic}
-    object_topic = {object_topic}
-    capture_topic = {capture_topic}
-    logger_topic = {logger_topic}
-    heartbeat_interval = {heartbeat_interval}
-    lambda_t = {lambda_t}
-    varphi_t = {varphi_t}
-    h_t = {h_t}
-    update_interval = {update_interval}
-    capture_interval = {capture_interval}
-    capture_dir = {capture_dir}
-    lead_time = {lead_time}
-    pan_gain = {pan_gain}
-    pan_rate_min = {pan_rate_min}
-    pan_rate_max = {pan_rate_max}
-    tilt_gain = {tilt_gain}
-    tilt_rate_min = {tilt_rate_min}
-    tilt_rate_max = {tilt_rate_max}
-    focus_slope = {focus_slope}
-    focus_intercept = {focus_intercept}
-    focus_min = {focus_min}
-    focus_max = {focus_max}
-    jpeg_resolution = {jpeg_resolution}
-    jpeg_compression = {jpeg_compression}
-    use_mqtt = {use_mqtt}
-    use_camera = {use_camera}
-    include_age = {include_age}
-    log_to_mqtt = {log_to_mqtt}
-    continue_on_exception = {continue_on_exception}
-            """
-        )
+        self._log_config()
 
     def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
         """
@@ -428,7 +396,8 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         # Assign data attributes allowed to change during operation,
-        # ignoring config message data without a "camera" key
+        # ignoring config message data without a "axis-ptz-controller"
+        # key
         if type(msg) == mqtt.MQTTMessage:
             data = self.decode_payload(msg.payload)
         else:
@@ -436,8 +405,18 @@ class AxisPtzController(BaseMQTTPubSub):
         if "axis-ptz-controller" not in data:
             return
         logging.info(f"Processing config msg data: {data}")
-        # TODO: Use module specific key?
         config = data["axis-ptz-controller"]
+        self.camera_ip = config.get("camera_ip", self.camera_ip)
+        self.camera_user = config.get("camera_user", self.camera_user)
+        self.camera_password = config.get("camera_password", self.camera_password)
+        self.config_topic = config.get("config_topic", self.config_topic)
+        self.orientation_topic = config.get("orientation_topic", self.orientation_topic)
+        self.object_topic = config.get("object_topic", self.object_topic)
+        self.capture_topic = config.get("capture_topic", self.capture_topic)
+        self.logger_topic = config.get("logger_topic", self.logger_topic)
+        self.heartbeat_interval = config.get(
+            "heartbeat_interval", self.heartbeat_interval
+        )
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
         self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
         self.h_t = config.get("tripod_altitude", self.h_t)  # [m]
@@ -451,9 +430,28 @@ class AxisPtzController(BaseMQTTPubSub):
         self.lead_time = config.get("lead_time", self.lead_time)  # [s]
         self.zoom = config.get("zoom", self.zoom)  # [0-9999]
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
+        self.pan_rate_min = config.get("pan_rate_min", self.pan_rate_min)
+        self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
         self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
+        self.tilt_gain = config.get("tilt_gain", self.tilt_gain)
+        self.tilt_rate_min = config.get("tilt_rate_min", self.tilt_rate_min)
+        self.tilt_rate_max = config.get("tilt_rate_max", self.tilt_rate_max)
+        self.focus_slope = config.get("focus_slope", self.focus_slope)
+        self.focus_intercept = config.get("focus_intercept", self.focus_intercept)
+        self.focus_min = config.get("focus_min", self.focus_min)
+        self.focus_max = config.get("focus_max", self.focus_max)
+        self.jpeg_resolution = config.get("jpeg_resolution", self.jpeg_resolution)
+        self.jpeg_compression = config.get("jpeg_compression", self.jpeg_compression)
+        self.use_mqtt = config.get("use_mqtt", self.use_mqtt)
+        self.use_camera = config.get("use_camera", self.use_camera)
         self.include_age = config.get("include_age", self.include_age)
         self.log_to_mqtt = config.get("log_to_mqtt", self.log_to_mqtt)
+        self.continue_on_exception = config.get(
+            "continue_on_exception", self.continue_on_exception
+        )
+
+        # Log configuration parameters
+        self._log_config()
 
         # Compute tripod position in the geocentric (XYZ) coordinate
         # system
@@ -469,6 +467,47 @@ class AxisPtzController(BaseMQTTPubSub):
             self.e_N_XYZ,
             self.e_z_XYZ,
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(self.lambda_t, self.varphi_t)
+
+    def _log_config(self: Any) -> None:
+        """Logs all paramters that can be set on construction."""
+        config = {
+            "camera_ip": self.camera_ip,
+            "camera_user": self.camera_user,
+            "camera_password": self.camera_password,
+            "config_topic": self.config_topic,
+            "orientation_topic": self.orientation_topic,
+            "object_topic": self.object_topic,
+            "capture_topic": self.capture_topic,
+            "logger_topic": self.logger_topic,
+            "heartbeat_interval": self.heartbeat_interval,
+            "lambda_t": self.lambda_t,
+            "varphi_t": self.varphi_t,
+            "h_t": self.h_t,
+            "update_interval": self.update_interval,
+            "capture_interval": self.capture_interval,
+            "capture_dir": self.capture_dir,
+            "lead_time": self.lead_time,
+            "pan_gain": self.pan_gain,
+            "pan_rate_min": self.pan_rate_min,
+            "pan_rate_max": self.pan_rate_max,
+            "tilt_gain": self.tilt_gain,
+            "tilt_rate_min": self.tilt_rate_min,
+            "tilt_rate_max": self.tilt_rate_max,
+            "focus_slope": self.focus_slope,
+            "focus_intercept": self.focus_intercept,
+            "focus_min": self.focus_min,
+            "focus_max": self.focus_max,
+            "jpeg_resolution": self.jpeg_resolution,
+            "jpeg_compression": self.jpeg_compression,
+            "use_mqtt": self.use_mqtt,
+            "use_camera": self.use_camera,
+            "include_age": self.include_age,
+            "log_to_mqtt": self.log_to_mqtt,
+            "continue_on_exception": self.continue_on_exception,
+        }
+        logging.info(
+            f"AxisPtzController configuration:\n{json.dumps(config, indent=4)}"
+        )
 
     def _orientation_callback(
         self,
