@@ -1,4 +1,5 @@
 import ast
+import base64
 import coloredlogs
 from datetime import datetime
 import json
@@ -57,7 +58,8 @@ class AxisPtzController(BaseMQTTPubSub):
         config_topic: str,
         orientation_topic: str,
         object_topic: str,
-        capture_topic: str,
+        encoded_image_topic: str,
+        image_metadata_topic: str,
         logger_topic: str,
         heartbeat_interval: int,
         lambda_t: float = 0.0,
@@ -102,8 +104,10 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for subscribing to orientation messages
         object_topic: str
             MQTT topic for subscribing to object messages
-        capture_topic: str
-            MQTT topic for publising capture messages
+        encoded_image_topic: str
+            MQTT topic for publising images in base64 encoding
+        image_metadata_topic: str
+            MQTT topic for publising image metadata
         logger_topic: str
             MQTT topic for publishing logger messages
         heartbeat_interval: int
@@ -168,7 +172,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.config_topic = config_topic
         self.orientation_topic = orientation_topic
         self.object_topic = object_topic
-        self.capture_topic = capture_topic
+        self.encoded_image_topic = encoded_image_topic
+        self.image_metadata_topic = image_metadata_topic
         self.logger_topic = logger_topic
         self.heartbeat_interval = heartbeat_interval
         self.lambda_t = lambda_t
@@ -347,7 +352,8 @@ class AxisPtzController(BaseMQTTPubSub):
     config_topic = {config_topic}
     orientation_topic = {orientation_topic}
     object_topic = {object_topic}
-    capture_topic = {capture_topic}
+    encoded_image_topic = {encoded_image_topic}
+    image_metadata_topic = {image_metadata_topic}
     logger_topic = {logger_topic}
     heartbeat_interval = {heartbeat_interval}
     lambda_t = {lambda_t}
@@ -540,7 +546,6 @@ class AxisPtzController(BaseMQTTPubSub):
         Returns
         -------
         None
-
         """
         # Assign identifier, time, position, and velocity of the
         # object
@@ -768,6 +773,53 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Publishing logger msg: {msg}")
             self.publish_to_topic(self.logger_topic, json.dumps(msg))
 
+    def _publish_data(self: Any, data: Dict[str, str]) -> bool:
+        """Leverages edgetech-core functionality to publish a JSON
+        payload to the MQTT broker on the topic specified by type.
+
+        Parameters
+        ----------
+        data : Dict[str, str]
+            Dictionary that maps keys to type and payload
+
+        Returns
+        -------
+        success : bool
+            Returns True if successful publish, else False
+        """
+        # Generate payload as JSON
+        payload = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.envrion.get("CURRENT_LOCATION", "-90, -180"),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type=data["type"],
+            data_payload=data["payload"],
+        )
+
+        # Publish payload to the topic selected by type
+        if data["type"] == "Encoded Image":
+            topic = self.encoded_image_topic
+
+        elif data["type"] == "Image Metadata":
+            topic = self.image_metadata_topic
+
+        success = self.publish_to_topic(topic, payload)
+        if success:
+            logging.info(f"Successfully published data on channel {topic}: {data}")
+
+        else:
+            logging.error(f"Failed to publish data on channel {topic}: {data}")
+
+        return success
+
     def _compute_pan_rate_index(self, rho_dot: float) -> int:
         """Compute pan rate index between -100 and 100 using rates in
         deg/s, limiting the results to the specified minimum and
@@ -831,6 +883,7 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.do_capture:
+
             # Capture an image in JPEG format
             self.capture_time = time()
             datetime_c = datetime.utcnow()
@@ -858,6 +911,16 @@ class AxisPtzController(BaseMQTTPubSub):
                         logging.error(f"Could not capture image to directory: {d}: {e}")
                         return
 
+            # Publish the image after base64 encoding
+            with open(image_filepath, "rb") as image_file:
+                encoded_image = base64.b64encode(image_file.read())
+            self._publish_data(
+                {
+                    "type": "Encoded Image",
+                    "payload": encoded_image,
+                }
+            )
+
             # Populate and publish image metadata, getting current pan
             # and tilt, and accounting for object message age relative
             # to the image capture
@@ -882,7 +945,12 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
-            self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
+            self._publish_data(
+                {
+                    "type": "Image Metadata",
+                    "payload": json.dumps(image_metadata),
+                }
+            )
 
     def _update_pointing(self) -> None:
         """Update values of camera pan and tilt using current pan and
@@ -987,7 +1055,8 @@ def make_controller() -> AxisPtzController:
         config_topic=os.getenv("CONFIG_TOPIC", ""),
         orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         object_topic=os.getenv("OBJECT_TOPIC", ""),
-        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
+        encoded_image_topic=os.getenv("ENCODED_IMAGE_TOPIC", ""),
+        image_metadata_topic=os.getenv("IMAGE_METADATA_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
         lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
