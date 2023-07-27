@@ -1,5 +1,4 @@
 import ast
-import base64
 import coloredlogs
 from datetime import datetime
 import json
@@ -795,7 +794,7 @@ class AxisPtzController(BaseMQTTPubSub):
             deployment_id=os.environ.get(
                 "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
             ),
-            current_location=os.envrion.get("CURRENT_LOCATION", "-90, -180"),
+            current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
             status="Debug",
             message_type="Event",
             model_version="null",
@@ -883,7 +882,6 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.do_capture:
-
             # Capture an image in JPEG format
             self.capture_time = time()
             datetime_c = datetime.utcnow()
@@ -912,8 +910,7 @@ class AxisPtzController(BaseMQTTPubSub):
                         return
 
             # Publish the image after base64 encoding
-            with open(image_filepath, "rb") as image_file:
-                encoded_image = base64.b64encode(image_file.read())
+            encoded_image = axis_ptz_utilities.encode_image(image_filepath)
             self._publish_data(
                 {
                     "type": "Encoded Image",
@@ -1048,40 +1045,40 @@ class AxisPtzController(BaseMQTTPubSub):
 
 def make_controller() -> AxisPtzController:
     return AxisPtzController(
-        camera_ip=os.getenv("CAMERA_IP", ""),
-        camera_user=os.getenv("CAMERA_USER", ""),
-        camera_password=os.getenv("CAMERA_PASSWORD", ""),
-        mqtt_ip=os.getenv("MQTT_IP"),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        encoded_image_topic=os.getenv("ENCODED_IMAGE_TOPIC", ""),
-        image_metadata_topic=os.getenv("IMAGE_METADATA_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
-        heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
-        lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
-        varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
-        h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
-        update_interval=float(os.getenv("UPDATE_INTERVAL", 0.1)),
-        capture_interval=int(os.getenv("CAPTURE_INTERVAL", 2)),
-        capture_dir=os.getenv("CAPTURE_DIR", "."),
-        lead_time=float(os.getenv("LEAD_TIME", 0.5)),
-        pan_gain=float(os.getenv("PAN_GAIN", 0.2)),
-        pan_rate_min=float(os.getenv("PAN_RATE_MIN", 1.8)),
-        pan_rate_max=float(os.getenv("PAN_RATE_MAX", 150.0)),
-        tilt_gain=float(os.getenv("TILT_GAIN", 0.2)),
-        tilt_rate_min=float(os.getenv("TILT_RATE_MIN", 1.8)),
-        tilt_rate_max=float(os.getenv("TILT_RATE_MAX", 150.0)),
-        focus_slope=float(os.getenv("FOCUS_SLOPE", 0.0006)),
-        focus_intercept=float(os.getenv("FOCUS_INTERCEPT", 54)),
-        focus_min=int(os.getenv("FOCUS_MIN", 5555)),
-        focus_max=int(os.getenv("FOCUS_MAX", 9999)),
-        jpeg_resolution=os.getenv("JPEG_RESOLUTION", "1920x1080"),
-        jpeg_compression=int(os.getenv("JPEG_COMPRESSION", 5)),
-        use_mqtt=ast.literal_eval(os.getenv("USE_MQTT", "True")),
-        use_camera=ast.literal_eval(os.getenv("USE_CAMERA", "True")),
-        include_age=ast.literal_eval(os.getenv("INCLUDE_AGE", "True")),
-        log_to_mqtt=ast.literal_eval(os.getenv("LOG_TO_MQTT", "False")),
+        camera_ip=os.environ.get("CAMERA_IP", ""),
+        camera_user=os.environ.get("CAMERA_USER", ""),
+        camera_password=os.environ.get("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.environ.get("MQTT_IP"),
+        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
+        object_topic=os.environ.get("OBJECT_TOPIC", ""),
+        encoded_image_topic=os.environ.get("ENCODED_IMAGE_TOPIC", ""),
+        image_metadata_topic=os.environ.get("IMAGE_METADATA_TOPIC", ""),
+        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
+        heartbeat_interval=int(os.environ.get("HEARTBEAT_INTERVAL", 10)),
+        lambda_t=float(os.environ.get("TRIPOD_LONGITUDE", 0.0)),
+        varphi_t=float(os.environ.get("TRIPOD_LATITUDE", 0.0)),
+        h_t=float(os.environ.get("TRIPOD_ALTITUDE", 0.0)),
+        update_interval=float(os.environ.get("UPDATE_INTERVAL", 0.1)),
+        capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
+        capture_dir=os.environ.get("CAPTURE_DIR", "."),
+        lead_time=float(os.environ.get("LEAD_TIME", 0.5)),
+        pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
+        pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
+        pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
+        tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
+        tilt_rate_min=float(os.environ.get("TILT_RATE_MIN", 1.8)),
+        tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
+        focus_slope=float(os.environ.get("FOCUS_SLOPE", 0.0006)),
+        focus_intercept=float(os.environ.get("FOCUS_INTERCEPT", 54)),
+        focus_min=int(os.environ.get("FOCUS_MIN", 5555)),
+        focus_max=int(os.environ.get("FOCUS_MAX", 9999)),
+        jpeg_resolution=os.environ.get("JPEG_RESOLUTION", "1920x1080"),
+        jpeg_compression=int(os.environ.get("JPEG_COMPRESSION", 5)),
+        use_mqtt=ast.literal_eval(os.environ.get("USE_MQTT", "True")),
+        use_camera=ast.literal_eval(os.environ.get("USE_CAMERA", "True")),
+        include_age=ast.literal_eval(os.environ.get("INCLUDE_AGE", "True")),
+        log_to_mqtt=ast.literal_eval(os.environ.get("LOG_TO_MQTT", "False")),
     )
 
 

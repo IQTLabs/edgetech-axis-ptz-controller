@@ -1,6 +1,7 @@
 import json
 import math
 import os
+from pathlib import Path
 from typing import Any, Dict
 
 import numpy as np
@@ -63,7 +64,8 @@ def controller() -> axis_ptz_controller.AxisPtzController:
         config_topic=os.getenv("CONFIG_TOPIC", ""),
         orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         object_topic=os.getenv("OBJECT_TOPIC", ""),
-        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
+        encoded_image_topic=os.getenv("ENCODED_IMAGE_TOPIC", ""),
+        image_metadata_topic=os.getenv("IMAGE_METADATA_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         update_interval=UPDATE_INTERVAL,
@@ -500,3 +502,16 @@ class TestAxisPtzUtilities:
             lambda_1, varphi_1, lambda_2, varphi_2
         )
         assert math.fabs((d_act - d_exp) / d_exp) < PRECISION
+
+
+    # Base64 encode an image from a file
+    def test_encode_image(self):
+
+        image_filepath = Path("data/acc31a_97_1_2358_2023-06-14-15-32-59.jpg")
+        with open(image_filepath, "rb") as image_file:
+            image = image_file.read()
+
+        encoded_image = axis_ptz_utilities.encode_image(image_filepath)
+        decoded_image = axis_ptz_utilities.decode_image(encoded_image)
+
+        assert(decoded_image == image)
