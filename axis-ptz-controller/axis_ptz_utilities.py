@@ -1,5 +1,4 @@
 import base64
-import coloredlogs
 import contextlib
 from datetime import datetime
 import logging
@@ -8,6 +7,7 @@ import os
 from pathlib import Path
 from typing import cast, Generator, Tuple, Union
 
+import coloredlogs
 import numpy as np
 import numpy.typing as npt
 import quaternion

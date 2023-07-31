@@ -1,5 +1,4 @@
 import ast
-import coloredlogs
 from datetime import datetime
 import json
 import logging
@@ -14,6 +13,7 @@ from time import sleep, time
 from types import FrameType
 from typing import Any, Dict, Optional, Union
 
+import coloredlogs
 import numpy as np
 import quaternion
 import paho.mqtt.client as mqtt
@@ -51,6 +51,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
     def __init__(
         self,
+        hostname: str,
         camera_ip: str,
         camera_user: str,
         camera_password: str,
@@ -91,6 +92,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         Parameters
         ----------
+        hostname (str): Name of host
         camera_ip: str
             Camera IP address
         camera_user: str
@@ -165,6 +167,7 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
+        self.hostname = hostname
         self.camera_ip = camera_ip
         self.camera_user = camera_user
         self.camera_password = camera_password
@@ -304,30 +307,55 @@ class AxisPtzController(BaseMQTTPubSub):
         # coordinate system, orthogonal transformation matrix from
         # geocentric (XYZ) to topocentric (ENz) coordinates, and East,
         # North, and zenith unit vectors
-        config_msg = {
-            "data": {
-                "axis-ptz-controller": {
-                    "lambda_t": self.lambda_t,
-                    "varphi_t": self.varphi_t,
-                    "h_t": self.h_t,
+        config_msg = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type="Configuration",
+            data_payload=json.dumps(
+                {
+                    "axis-ptz-controller": {
+                        "tripod_longitude": self.lambda_t,
+                        "tripod_latitude": self.varphi_t,
+                        "tripod_altitude": self.h_t,
+                    }
                 }
-            }
-        }
+            ),
+        )
         self._config_callback(None, None, config_msg)
 
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
-        # TODO: Fix key?
-        orientation_msg = {
-            "data": {
-                "camera": {
+        orientation_msg = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type="Orientation",
+            data_payload=json.dumps(
+                {
                     "tripod_yaw": self.alpha,
                     "tripod_pitch": self.beta,
                     "tripod_roll": self.gamma,
                 }
-            }
-        }
+            ),
+        )
         self._orientation_callback(None, None, orientation_msg)
 
         # Initialize camera pointing
@@ -344,7 +372,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Log configuration parameters
         logging.info(
             f"""AxisPtzController initialized with parameters:
-
+    hostname = {hostname}
     camera_ip = {camera_ip}
     camera_user = {camera_user}
     camera_password = {camera_password}
@@ -381,7 +409,9 @@ class AxisPtzController(BaseMQTTPubSub):
             """
         )
 
-    def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
+    def decode_payload(
+        self, msg: Union[mqtt.MQTTMessage, str], data_payload_type: str
+    ) -> Dict[Any, Any]:
         """
         Decode the payload carried by a message.
 
@@ -393,21 +423,20 @@ class AxisPtzController(BaseMQTTPubSub):
         Returns
         -------
         data : Dict[Any, Any]
-            The data component of the payload
+            The data payload of the message payload
         """
-        # TODO: Establish and use message format convention
-        content = json.loads(str(payload.decode("utf-8")))
-        if "data" in content:
-            data = content["data"]
+        if type(msg) == mqtt.MQTTMessage:
+            payload = msg.payload.decode()
         else:
-            data = content
-        return data
+            payload = msg  # type: ignore
+        data_payload = json.loads(payload)[data_payload_type]
+        return json.loads(data_payload)
 
     def _config_callback(
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
-        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
+        msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
         """
         Process configuration message.
@@ -426,15 +455,12 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         # Assign data attributes allowed to change during operation,
-        # ignoring config message data without a "camera" key
-        if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)
-        else:
-            data = msg["data"]
+        # ignoring config message data without a "axis-ptz-controller"
+        # key
+        data = self.decode_payload(msg, "Configuration")
         if "axis-ptz-controller" not in data:
             return
         logging.info(f"Processing config msg data: {data}")
-        # TODO: Use module specific key?
         config = data["axis-ptz-controller"]
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
         self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
@@ -472,7 +498,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
-        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
+        msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
         """
         Process orientation message.
@@ -491,15 +517,11 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         # Assign camera housing rotation angles
-        if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)
-        else:
-            data = msg["data"]
+        data = self.decode_payload(msg, "Orientation")
         logging.info(f"Processing orientation msg data: {data}")
-        camera = data["camera"]
-        self.alpha = camera["tripod_yaw"]  # [deg]
-        self.beta = camera["tripod_pitch"]  # [deg]
-        self.gamma = camera["tripod_roll"]  # [deg]
+        self.alpha = data["tripod_yaw"]  # [deg]
+        self.beta = data["tripod_pitch"]  # [deg]
+        self.gamma = data["tripod_roll"]  # [deg]
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
@@ -528,7 +550,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
-        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
+        msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
         """
         Process object message.
@@ -548,10 +570,7 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Assign identifier, time, position, and velocity of the
         # object
-        if type(msg) == mqtt.MQTTMessage:
-            data = json.loads(self.decode_payload(msg.payload)["Selected Object"])
-        else:
-            data = msg["data"]
+        data = self.decode_payload(msg, "Selected Object")
         if not set(
             [
                 "object_id",
@@ -753,26 +772,39 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
-            msg = {
-                "timestamp": datetime.utcnow().timestamp(),
-                "data": {
-                    "camera-pointing": {
-                        "timestamp_c": self.timestamp_c,
-                        "rho_o": self.rho_o,
-                        "tau_o": self.tau_o,
-                        "rho_dot_o": self.rho_dot_o,
-                        "tau_dot_o": self.tau_dot_o,
-                        "rho_c": self.rho_c,
-                        "tau_c": self.tau_c,
-                        "rho_dot_c": self.rho_dot_c,
-                        "tau_dot_c": self.tau_dot_c,
+            logger_msg = self.generate_payload_json(
+                push_timestamp=int(datetime.utcnow().timestamp()),
+                device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+                id_=self.hostname,
+                deployment_id=os.environ.get(
+                    "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+                ),
+                current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+                status="Debug",
+                message_type="Event",
+                model_version="null",
+                firmware_version="v0.0.0",
+                data_payload_type="Logger",
+                data_payload=json.dumps(
+                    {
+                        "camera-pointing": {
+                            "timestamp_c": self.timestamp_c,
+                            "rho_o": self.rho_o,
+                            "tau_o": self.tau_o,
+                            "rho_dot_o": self.rho_dot_o,
+                            "tau_dot_o": self.tau_dot_o,
+                            "rho_c": self.rho_c,
+                            "tau_c": self.tau_c,
+                            "rho_dot_c": self.rho_dot_c,
+                            "tau_dot_c": self.tau_dot_c,
+                        }
                     }
-                },
-            }
-            logging.debug(f"Publishing logger msg: {msg}")
-            self.publish_to_topic(self.logger_topic, json.dumps(msg))
+                ),
+            )
+            logging.debug(f"Publishing logger msg: {logger_msg}")
+            self.publish_to_topic(self.logger_topic, logger_msg)
 
-    def _publish_data(self: Any, data: Dict[str, str]) -> bool:
+    def _send_data(self: Any, data: Dict[str, str]) -> bool:
         """Leverages edgetech-core functionality to publish a JSON
         payload to the MQTT broker on the topic specified by type.
 
@@ -911,7 +943,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # Publish the image after base64 encoding
             encoded_image = axis_ptz_utilities.encode_image(image_filepath)
-            self._publish_data(
+            self._send_data(
                 {
                     "type": "Encoded Image",
                     "payload": encoded_image,
@@ -942,7 +974,7 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
-            self._publish_data(
+            self._send_data(
                 {
                     "type": "Image Metadata",
                     "payload": json.dumps(image_metadata),
@@ -1045,6 +1077,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
 def make_controller() -> AxisPtzController:
     return AxisPtzController(
+        hostname=os.environ.get("HOSTNAME", ""),
         camera_ip=os.environ.get("CAMERA_IP", ""),
         camera_user=os.environ.get("CAMERA_USER", ""),
         camera_password=os.environ.get("CAMERA_PASSWORD", ""),
