@@ -125,7 +125,7 @@ class MessageHandler(BaseMQTTPubSub):
         if type(msg) == mqtt.MQTTMessage:
             payload = msg.payload.decode()
         else:
-            payload = msg  # type: ignore
+            payload = msg
         data_payload = json.loads(payload)[data_payload_type]
         return json.loads(data_payload)
 
