@@ -3,7 +3,6 @@ import json
 import math
 import os
 from pathlib import Path
-from typing import Any, Dict
 
 import numpy as np
 import numpy.typing as npt
