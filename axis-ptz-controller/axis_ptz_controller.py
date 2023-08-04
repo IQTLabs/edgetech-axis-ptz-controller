@@ -926,6 +926,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera_control.stop_move()
         logging.info("Exiting")
         sys.exit()
+
     def main(self) -> None:
         """Schedule module heartbeat and image capture, subscribe to
         all required topics, then loop forever. Update pointing for
