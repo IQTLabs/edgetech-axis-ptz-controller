@@ -73,6 +73,7 @@ class CameraControl(vapix_control.CameraControl):
         zoom = float(resp.text.split()[2].split("=")[1])
         focus = float(resp.text.split()[3].split("=")[1])
         ptz_list = (pan, tilt, zoom, focus)
+        logging.debug(f"PTZ: {ptz_list}")
 
         return ptz_list
 

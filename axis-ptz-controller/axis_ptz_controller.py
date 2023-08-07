@@ -1,4 +1,4 @@
-"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
+y"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
 method for making AxisPtzController instances. Instatiates an
 AxisPtzController, and executes its main() method when run as a
 module.
@@ -438,8 +438,12 @@ class AxisPtzController(BaseMQTTPubSub):
         self.config_topic = config.get("config_topic", self.config_topic)
         self.orientation_topic = config.get("orientation_topic", self.orientation_topic)
         self.object_topic = config.get("object_topic", self.object_topic)
-        self.encoded_image_topic = config.get("encoded_image_topic", self.encoded_image_topic)
-        self.image_metadata_topic = config.get("image_metadata_topic", self.image_metadata_topic)
+        self.encoded_image_topic = config.get(
+            "encoded_image_topic", self.encoded_image_topic
+        )
+        self.image_metadata_topic = config.get(
+            "image_metadata_topic", self.image_metadata_topic
+        )
         self.logger_topic = config.get("logger_topic", self.logger_topic)
         self.heartbeat_interval = config.get(
             "heartbeat_interval", self.heartbeat_interval
