@@ -1,4 +1,4 @@
-y"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
+"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
 method for making AxisPtzController instances. Instatiates an
 AxisPtzController, and executes its main() method when run as a
 module.
