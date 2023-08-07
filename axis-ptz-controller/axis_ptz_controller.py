@@ -54,7 +54,7 @@ class AxisPtzController(BaseMQTTPubSub):
     """Point the camera at an object using a proportional rate
     controller, and capture images while in track."""
 
-     def __init__(
+    def __init__(
         self,
         hostname: str,
         camera_ip: str,
