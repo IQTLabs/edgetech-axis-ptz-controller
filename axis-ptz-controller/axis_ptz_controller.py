@@ -12,7 +12,6 @@ import math
 import os
 from pathlib import Path
 import shutil
-import signal
 import sys
 import tempfile
 from time import sleep, time
@@ -343,10 +342,6 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera_control.absolute_move(
                 self.rho_c, self.tau_c, self.zoom, 50, self.focus
             )
-
-        # Handle the interrupt and terminate signals
-        signal.signal(signal.SIGINT, self._exit_handler)
-        signal.signal(signal.SIGTERM, self._exit_handler)
 
         # Log configuration parameters
         self._log_config()
@@ -1018,6 +1013,15 @@ class AxisPtzController(BaseMQTTPubSub):
                     if self.use_camera:
                         logging.info("Stopping continuous pan and tilt")
                         self.camera_control.stop_move()
+
+            except KeyboardInterrupt as exception:
+                # If keyboard interrupt, fail gracefully
+                logging.warning("Received keyboard interrupt")
+                if self.use_camera:
+                    logging.info("Stopping continuous pan and tilt")
+                    self.camera_control.stop_move()
+                logging.warning("Exiting")
+                sys.exit()
 
             except Exception as e:
                 # Optionally continue on exception
