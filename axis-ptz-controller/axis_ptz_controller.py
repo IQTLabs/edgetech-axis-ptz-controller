@@ -389,6 +389,8 @@ class AxisPtzController(BaseMQTTPubSub):
         ----------
         payload: mqtt.MQTTMessage
             The MQTT message
+        data_payload_type: str
+            The data payload type
 
         Returns
         -------
