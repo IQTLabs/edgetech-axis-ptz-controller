@@ -54,7 +54,7 @@ class AxisPtzController(BaseMQTTPubSub):
     """Point the camera at an object using a proportional rate
     controller, and capture images while in track."""
 
-    def __init__(
+     def __init__(
         self,
         hostname: str,
         camera_ip: str,
@@ -298,6 +298,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.timestamp_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
+        # TODO: Include in init?
         self.zoom = 2000  # 1 to 9999 [-]
         self.focus = 60  # 0 to 100 [%]
 
@@ -437,7 +438,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.config_topic = config.get("config_topic", self.config_topic)
         self.orientation_topic = config.get("orientation_topic", self.orientation_topic)
         self.object_topic = config.get("object_topic", self.object_topic)
-        self.capture_topic = config.get("capture_topic", self.capture_topic)
+        self.encoded_image_topic = config.get("encoded_image_topic", self.encoded_image_topic)
+        self.image_metadata_topic = config.get("image_metadata_topic", self.image_metadata_topic)
         self.logger_topic = config.get("logger_topic", self.logger_topic)
         self.heartbeat_interval = config.get(
             "heartbeat_interval", self.heartbeat_interval
@@ -496,13 +498,15 @@ class AxisPtzController(BaseMQTTPubSub):
     def _log_config(self: Any) -> None:
         """Logs all paramters that can be set on construction."""
         config = {
+            "hostname": self.hostname,
             "camera_ip": self.camera_ip,
             "camera_user": self.camera_user,
             "camera_password": self.camera_password,
             "config_topic": self.config_topic,
             "orientation_topic": self.orientation_topic,
             "object_topic": self.object_topic,
-            "capture_topic": self.capture_topic,
+            "encoded_image_topic": self.encoded_image_topic,
+            "image_metadata_topic": self.image_metadata_topic,
             "logger_topic": self.logger_topic,
             "heartbeat_interval": self.heartbeat_interval,
             "lambda_t": self.lambda_t,
