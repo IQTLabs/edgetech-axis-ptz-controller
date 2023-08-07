@@ -1,9 +1,9 @@
 # mypy: ignore-errors
-import coloredlogs
 import datetime
 import logging
 import os
 
+import coloredlogs
 import requests
 from requests.auth import HTTPDigestAuth
 from sensecam_control import vapix_config
