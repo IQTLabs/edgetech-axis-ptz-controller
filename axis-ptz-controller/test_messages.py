@@ -40,7 +40,7 @@ coloredlogs.install(
     level_styles=STYLES,
 )
 
-UPDATE_INTERVAL = 0.1
+LOOP_INTERVAL = 0.1
 
 
 class MessageHandler(BaseMQTTPubSub):
@@ -49,8 +49,8 @@ class MessageHandler(BaseMQTTPubSub):
     def __init__(
         self,
         config_topic: str,
-        orientation_topic: str,
-        object_topic: str,
+        orientation_json_topic: str,
+        object_json_topic: str,
         logger_topic: str,
         **kwargs: Any,
     ):
@@ -63,10 +63,10 @@ class MessageHandler(BaseMQTTPubSub):
         config_topic: str
             MQTT topic for publishing or subscribing to configuration
             messages
-        orientation_topic: str
+        orientation_json_topic: str
             MQTT topic for publishing or subscribing to orientation
             messages
-        object_topic: str
+        object_json_topic: str
             MQTT topic for publishing or subscribing to object
             messages
         logger_topic: str
@@ -80,8 +80,8 @@ class MessageHandler(BaseMQTTPubSub):
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
         self.config_topic = config_topic
-        self.orientation_topic = orientation_topic
-        self.object_topic = object_topic
+        self.orientation_json_topic = orientation_json_topic
+        self.object_json_topic = object_json_topic
         self.logger_topic = logger_topic
 
         # Connect MQTT client
@@ -179,8 +179,8 @@ def make_handler() -> MessageHandler:
     handler = MessageHandler(
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
+        orientation_json_topic=os.getenv("ORIENTATION_JSON_TOPIC", ""),
+        object_json_topic=os.getenv("OBJECT_JSON_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
     )
     return handler
@@ -249,21 +249,21 @@ def main() -> None:
     object_msg = make_object_msg(controller, track, index)
     logging.info(f"Publishing config msg: {config_msg}")
     handler.publish_to_topic(handler.config_topic, config_msg)
-    time.sleep(UPDATE_INTERVAL)
+    time.sleep(LOOP_INTERVAL)
 
     logging.info(f"Publishing orientation msg: {orientation_msg}")
-    handler.publish_to_topic(handler.orientation_topic, orientation_msg)
-    time.sleep(UPDATE_INTERVAL)
+    handler.publish_to_topic(handler.orientation_json_topic, orientation_msg)
+    time.sleep(LOOP_INTERVAL)
 
     logging.info(f"Publishing object msg: {object_msg}")
-    handler.publish_to_topic(handler.object_topic, object_msg)
-    time.sleep(UPDATE_INTERVAL)
+    handler.publish_to_topic(handler.object_json_topic, object_msg)
+    time.sleep(LOOP_INTERVAL)
 
     # Loop in camera time
-    dt_c = UPDATE_INTERVAL
+    dt_c = LOOP_INTERVAL
     timestamp_c = track["timestamp"][index]
     while index < track.shape[0] - 1:
-        time.sleep(UPDATE_INTERVAL)
+        time.sleep(LOOP_INTERVAL)
         timestamp_c += dt_c
 
         # Process each object message when received
@@ -271,7 +271,7 @@ def main() -> None:
             index = track["timestamp"][timestamp_c >= track["timestamp"]].index[-1]
             object_msg = make_object_msg(controller, track, index)
             logging.info(f"Publishing object msg: {object_msg}")
-            handler.publish_to_topic(handler.object_topic, object_msg)
+            handler.publish_to_topic(handler.object_json_topic, object_msg)
 
     # Read camera pointing file as a dataframe, and plot
     time.sleep(5)

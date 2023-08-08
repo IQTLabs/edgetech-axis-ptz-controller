@@ -33,7 +33,7 @@ coloredlogs.install(
 )
 
 HEARTBEAT_INTERVAL = 10
-UPDATE_INTERVAL = 0.01
+LOOP_INTERVAL = 0.01
 CAPTURE_INTERVAL = 2
 LEAD_TIME = 0.0
 PAN_GAIN = 0.1
@@ -68,13 +68,13 @@ def make_controller(use_mqtt: bool) -> AxisPtzController:
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        encoded_image_topic=os.getenv("ENCODED_IMAGE_TOPIC", ""),
-        image_metadata_topic=os.getenv("IMAGE_METADATA_TOPIC", ""),
+        orientation_json_topic=os.getenv("ORIENTATION_JSON_TOPIC", ""),
+        object_json_topic=os.getenv("OBJECT_JSON_TOPIC", ""),
+        image_bytestring_topic=os.getenv("IMAGE_BYTESTRING_TOPIC", ""),
+        image_json_topic=os.getenv("IMAGE_JSON_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
-        update_interval=UPDATE_INTERVAL,
+        loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
         lead_time=LEAD_TIME,
         pan_gain=PAN_GAIN,
@@ -310,9 +310,11 @@ def main() -> None:
     controller = make_controller(args.use_mqtt)
     controller.add_subscribe_topic(controller.config_topic, controller._config_callback)
     controller.add_subscribe_topic(
-        controller.orientation_topic, controller._orientation_callback
+        controller.orientation_json_topic, controller._orientation_callback
     )
-    controller.add_subscribe_topic(controller.object_topic, controller._object_callback)
+    controller.add_subscribe_topic(
+        controller.object_json_topic, controller._object_callback
+    )
     config_msg = get_config_msg(controller)
     orientation_msg = get_orientation_msg(controller)
     index = 0
@@ -320,15 +322,15 @@ def main() -> None:
     if controller.use_mqtt:
         logging.info(f"Publishing config msg: {config_msg}")
         controller.publish_to_topic(controller.config_topic, config_msg)
-        time.sleep(UPDATE_INTERVAL)
+        time.sleep(LOOP_INTERVAL)
 
         logging.info(f"Publishing orientation msg: {orientation_msg}")
-        controller.publish_to_topic(controller.orientation_topic, orientation_msg)
-        time.sleep(UPDATE_INTERVAL)
+        controller.publish_to_topic(controller.orientation_json_topic, orientation_msg)
+        time.sleep(LOOP_INTERVAL)
 
         logging.info(f"Publishing object msg: {object_msg}")
-        controller.publish_to_topic(controller.object_topic, object_msg)
-        time.sleep(UPDATE_INTERVAL)
+        controller.publish_to_topic(controller.object_json_topic, object_msg)
+        time.sleep(LOOP_INTERVAL)
 
     else:
         _client = None
@@ -351,7 +353,7 @@ def main() -> None:
     history["tau_dot_c"] = [controller.tau_dot_c]
 
     # Loop in camera time
-    dt_c = controller.update_interval
+    dt_c = controller.loop_interval
     timestamp_c = history["timestamp_c"][0]
     while index < track.shape[0] - 1:
         timestamp_c += dt_c
@@ -362,8 +364,8 @@ def main() -> None:
             object_msg = make_object_msg(controller, track, index)
             if controller.use_mqtt:
                 logging.info(f"Publishing object msg: {object_msg}")
-                controller.publish_to_topic(controller.object_topic, object_msg)
-                time.sleep(UPDATE_INTERVAL)
+                controller.publish_to_topic(controller.object_json_topic, object_msg)
+                time.sleep(LOOP_INTERVAL)
 
             else:
                 controller._object_callback(_client, _userdata, object_msg)

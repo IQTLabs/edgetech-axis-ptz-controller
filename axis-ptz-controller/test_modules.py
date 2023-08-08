@@ -29,7 +29,7 @@ H_O = 1000.0  # [m]
 AIR_SPEED = 100.0  # [m/s]
 
 HEARTBEAT_INTERVAL = 10
-UPDATE_INTERVAL = 0.10
+LOOP_INTERVAL = 0.10
 CAPTURE_INTERVAL = 2
 LEAD_TIME = 0.0
 PAN_GAIN = 0.2
@@ -64,13 +64,13 @@ def controller() -> AxisPtzController:
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP", ""),
         config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        encoded_image_topic=os.getenv("ENCODED_IMAGE_TOPIC", ""),
-        image_metadata_topic=os.getenv("IMAGE_METADATA_TOPIC", ""),
+        orientation_json_topic=os.getenv("ORIENTATION_JSON_TOPIC", ""),
+        object_json_topic=os.getenv("OBJECT_JSON_TOPIC", ""),
+        image_bytestring_topic=os.getenv("IMAGE_BYTESTRING_TOPIC", ""),
+        image_json_topic=os.getenv("IMAGE_JSON_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
-        update_interval=UPDATE_INTERVAL,
+        loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
         lead_time=LEAD_TIME,
         pan_gain=PAN_GAIN,

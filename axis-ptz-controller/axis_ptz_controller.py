@@ -438,14 +438,14 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_user = config.get("camera_user", self.camera_user)
         self.camera_password = config.get("camera_password", self.camera_password)
         self.config_topic = config.get("config_topic", self.config_topic)
-        self.orientation_json_topic = config.get("orientation_json_topic", self.orientation_json_topic)
+        self.orientation_json_topic = config.get(
+            "orientation_json_topic", self.orientation_json_topic
+        )
         self.object_json_topic = config.get("object_json_topic", self.object_json_topic)
         self.image_bytestring_topic = config.get(
             "image_bytestring_topic", self.image_bytestring_topic
         )
-        self.image_json_topic = config.get(
-            "image_json_topic", self.image_json_topic
-        )
+        self.image_json_topic = config.get("image_json_topic", self.image_json_topic)
         self.logger_topic = config.get("logger_topic", self.logger_topic)
         self.heartbeat_interval = config.get(
             "heartbeat_interval", self.heartbeat_interval
@@ -453,9 +453,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
         self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
         self.h_t = config.get("tripod_altitude", self.h_t)  # [m]
-        self.loop_interval = config.get(
-            "loop_interval", self.loop_interval
-        )  # [s]
+        self.loop_interval = config.get("loop_interval", self.loop_interval)  # [s]
         self.capture_interval = config.get(
             "capture_interval", self.capture_interval
         )  # [s]
@@ -1086,7 +1084,9 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
-            self.add_subscribe_topic(self.orientation_json_topic, self._orientation_callback)
+            self.add_subscribe_topic(
+                self.orientation_json_topic, self._orientation_callback
+            )
             self.add_subscribe_topic(self.object_json_topic, self._object_callback)
 
         if self.use_camera:
