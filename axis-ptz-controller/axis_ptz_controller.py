@@ -60,12 +60,12 @@ class AxisPtzController(BaseMQTTPubSub):
         camera_ip: str,
         camera_user: str,
         camera_password: str,
-        config_topic: str,
+        config_json_topic: str,
         orientation_json_topic: str,
         object_json_topic: str,
         image_bytestring_topic: str,
         image_json_topic: str,
-        logger_topic: str,
+        logger_json_topic: str,
         heartbeat_interval: int,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
@@ -105,7 +105,7 @@ class AxisPtzController(BaseMQTTPubSub):
             Camera user name
         camera_password: str
             Camera user password
-        config_topic: str
+        config_json_topic: str
             MQTT topic for subscribing to configuration messages
         orientation_json_topic: str
             MQTT topic for subscribing to orientation messages
@@ -115,7 +115,7 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for publising images in base64 encoding
         image_json_topic: str
             MQTT topic for publising image metadata
-        logger_topic: str
+        logger_json_topic: str
             MQTT topic for publishing logger messages
         heartbeat_interval: int
             Interval at which heartbeat message is to be published [s]
@@ -180,12 +180,12 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_ip = camera_ip
         self.camera_user = camera_user
         self.camera_password = camera_password
-        self.config_topic = config_topic
+        self.config_json_topic = config_json_topic
         self.orientation_json_topic = orientation_json_topic
         self.object_json_topic = object_json_topic
         self.image_bytestring_topic = image_bytestring_topic
         self.image_json_topic = image_json_topic
-        self.logger_topic = logger_topic
+        self.logger_json_topic = logger_json_topic
         self.heartbeat_interval = heartbeat_interval
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
@@ -437,7 +437,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_ip = config.get("camera_ip", self.camera_ip)
         self.camera_user = config.get("camera_user", self.camera_user)
         self.camera_password = config.get("camera_password", self.camera_password)
-        self.config_topic = config.get("config_topic", self.config_topic)
+        self.config_json_topic = config.get("config_json_topic", self.config_json_topic)
         self.orientation_json_topic = config.get(
             "orientation_json_topic", self.orientation_json_topic
         )
@@ -446,7 +446,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "image_bytestring_topic", self.image_bytestring_topic
         )
         self.image_json_topic = config.get("image_json_topic", self.image_json_topic)
-        self.logger_topic = config.get("logger_topic", self.logger_topic)
+        self.logger_json_topic = config.get("logger_json_topic", self.logger_json_topic)
         self.heartbeat_interval = config.get(
             "heartbeat_interval", self.heartbeat_interval
         )
@@ -506,12 +506,12 @@ class AxisPtzController(BaseMQTTPubSub):
             "camera_ip": self.camera_ip,
             "camera_user": self.camera_user,
             "camera_password": self.camera_password,
-            "config_topic": self.config_topic,
+            "config_json_topic": self.config_json_topic,
             "orientation_json_topic": self.orientation_json_topic,
             "object_json_topic": self.object_json_topic,
             "image_bytestring_topic": self.image_bytestring_topic,
             "image_json_topic": self.image_json_topic,
-            "logger_topic": self.logger_topic,
+            "logger_json_topic": self.logger_json_topic,
             "heartbeat_interval": self.heartbeat_interval,
             "lambda_t": self.lambda_t,
             "varphi_t": self.varphi_t,
@@ -850,7 +850,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 ),
             )
             logging.debug(f"Publishing logger msg: {logger_msg}")
-            self.publish_to_topic(self.logger_topic, logger_msg)
+            self.publish_to_topic(self.logger_json_topic, logger_msg)
 
     def _send_data(self: Any, data: Dict[str, str]) -> bool:
         """Leverages edgetech-core functionality to publish a JSON
@@ -1083,7 +1083,7 @@ class AxisPtzController(BaseMQTTPubSub):
             )
 
             # Subscribe to required topics
-            self.add_subscribe_topic(self.config_topic, self._config_callback)
+            self.add_subscribe_topic(self.config_json_topic, self._config_callback)
             self.add_subscribe_topic(
                 self.orientation_json_topic, self._orientation_callback
             )
@@ -1144,12 +1144,12 @@ def make_controller() -> AxisPtzController:
         camera_user=os.environ.get("CAMERA_USER", ""),
         camera_password=os.environ.get("CAMERA_PASSWORD", ""),
         mqtt_ip=os.environ.get("MQTT_IP"),
-        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        config_json_topic=os.environ.get("CONFIG_JSON_TOPIC", ""),
         orientation_json_topic=os.environ.get("ORIENTATION_JSON_TOPIC", ""),
         object_json_topic=os.environ.get("OBJECT_JSON_TOPIC", ""),
         image_bytestring_topic=os.environ.get("IMAGE_BYTESTRING_TOPIC", ""),
         image_json_topic=os.environ.get("IMAGE_JSON_TOPIC", ""),
-        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
+        logger_json_topic=os.environ.get("LOGGER_JSON_TOPIC", ""),
         heartbeat_interval=int(os.environ.get("HEARTBEAT_INTERVAL", 10)),
         lambda_t=float(os.environ.get("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.environ.get("TRIPOD_LATITUDE", 0.0)),

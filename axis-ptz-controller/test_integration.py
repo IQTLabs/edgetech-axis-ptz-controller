@@ -67,12 +67,12 @@ def make_controller(use_mqtt: bool) -> AxisPtzController:
         camera_user=os.getenv("CAMERA_USER", ""),
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
         mqtt_ip=os.getenv("MQTT_IP", ""),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
+        config_json_topic=os.getenv("CONFIG_JSON_TOPIC", ""),
         orientation_json_topic=os.getenv("ORIENTATION_JSON_TOPIC", ""),
         object_json_topic=os.getenv("OBJECT_JSON_TOPIC", ""),
         image_bytestring_topic=os.getenv("IMAGE_BYTESTRING_TOPIC", ""),
         image_json_topic=os.getenv("IMAGE_JSON_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        logger_json_topic=os.getenv("LOGGER_JSON_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
@@ -308,7 +308,9 @@ def main() -> None:
     # process, one message to each topic
     logging.info("Making the controller, and subscribing to topics")
     controller = make_controller(args.use_mqtt)
-    controller.add_subscribe_topic(controller.config_topic, controller._config_callback)
+    controller.add_subscribe_topic(
+        controller.config_json_topic, controller._config_callback
+    )
     controller.add_subscribe_topic(
         controller.orientation_json_topic, controller._orientation_callback
     )
@@ -321,7 +323,7 @@ def main() -> None:
     object_msg = make_object_msg(controller, track, index)
     if controller.use_mqtt:
         logging.info(f"Publishing config msg: {config_msg}")
-        controller.publish_to_topic(controller.config_topic, config_msg)
+        controller.publish_to_topic(controller.config_json_topic, config_msg)
         time.sleep(LOOP_INTERVAL)
 
         logging.info(f"Publishing orientation msg: {orientation_msg}")

@@ -48,10 +48,10 @@ class MessageHandler(BaseMQTTPubSub):
 
     def __init__(
         self,
-        config_topic: str,
+        config_json_topic: str,
         orientation_json_topic: str,
         object_json_topic: str,
-        logger_topic: str,
+        logger_json_topic: str,
         **kwargs: Any,
     ):
         """Initialize a MessageHandler by subscribing to all required
@@ -60,7 +60,7 @@ class MessageHandler(BaseMQTTPubSub):
 
         Parameters
         ----------
-        config_topic: str
+        config_json_topic: str
             MQTT topic for publishing or subscribing to configuration
             messages
         orientation_json_topic: str
@@ -69,7 +69,7 @@ class MessageHandler(BaseMQTTPubSub):
         object_json_topic: str
             MQTT topic for publishing or subscribing to object
             messages
-        logger_topic: str
+        logger_json_topic: str
             MQTT topic for publishing or subscribing to logger
             messages
 
@@ -79,10 +79,10 @@ class MessageHandler(BaseMQTTPubSub):
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
-        self.config_topic = config_topic
+        self.config_json_topic = config_json_topic
         self.orientation_json_topic = orientation_json_topic
         self.object_json_topic = object_json_topic
-        self.logger_topic = logger_topic
+        self.logger_json_topic = logger_json_topic
 
         # Connect MQTT client
         logging.info("Connecting MQTT client")
@@ -178,10 +178,10 @@ def make_handler() -> MessageHandler:
     """
     handler = MessageHandler(
         mqtt_ip=os.getenv("MQTT_IP", ""),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
+        config_json_topic=os.getenv("CONFIG_JSON_TOPIC", ""),
         orientation_json_topic=os.getenv("ORIENTATION_JSON_TOPIC", ""),
         object_json_topic=os.getenv("OBJECT_JSON_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        logger_json_topic=os.getenv("LOGGER_JSON_TOPIC", ""),
     )
     return handler
 
@@ -219,7 +219,7 @@ def main() -> None:
     # Make the handler, and subscribe to the logger topic
     logging.info("Making the handler, and subscribing to topics")
     handler = make_handler()
-    handler.add_subscribe_topic(handler.logger_topic, handler._logger_callback)
+    handler.add_subscribe_topic(handler.logger_json_topic, handler._logger_callback)
     data = {
         "info": {
             "message": "Subscribed to the logger",
@@ -238,7 +238,7 @@ def main() -> None:
         data_payload_type="Logger",
         data_payload=json.dumps(data),
     )
-    handler.publish_to_topic(handler.logger_topic, logger_msg)
+    handler.publish_to_topic(handler.logger_json_topic, logger_msg)
 
     # Publish the configuration and orientation message, and the first
     # object message
@@ -248,7 +248,7 @@ def main() -> None:
     index = 0
     object_msg = make_object_msg(controller, track, index)
     logging.info(f"Publishing config msg: {config_msg}")
-    handler.publish_to_topic(handler.config_topic, config_msg)
+    handler.publish_to_topic(handler.config_json_topic, config_msg)
     time.sleep(LOOP_INTERVAL)
 
     logging.info(f"Publishing orientation msg: {orientation_msg}")
