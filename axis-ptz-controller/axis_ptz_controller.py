@@ -61,16 +61,16 @@ class AxisPtzController(BaseMQTTPubSub):
         camera_user: str,
         camera_password: str,
         config_topic: str,
-        orientation_topic: str,
-        object_topic: str,
-        encoded_image_topic: str,
-        image_metadata_topic: str,
+        orientation_json_topic: str,
+        object_json_topic: str,
+        image_bytestring_topic: str,
+        image_json_topic: str,
         logger_topic: str,
         heartbeat_interval: int,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
-        update_interval: float = 0.1,
+        loop_interval: float = 0.1,
         capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
@@ -107,13 +107,13 @@ class AxisPtzController(BaseMQTTPubSub):
             Camera user password
         config_topic: str
             MQTT topic for subscribing to configuration messages
-        orientation_topic: str
+        orientation_json_topic: str
             MQTT topic for subscribing to orientation messages
-        object_topic: str
+        object_json_topic: str
             MQTT topic for subscribing to object messages
-        encoded_image_topic: str
+        image_bytestring_topic: str
             MQTT topic for publising images in base64 encoding
-        image_metadata_topic: str
+        image_json_topic: str
             MQTT topic for publising image metadata
         logger_topic: str
             MQTT topic for publishing logger messages
@@ -125,7 +125,7 @@ class AxisPtzController(BaseMQTTPubSub):
             Tripod geodetic latitude [deg]
         h_t: float = 0.0,
             Tripod geodetic altitude [deg]
-        update_interval: float
+        loop_interval: float
             Interval at which pointing of the camera is computed [s]
         capture_interval: int
             Interval at which the camera image is captured [s]
@@ -181,16 +181,16 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_user = camera_user
         self.camera_password = camera_password
         self.config_topic = config_topic
-        self.orientation_topic = orientation_topic
-        self.object_topic = object_topic
-        self.encoded_image_topic = encoded_image_topic
-        self.image_metadata_topic = image_metadata_topic
+        self.orientation_json_topic = orientation_json_topic
+        self.object_json_topic = object_json_topic
+        self.image_bytestring_topic = image_bytestring_topic
+        self.image_json_topic = image_json_topic
         self.logger_topic = logger_topic
         self.heartbeat_interval = heartbeat_interval
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
         self.h_t = h_t
-        self.update_interval = update_interval
+        self.loop_interval = loop_interval
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
         self.lead_time = lead_time
@@ -438,13 +438,13 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera_user = config.get("camera_user", self.camera_user)
         self.camera_password = config.get("camera_password", self.camera_password)
         self.config_topic = config.get("config_topic", self.config_topic)
-        self.orientation_topic = config.get("orientation_topic", self.orientation_topic)
-        self.object_topic = config.get("object_topic", self.object_topic)
-        self.encoded_image_topic = config.get(
-            "encoded_image_topic", self.encoded_image_topic
+        self.orientation_json_topic = config.get("orientation_json_topic", self.orientation_json_topic)
+        self.object_json_topic = config.get("object_json_topic", self.object_json_topic)
+        self.image_bytestring_topic = config.get(
+            "image_bytestring_topic", self.image_bytestring_topic
         )
-        self.image_metadata_topic = config.get(
-            "image_metadata_topic", self.image_metadata_topic
+        self.image_json_topic = config.get(
+            "image_json_topic", self.image_json_topic
         )
         self.logger_topic = config.get("logger_topic", self.logger_topic)
         self.heartbeat_interval = config.get(
@@ -453,8 +453,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
         self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
         self.h_t = config.get("tripod_altitude", self.h_t)  # [m]
-        self.update_interval = config.get(
-            "update_interval", self.update_interval
+        self.loop_interval = config.get(
+            "loop_interval", self.loop_interval
         )  # [s]
         self.capture_interval = config.get(
             "capture_interval", self.capture_interval
@@ -509,16 +509,16 @@ class AxisPtzController(BaseMQTTPubSub):
             "camera_user": self.camera_user,
             "camera_password": self.camera_password,
             "config_topic": self.config_topic,
-            "orientation_topic": self.orientation_topic,
-            "object_topic": self.object_topic,
-            "encoded_image_topic": self.encoded_image_topic,
-            "image_metadata_topic": self.image_metadata_topic,
+            "orientation_json_topic": self.orientation_json_topic,
+            "object_json_topic": self.object_json_topic,
+            "image_bytestring_topic": self.image_bytestring_topic,
+            "image_json_topic": self.image_json_topic,
             "logger_topic": self.logger_topic,
             "heartbeat_interval": self.heartbeat_interval,
             "lambda_t": self.lambda_t,
             "varphi_t": self.varphi_t,
             "h_t": self.h_t,
-            "update_interval": self.update_interval,
+            "loop_interval": self.loop_interval,
             "capture_interval": self.capture_interval,
             "capture_dir": self.capture_dir,
             "lead_time": self.lead_time,
@@ -887,10 +887,10 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Publish payload to the topic selected by type
         if data["type"] == "Encoded Image":
-            topic = self.encoded_image_topic
+            topic = self.image_bytestring_topic
 
         elif data["type"] == "Image Metadata":
-            topic = self.image_metadata_topic
+            topic = self.image_json_topic
 
         success = self.publish_to_topic(topic, payload)
         if success:
@@ -1046,9 +1046,9 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         None
         """
-        self.timestamp_c += self.update_interval
-        self.rho_c += self.rho_dot_c * self.update_interval
-        self.tau_c += self.tau_dot_c * self.update_interval
+        self.timestamp_c += self.loop_interval
+        self.rho_c += self.rho_dot_c * self.loop_interval
+        self.tau_c += self.tau_dot_c * self.loop_interval
 
     def _exit_handler(self, signum: int, frame: Optional[FrameType]) -> None:
         """Exit the controller gracefully by stopping continuous pan
@@ -1086,8 +1086,8 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
-            self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
-            self.add_subscribe_topic(self.object_topic, self._object_callback)
+            self.add_subscribe_topic(self.orientation_json_topic, self._orientation_callback)
+            self.add_subscribe_topic(self.object_json_topic, self._object_callback)
 
         if self.use_camera:
             # Schedule image capture
@@ -1103,7 +1103,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     schedule.run_pending()
 
                 # Update camera pointing
-                sleep(self.update_interval)
+                sleep(self.loop_interval)
                 if not self.use_camera:
                     self._update_pointing()
 
@@ -1145,16 +1145,16 @@ def make_controller() -> AxisPtzController:
         camera_password=os.environ.get("CAMERA_PASSWORD", ""),
         mqtt_ip=os.environ.get("MQTT_IP"),
         config_topic=os.environ.get("CONFIG_TOPIC", ""),
-        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
-        object_topic=os.environ.get("OBJECT_TOPIC", ""),
-        encoded_image_topic=os.environ.get("ENCODED_IMAGE_TOPIC", ""),
-        image_metadata_topic=os.environ.get("IMAGE_METADATA_TOPIC", ""),
+        orientation_json_topic=os.environ.get("ORIENTATION_JSON_TOPIC", ""),
+        object_json_topic=os.environ.get("OBJECT_JSON_TOPIC", ""),
+        image_bytestring_topic=os.environ.get("IMAGE_BYTESTRING_TOPIC", ""),
+        image_json_topic=os.environ.get("IMAGE_JSON_TOPIC", ""),
         logger_topic=os.environ.get("LOGGER_TOPIC", ""),
         heartbeat_interval=int(os.environ.get("HEARTBEAT_INTERVAL", 10)),
         lambda_t=float(os.environ.get("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.environ.get("TRIPOD_LATITUDE", 0.0)),
         h_t=float(os.environ.get("TRIPOD_ALTITUDE", 0.0)),
-        update_interval=float(os.environ.get("UPDATE_INTERVAL", 0.1)),
+        loop_interval=float(os.environ.get("UPDATE_INTERVAL", 0.1)),
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
         lead_time=float(os.environ.get("LEAD_TIME", 0.5)),
