@@ -1,5 +1,4 @@
 import ast
-import coloredlogs
 from datetime import datetime
 import json
 import logging
