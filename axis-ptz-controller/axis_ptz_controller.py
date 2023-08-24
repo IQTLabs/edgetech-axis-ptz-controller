@@ -39,8 +39,6 @@ class AxisPtzController(BaseMQTTPubSub):
         capture_topic: str,
         logger_topic: str,
         heartbeat_interval: int,
-        image_filename_topic: str,
-        hostname: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
@@ -65,6 +63,8 @@ class AxisPtzController(BaseMQTTPubSub):
         include_age: bool = True,
         log_to_mqtt: bool = False,
         continue_on_exception: bool = False,
+        image_filename_topic: str,
+        hostname: str,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
