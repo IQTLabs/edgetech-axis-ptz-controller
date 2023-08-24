@@ -53,6 +53,8 @@ def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
         object_topic=os.getenv("OBJECT_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        image_filename_topic=os.getenv("IMAGE_FILENAME_TOPIC", ""),
+        hostname=os.getenv("HOSTNAME", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         update_interval=UPDATE_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
