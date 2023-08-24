@@ -183,7 +183,6 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_to_mqtt = log_to_mqtt
         self.continue_on_exception = continue_on_exception
 
-
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
         logging.info("Constructing camera configuration and control")
