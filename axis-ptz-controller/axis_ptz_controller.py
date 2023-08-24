@@ -39,6 +39,8 @@ class AxisPtzController(BaseMQTTPubSub):
         capture_topic: str,
         logger_topic: str,
         heartbeat_interval: int,
+        image_filename_topic: str,
+        hostname: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
@@ -63,8 +65,6 @@ class AxisPtzController(BaseMQTTPubSub):
         include_age: bool = True,
         log_to_mqtt: bool = False,
         continue_on_exception: bool = False,
-        image_filename_topic: str,
-        hostname: str,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -1004,6 +1004,8 @@ if __name__ == "__main__":
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
+        image_filename_topic=str(os.getenv("IMAGE_FILENAME_TOPIC", "")),
+        hostname=str(os.getenv("HOSTNAME", "")),
         lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
         h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
@@ -1030,7 +1032,5 @@ if __name__ == "__main__":
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
-        image_filename_topic=str(os.getenv("IMAGE_FILENAME_TOPIC", "")),
-        hostname=str(os.getenv("HOSTNAME", "")),
     )
     controller.main()
