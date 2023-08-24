@@ -24,26 +24,6 @@ import axis_ptz_utilities
 from camera_configuration import CameraConfiguration
 from camera_control import CameraControl
 
-STYLES = {
-    "critical": {"bold": True, "color": "red"},
-    "debug": {"color": "green"},
-    "error": {"color": "red"},
-    "info": {"color": "white"},
-    "notice": {"color": "magenta"},
-    "spam": {"color": "green", "faint": True},
-    "success": {"bold": True, "color": "green"},
-    "verbose": {"color": "blue"},
-    "warning": {"color": "yellow"},
-}
-coloredlogs.install(
-    level=logging.INFO,
-    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
-    ""
-    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
-    "%(message)s",
-    level_styles=STYLES,
-)
-
 
 class AxisPtzController(BaseMQTTPubSub):
     """Point the camera at an object using a proportional rate
@@ -60,6 +40,8 @@ class AxisPtzController(BaseMQTTPubSub):
         capture_topic: str,
         logger_topic: str,
         heartbeat_interval: int,
+        image_filename_topic: str,
+        hostname: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
@@ -199,6 +181,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
         self.continue_on_exception = continue_on_exception
+        self.image_filename_topic = image_filename_topic
+        self.hostname = hostname
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -547,7 +531,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Assign identifier, time, position, and velocity of the
         # object
         if type(msg) == mqtt.MQTTMessage:
-            data = json.loads(self.decode_payload(msg.payload)["Selected Object"])
+            data = self.decode_payload(msg.payload)["SelectedObject"]
         else:
             data = msg["data"]
         if not set(
@@ -884,6 +868,22 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
+
+            out_json = self.generate_payload_json(
+                push_timestamp=str(int(datetime.utcnow().timestamp())),
+                device_type="Collector",
+                id_=self.hostname,
+                deployment_id=f"AISonobuoy-Arlington-{self.hostname}",
+                current_location="-90, -180",
+                status="Debug",
+                message_type="Event",
+                model_version="null",
+                firmware_version="v0.0.0",
+                data_payload_type="ImageFileName",
+                data_payload=str(image_filepath),
+            )
+
+            self.publish_to_topic(self.image_filename_topic, out_json)
             self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
 
     def _update_pointing(self) -> None:
@@ -992,8 +992,9 @@ class AxisPtzController(BaseMQTTPubSub):
                     raise
 
 
-def make_controller() -> AxisPtzController:
-    return AxisPtzController(
+if __name__ == "__main__":
+    # Instantiate controller and execute
+    controller = AxisPtzController(
         camera_ip=os.getenv("CAMERA_IP", ""),
         camera_user=os.getenv("CAMERA_USER", ""),
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
@@ -1030,10 +1031,7 @@ def make_controller() -> AxisPtzController:
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
+        image_filename_topic=str(os.getenv("IMAGE_FILENAME_TOPIC", "")),
+        hostname=str(os.getenv("HOSTNAME", "")),
     )
-
-
-if __name__ == "__main__":
-    # Instantiate controller and execute
-    controller = make_controller()
     controller.main()

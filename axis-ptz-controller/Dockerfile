@@ -10,5 +10,5 @@ COPY ./axis_ptz_controller.py .
 COPY ./axis_ptz_utilities.py .
 COPY ./camera_configuration.py .
 COPY ./camera_control.py .
-RUN mkdir -p /data/tosort
+RUN mkdir -p /sensor-data/imagery
 ENTRYPOINT [ "python3", "axis_ptz_controller.py" ]
