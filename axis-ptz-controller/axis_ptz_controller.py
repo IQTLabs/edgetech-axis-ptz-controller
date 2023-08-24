@@ -156,6 +156,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_topic = capture_topic
         self.logger_topic = logger_topic
         self.heartbeat_interval = heartbeat_interval
+        self.image_filename_topic = image_filename_topic
+        self.hostname = hostname
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
         self.h_t = h_t
@@ -180,8 +182,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
         self.continue_on_exception = continue_on_exception
-        self.image_filename_topic = image_filename_topic
-        self.hostname = hostname
+
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -1004,8 +1005,8 @@ if __name__ == "__main__":
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
-        image_filename_topic=str(os.getenv("IMAGE_FILENAME_TOPIC", "")),
-        hostname=str(os.getenv("HOSTNAME", "")),
+        image_filename_topic=str(os.environ.get("IMAGE_FILENAME_TOPIC")),
+        hostname=str(os.environ.get("HOSTNAME")),
         lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
         h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
