@@ -530,7 +530,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Assign identifier, time, position, and velocity of the
         # object
         if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)["SelectedObject"]
+            data = json.loads(self.decode_payload(msg.payload)["Selected Object"])
         else:
             data = msg["data"]
         if not set(
