@@ -1,5 +1,4 @@
 import ast
-import coloredlogs
 from datetime import datetime
 import json
 import logging
@@ -24,26 +23,6 @@ import axis_ptz_utilities
 from camera_configuration import CameraConfiguration
 from camera_control import CameraControl
 
-STYLES = {
-    "critical": {"bold": True, "color": "red"},
-    "debug": {"color": "green"},
-    "error": {"color": "red"},
-    "info": {"color": "white"},
-    "notice": {"color": "magenta"},
-    "spam": {"color": "green", "faint": True},
-    "success": {"bold": True, "color": "green"},
-    "verbose": {"color": "blue"},
-    "warning": {"color": "yellow"},
-}
-coloredlogs.install(
-    level=logging.INFO,
-    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
-    ""
-    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
-    "%(message)s",
-    level_styles=STYLES,
-)
-
 
 class AxisPtzController(BaseMQTTPubSub):
     """Point the camera at an object using a proportional rate
@@ -60,6 +39,8 @@ class AxisPtzController(BaseMQTTPubSub):
         capture_topic: str,
         logger_topic: str,
         heartbeat_interval: int,
+        image_filename_topic: str,
+        hostname: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
@@ -175,6 +156,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_topic = capture_topic
         self.logger_topic = logger_topic
         self.heartbeat_interval = heartbeat_interval
+        self.image_filename_topic = image_filename_topic
+        self.hostname = hostname
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
         self.h_t = h_t
@@ -884,6 +867,22 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
+
+            out_json = self.generate_payload_json(
+                push_timestamp=str(int(datetime.utcnow().timestamp())),
+                device_type="Collector",
+                id_=self.hostname,
+                deployment_id=f"AISonobuoy-Arlington-{self.hostname}",
+                current_location="-90, -180",
+                status="Debug",
+                message_type="Event",
+                model_version="null",
+                firmware_version="v0.0.0",
+                data_payload_type="ImageFileName",
+                data_payload=str(image_filepath),
+            )
+
+            self.publish_to_topic(self.image_filename_topic, out_json)
             self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
 
     def _update_pointing(self) -> None:
@@ -992,8 +991,9 @@ class AxisPtzController(BaseMQTTPubSub):
                     raise
 
 
-def make_controller() -> AxisPtzController:
-    return AxisPtzController(
+if __name__ == "__main__":
+    # Instantiate controller and execute
+    controller = AxisPtzController(
         camera_ip=os.getenv("CAMERA_IP", ""),
         camera_user=os.getenv("CAMERA_USER", ""),
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
@@ -1004,6 +1004,8 @@ def make_controller() -> AxisPtzController:
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
         heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
+        image_filename_topic=str(os.environ.get("IMAGE_FILENAME_TOPIC")),
+        hostname=str(os.environ.get("HOSTNAME")),
         lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
         h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
@@ -1031,9 +1033,4 @@ def make_controller() -> AxisPtzController:
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
     )
-
-
-if __name__ == "__main__":
-    # Instantiate controller and execute
-    controller = make_controller()
     controller.main()
