@@ -354,10 +354,17 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Initialize camera pointing
         if self.use_camera:
-            logging.debug(f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}")
-            self.camera_control.absolute_move(
-                self.rho_c, self.tau_c, self.zoom, 50, self.focus
+            logging.info(
+                f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
             )
+            if self.auto_focus:
+                self.camera_control.absolute_move(
+                    self.rho_c, self.tau_c, self.zoom, 50
+                )
+            else:
+                self.camera_control.absolute_move(
+                    self.rho_c, self.tau_c, self.zoom, 50, self.focus
+                )
 
         # Log configuration parameters
         self._log_config()
@@ -711,9 +718,14 @@ class AxisPtzController(BaseMQTTPubSub):
                 logging.info(
                     f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
-                self.camera_control.absolute_move(
-                    self.rho_o, self.tau_o, self.zoom, 50, self.focus
-                )
+                if self.auto_focus:
+                    self.camera_control.absolute_move(
+                        self.rho_o, self.tau_o, self.zoom, 50
+                    )
+                else:
+                    self.camera_control.absolute_move(
+                        self.rho_o, self.tau_o, self.zoom, 50, self.focus
+                    )
                 duration = max(
                     math.fabs(self.rho_c - self.rho_o) / (self.pan_rate_max / 2),
                     math.fabs(self.tau_c - self.tau_o) / (self.tilt_rate_max / 2),
@@ -777,9 +789,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Get, or compute and set focus, command camera pan and tilt
         # rates, and begin capturing images, if needed
         if self.use_camera:
-            if self.auto_focus:
-                _rho_c, _tau_c, _zoom, self.focus = self.camera_control.get_ptz()
-            else:
+            if not self.auto_focus:
                 self.focus = int(
                     (self.focus_max - self.focus_min)
                     * (self.focus_slope * self.distance3d + self.focus_intercept)
