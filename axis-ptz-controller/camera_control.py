@@ -59,6 +59,7 @@ class CameraControl(vapix_control.CameraControl):
         # Defensively only set focus if needed
         if focus is not None:
             command["focus"] = focus
+        logging.info(f"command: {command}")
         return self._camera_command(command)
 
     def get_ptz(self) -> Tuple[float, float, float, float]:

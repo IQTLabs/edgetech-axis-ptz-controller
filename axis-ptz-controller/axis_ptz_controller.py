@@ -354,14 +354,17 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Initialize camera pointing
         if self.use_camera:
-            logging.info(
-                f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
-            )
             if self.auto_focus:
+                logging.info(
+                    f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
+                )
                 self.camera_control.absolute_move(
                     self.rho_c, self.tau_c, self.zoom, 50
                 )
             else:
+                logging.info(
+                    f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
+                )
                 self.camera_control.absolute_move(
                     self.rho_c, self.tau_c, self.zoom, 50, self.focus
                 )
@@ -715,14 +718,17 @@ class AxisPtzController(BaseMQTTPubSub):
             # Point the camera at any new object directly
             if self.object_id != object_id:
                 self.object_id = object_id
-                logging.info(
-                    f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
-                )
                 if self.auto_focus:
+                    logging.info(
+                        f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
+                    )
                     self.camera_control.absolute_move(
                         self.rho_o, self.tau_o, self.zoom, 50
                     )
                 else:
+                    logging.info(
+                        f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
+                    )
                     self.camera_control.absolute_move(
                         self.rho_o, self.tau_o, self.zoom, 50, self.focus
                     )
