@@ -67,6 +67,7 @@ class AxisPtzController(BaseMQTTPubSub):
         jpeg_compression: int = 5,
         use_mqtt: bool = True,
         use_camera: bool = True,
+        auto_focus: bool = False,
         include_age: bool = True,
         log_to_mqtt: bool = False,
         continue_on_exception: bool = False,
@@ -141,6 +142,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Flag to use MQTT, or not
         use_camera: bool
             Flag to use camera configuration and control, or not
+        auto_focus: bool
+            Flag to auto focus, or not
         include_age: bool
             Flag to include object message age in lead time, or not
         log_to_mqtt: bool
@@ -187,6 +190,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.jpeg_compression = jpeg_compression
         self.use_mqtt = use_mqtt
         self.use_camera = use_camera
+        self.auto_focus = auto_focus
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
         self.continue_on_exception = continue_on_exception
@@ -452,6 +456,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.jpeg_compression = config.get("jpeg_compression", self.jpeg_compression)
         self.use_mqtt = config.get("use_mqtt", self.use_mqtt)
         self.use_camera = config.get("use_camera", self.use_camera)
+        self.auto_focus = config.get("auto_focus", self.auto_focus)
         self.include_age = config.get("include_age", self.include_age)
         self.log_to_mqtt = config.get("log_to_mqtt", self.log_to_mqtt)
         self.continue_on_exception = config.get(
@@ -511,6 +516,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "jpeg_compression": self.jpeg_compression,
             "use_mqtt": self.use_mqtt,
             "use_camera": self.use_camera,
+            "auto_focus": self.auto_focus,
             "include_age": self.include_age,
             "log_to_mqtt": self.log_to_mqtt,
             "continue_on_exception": self.continue_on_exception,
@@ -768,17 +774,20 @@ class AxisPtzController(BaseMQTTPubSub):
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
-        # Compute and set focus, command camera pan and tilt rates,
-        # and begin capturing images, if needed
+        # Get, or compute and set focus, command camera pan and tilt
+        # rates, and begin capturing images, if needed
         if self.use_camera:
-            self.focus = int(
-                (self.focus_max - self.focus_min)
-                * (self.focus_slope * self.distance3d + self.focus_intercept)
-                / 100.0
-                + self.focus_min
-            )  # [%]
-            logging.debug(f"Commanding focus: {self.focus}")
-            self.camera_control.set_focus(self.focus)
+            if self.auto_focus:
+                _rho_c, _tau_c, _zoom, self.focus = self.camera_control.get_ptz()
+            else:
+                self.focus = int(
+                    (self.focus_max - self.focus_min)
+                    * (self.focus_slope * self.distance3d + self.focus_intercept)
+                    / 100.0
+                    + self.focus_min
+                )  # [%]
+                logging.debug(f"Commanding focus: {self.focus}")
+                self.camera_control.set_focus(self.focus)
 
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
@@ -1157,6 +1166,7 @@ def make_controller() -> AxisPtzController:
         jpeg_compression=int(os.getenv("JPEG_COMPRESSION", 5)),
         use_mqtt=ast.literal_eval(os.getenv("USE_MQTT", "True")),
         use_camera=ast.literal_eval(os.getenv("USE_CAMERA", "True")),
+        auto_focus=ast.literal_eval(os.getenv("AUTO_FOCUS", "True")),
         include_age=ast.literal_eval(os.getenv("INCLUDE_AGE", "True")),
         log_to_mqtt=ast.literal_eval(os.getenv("LOG_TO_MQTT", "False")),
         continue_on_exception=ast.literal_eval(
