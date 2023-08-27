@@ -358,9 +358,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 logging.info(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
-                self.camera_control.absolute_move(
-                    self.rho_c, self.tau_c, self.zoom, 50
-                )
+                self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
             else:
                 logging.info(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
