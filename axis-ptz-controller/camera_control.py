@@ -1,6 +1,7 @@
-import coloredlogs
 import logging
+import os
 
+import coloredlogs
 from sensecam_control import vapix_control
 from typing import Tuple, Union
 
@@ -16,7 +17,7 @@ STYLES = {
     "warning": {"color": "yellow"},
 }
 coloredlogs.install(
-    level=logging.INFO,
+    level=os.environ.get("LOG_LEVEL", "INFO"),
     fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
     ""
     "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
@@ -72,6 +73,7 @@ class CameraControl(vapix_control.CameraControl):
         zoom = float(resp.text.split()[2].split("=")[1])
         focus = float(resp.text.split()[3].split("=")[1])
         ptz_list = (pan, tilt, zoom, focus)
+        logging.debug(f"PTZ: {ptz_list}")
 
         return ptz_list
 
@@ -86,3 +88,17 @@ class CameraControl(vapix_control.CameraControl):
 
         """
         return self._camera_command({"focus": focus})
+
+    def is_connected(self) -> bool:
+        """
+        Operation to test camera connection.
+
+        Returns:
+            Bool indicating connection, or not
+
+        """
+        resp = self._camera_command({"query": "position"})
+        if resp.status_code == 200:
+            return True
+        else:
+            return False

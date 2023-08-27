@@ -1,11 +1,13 @@
-import coloredlogs
+import base64
 import contextlib
 from datetime import datetime
 import logging
 import math
 import os
+from pathlib import Path
 from typing import cast, Generator, Tuple, Union
 
+import coloredlogs
 import numpy as np
 import numpy.typing as npt
 import quaternion
@@ -26,7 +28,7 @@ STYLES = {
     "warning": {"color": "yellow"},
 }
 coloredlogs.install(
-    level=logging.INFO,
+    level=os.environ.get("LOG_LEVEL", "INFO"),
     fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
     ""
     "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
@@ -549,3 +551,42 @@ def pushd(new_dir: str) -> Generator[None, None, None]:
         yield
     finally:
         os.chdir(old_dir)
+
+
+# TODO: Remove if passing data through filesystem is acceptable
+def encode_image(image_filepath: Path) -> str:
+    """Base64 encode an image from a file.
+
+    Parameters
+    ----------
+    image_filepath: Path
+        Path of the image file
+
+    Returns
+    -------
+    encoded_image: str
+        The Base64 encoded image as an ASCII string
+    """
+    with open(image_filepath, "rb") as image_file:
+        encoded_image = base64.b64encode(image_file.read()).decode(
+            encoding="utf-8", errors="strict"
+        )
+    return encoded_image
+
+
+# TODO: Remove if passing data through filesystem is acceptable
+def decode_image(encoded_image: str) -> bytes:
+    """Base64 decode an image from an ASCII string.
+
+    Parameters
+    ----------
+    encoded_image: str
+        A Base64 encoded image as an ASCII string
+
+    Returns
+    -------
+    decoded_image: bytes
+        The Base64 decoded image
+    """
+    decoded_image = base64.b64decode(encoded_image)
+    return decoded_image

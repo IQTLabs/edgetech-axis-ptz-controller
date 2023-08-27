@@ -4,24 +4,22 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import paho.mqtt.client as mqtt
 import pandas as pd
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 from test_integration import (
-    read_track_data,
     get_config_msg,
     get_orientation_msg,
+    make_controller,
     make_object_msg,
     plot_time_series,
+    read_track_data,
 )
 
-UPDATE_INTERVAL = 0.1
-
-logger = logging.getLogger("ptz-messages")
-logger.setLevel(logging.INFO)
+LOOP_INTERVAL = 0.1
 
 
 class MessageHandler(BaseMQTTPubSub):
@@ -66,7 +64,7 @@ class MessageHandler(BaseMQTTPubSub):
         self.logger_topic = logger_topic
 
         # Connect MQTT client
-        logger.info("Connecting MQTT client")
+        logging.info("Connecting MQTT client")
         self.connect_client()
         time.sleep(5)
         self.publish_registration("Message Handler Module Registration")
@@ -75,11 +73,11 @@ class MessageHandler(BaseMQTTPubSub):
         self.camera_pointing_filename = "camera-pointing.csv"
         self.camera_pointing_file = open(self.camera_pointing_filename, "w")
         self.camera_pointing_keys = [
-            "time_c",
-            "rho_a",
-            "tau_a",
-            "rho_dot_a",
-            "tau_dot_a",
+            "timestamp_c",
+            "rho_o",
+            "tau_o",
+            "rho_dot_o",
+            "tau_dot_o",
             "rho_c",
             "tau_c",
             "rho_dot_c",
@@ -87,22 +85,28 @@ class MessageHandler(BaseMQTTPubSub):
         ]
         self.camera_pointing_file.write(",".join(self.camera_pointing_keys) + "\n")
 
-    def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
+    def decode_payload(
+        self, msg: Union[mqtt.MQTTMessage, str], data_payload_type: str
+    ) -> Dict[Any, Any]:
         """
         Decode the payload carried by a message.
 
         Parameters
         ----------
-        payload: Any
-            A JSON string with {timestamp: ____, data: ____,}
+        payload: mqtt.MQTTMessage
+            The MQTT message
 
         Returns
         -------
-        data : dict
-            The data component of the payload
+        data : Dict[Any, Any]
+            The data payload of the message payload
         """
-        data = json.loads(str(payload.decode("utf-8")))["data"]
-        return data
+        if type(msg) == mqtt.MQTTMessage:
+            payload = msg.payload.decode()
+        else:
+            payload = msg
+        data_payload = json.loads(payload)[data_payload_type]
+        return json.loads(data_payload)
 
     def _logger_callback(
         self, _client: mqtt.Client, _userdata: Dict[Any, Any], msg: mqtt.MQTTMessage
@@ -123,14 +127,18 @@ class MessageHandler(BaseMQTTPubSub):
         -------
         None
         """
-        data = self.decode_payload(msg.payload)
+        data = self.decode_payload(msg, "Logger")
         if "camera-pointing" in data:
-            p = data["camera-pointing"]
+            logging.info(data["camera-pointing"])
             self.camera_pointing_file.write(
-                ",".join([str(p[k]) for k in self.camera_pointing_keys]) + "\n"
+                ",".join(
+                    [str(data["camera-pointing"][k]) for k in self.camera_pointing_keys]
+                )
+                + "\n"
             )
+            self.camera_pointing_file.flush()
         elif "info" in data:
-            logger.info(data["info"]["message"])
+            logging.info(data["info"]["message"])
 
 
 def make_handler() -> MessageHandler:
@@ -184,54 +192,68 @@ def main() -> None:
     args = parser.parse_args()
 
     # Read the track data
-    logger.info(f"Reading track for id: {args.track_id}")
+    logging.info(f"Reading track for id: {args.track_id}")
     track = read_track_data(args.track_id)
 
     # Make the handler, and subscribe to the logger topic
-    logger.info("Making the handler, and subscribing to topics")
+    logging.info("Making the handler, and subscribing to topics")
     handler = make_handler()
     handler.add_subscribe_topic(handler.logger_topic, handler._logger_callback)
-    logger_msg = {
-        "timestamp": str(int(datetime.utcnow().timestamp())),
-        "data": {
-            "info": {
-                "message": "Subscribed to the logger",
-            }
-        },
+    data = {
+        "info": {
+            "message": "Subscribed to the logger",
+        }
     }
-    handler.publish_to_topic(handler.logger_topic, json.dumps(logger_msg))
+    logger_msg = handler.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Logger",
+        data_payload=json.dumps(data),
+    )
+    handler.publish_to_topic(handler.logger_topic, logger_msg)
 
     # Publish the configuration and orientation message, and the first
     # object message
-    config_msg = get_config_msg()
-    orientation_msg = get_orientation_msg()
+    controller = make_controller(True)
+    config_msg = get_config_msg(controller)
+    orientation_msg = get_orientation_msg(controller)
     index = 0
-    object_msg = make_object_msg(track, index)
-    logger.info(f"Publishing config msg: {config_msg}")
-    handler.publish_to_topic(handler.config_topic, json.dumps(config_msg))
-    time.sleep(UPDATE_INTERVAL)
-    logger.info(f"Publishing orientation msg: {orientation_msg}")
-    handler.publish_to_topic(handler.orientation_topic, json.dumps(orientation_msg))
-    time.sleep(UPDATE_INTERVAL)
-    logger.info(f"Publishing object msg: {object_msg}")
-    handler.publish_to_topic(handler.object_topic, json.dumps(object_msg))
-    time.sleep(UPDATE_INTERVAL)
+    object_msg = make_object_msg(controller, track, index)
+    logging.info(f"Publishing config msg: {config_msg}")
+    handler.publish_to_topic(handler.config_topic, config_msg)
+    time.sleep(LOOP_INTERVAL)
+
+    logging.info(f"Publishing orientation msg: {orientation_msg}")
+    handler.publish_to_topic(handler.orientation_topic, orientation_msg)
+    time.sleep(LOOP_INTERVAL)
+
+    logging.info(f"Publishing object msg: {object_msg}")
+    handler.publish_to_topic(handler.object_topic, object_msg)
+    time.sleep(LOOP_INTERVAL)
 
     # Loop in camera time
-    dt_c = UPDATE_INTERVAL
-    time_c = track["latLonTime"][index]
+    dt_c = LOOP_INTERVAL
+    timestamp_c = track["timestamp"][index]
     while index < track.shape[0] - 1:
-        time.sleep(UPDATE_INTERVAL)
-        time_c += dt_c
+        time.sleep(LOOP_INTERVAL)
+        timestamp_c += dt_c
 
         # Process each object message when received
-        if time_c >= track["latLonTime"][index + 1]:
-            index = track["latLonTime"][time_c >= track["latLonTime"]].index[-1]
-            object_msg = make_object_msg(track, index)
-            logger.info(f"Publishing object msg: {object_msg}")
-            handler.publish_to_topic(handler.object_topic, json.dumps(object_msg))
+        if timestamp_c >= track["timestamp"][index + 1]:
+            index = track["timestamp"][timestamp_c >= track["timestamp"]].index[-1]
+            object_msg = make_object_msg(controller, track, index)
+            logging.info(f"Publishing object msg: {object_msg}")
+            handler.publish_to_topic(handler.object_topic, object_msg)
 
     # Read camera pointing file as a dataframe, and plot
+    time.sleep(5)
     handler.camera_pointing_file.close()
     ts = pd.read_csv(handler.camera_pointing_filename)
     plot_time_series(ts)
