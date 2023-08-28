@@ -54,9 +54,12 @@ class CameraControl(vapix_control.CameraControl):
             Returns the response from the device to the command sent.
 
         """
-        return self._camera_command(
-            {"pan": pan, "tilt": tilt, "zoom": zoom, "speed": speed, "focus": focus}
-        )
+        command = {"pan": pan, "tilt": tilt, "zoom": zoom, "speed": speed}
+        # Defensively only set focus if needed
+        if focus is not None:
+            command["focus"] = focus
+        logging.info(f"command: {command}")
+        return self._camera_command(command)
 
     def get_ptz(self) -> Tuple[float, float, float, float]:
         """
