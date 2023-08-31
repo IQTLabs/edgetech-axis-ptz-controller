@@ -12,7 +12,12 @@ def test_integration() -> None:
     with open("./test-data/test-output.json") as output_file:
         output = json.load(output_file)
 
-    ts = pd.DataFrame.from_dict([json.loads(d['message_content']['Logger'])['camera-pointing'] for d in output[:-1]])
+    ts = pd.DataFrame.from_dict(
+        [
+            json.loads(d["message_content"]["Logger"])["camera-pointing"]
+            for d in output[:-1]
+        ]
+    )
 
     plot_time_series(ts)
 
