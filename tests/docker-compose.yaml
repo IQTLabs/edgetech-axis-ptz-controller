@@ -32,5 +32,9 @@ services:
       - mqtt
     env_file:
       - axis-ptz-controller.env
+    environment:
+      - TRIPOD_LATITUDE=${TRIPOD_LATITUDE}
+      - TRIPOD_LONGITUDE=${TRIPOD_LONGITUDE}
+      - TRIPOD_ALTITUDE=${TRIPOD_ALTITUDE}
     volumes:
       - ./test-data/tosort:/data/tosort
