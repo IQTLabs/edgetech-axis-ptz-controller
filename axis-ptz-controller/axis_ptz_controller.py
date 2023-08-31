@@ -303,6 +303,7 @@ class AxisPtzController(BaseMQTTPubSub):
         }
         self._config_callback(None, None, config_msg)
 
+        os.makedirs(self.capture_dir, exist_ok=True)
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
