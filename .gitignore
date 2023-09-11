@@ -131,6 +131,7 @@ dmypy.json
 # Developer files
 *~
 *#
+.archive
 .bashrc
 .dir-locals.el
 .DS_Store
