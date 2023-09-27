@@ -667,8 +667,10 @@ class AxisPtzController(BaseMQTTPubSub):
                         self.rho_o, self.tau_o, self.zoom, 50, self.focus
                     )
                 duration = max(
-                    math.fabs(self._compute_angle_delta(self.rho_c, self.rho_o)) / (self.pan_rate_max / 2),
-                    math.fabs(self._compute_angle_delta(self.tau_c, self.tau_o)) / (self.tilt_rate_max / 2),
+                    math.fabs(self._compute_angle_delta(self.rho_c, self.rho_o))
+                    / (self.pan_rate_max / 2),
+                    math.fabs(self._compute_angle_delta(self.tau_c, self.tau_o))
+                    / (self.tilt_rate_max / 2),
                 )
                 logging.info(f"Sleeping: {duration} [s]")
                 sleep(duration)
@@ -678,8 +680,12 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
         # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(self.rho_c, self.rho_o)
-        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(self.tau_c, self.tau_o)
+        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(
+            self.rho_c, self.rho_o
+        )
+        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(
+            self.tau_c, self.tau_o
+        )
         logging.debug(
             f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
         )
@@ -796,8 +802,12 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         theta_c = math.radians(theta_c)
         theta_o = math.radians(theta_o)
-        d = math.cos(theta_c) * math.cos(theta_o) + math.sin(theta_c) * math.sin(theta_o)
-        c = math.cos(theta_c) * math.sin(theta_o) - math.sin(theta_c) * math.cos(theta_o)
+        d = math.cos(theta_c) * math.cos(theta_o) + math.sin(theta_c) * math.sin(
+            theta_o
+        )
+        c = math.cos(theta_c) * math.sin(theta_o) - math.sin(theta_c) * math.cos(
+            theta_o
+        )
         return math.degrees(math.acos(d)) * c / math.fabs(c)
 
     def _compute_pan_rate_index(self, rho_dot: float) -> int:
