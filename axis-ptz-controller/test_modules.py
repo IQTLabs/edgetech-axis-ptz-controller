@@ -198,6 +198,12 @@ class TestAxisPtzController:
         assert qnorm(controller.q_gamma - q_gamma_exp) < PRECISION
         assert np.linalg.norm(controller.E_XYZ_to_uvw - E_XYZ_to_uvw_exp) < PRECISION
 
+    def test_compute_angle_delta(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
+        assert round(controller._compute_angle_delta(1.0, 359.0)) == -2.0
+        assert round(controller._compute_angle_delta(359.0, 1.0)) == +2.0
+
     def test_compute_pan_rate_index(
         self, controller: axis_ptz_controller.AxisPtzController
     ) -> None:
