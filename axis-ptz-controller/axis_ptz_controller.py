@@ -678,8 +678,8 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
         # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(self.rho_o, self.rho_c)
-        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(self.tau_o, self.tau_c)
+        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(self.rho_c, self.rho_o)
+        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(self.tau_c, self.tau_o)
         logging.debug(
             f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
         )
