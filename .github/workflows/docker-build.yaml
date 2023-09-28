@@ -5,48 +5,32 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  push_to_registry:
+    name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Get tag
-      id: get_tag
-      run: |
-        echo "::set-output name=IMAGE_TAG::$(echo $GITHUB_REF | cut -d / -f 3)"
-    
-    - name: Set up qemu
-      uses: docker/setup-qemu-action@v2
-      with:
-        platforms: all
+      - name: Set up Docker buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
 
-    - name: Set up Docker buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v2
-      with:
-        version: latest
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3 
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
-    - name: Login to Docker Hub
-      run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login --username "${{ vars.DOCKER_USERNAME }}" --password-stdin
+      - name: Set DOCKER_FOLDER
+        run: echo "DOCKER_FOLDER=$(echo ${{ github.event.repository.name }} | sed 's/edgetech-//')" >> $GITHUB_ENV
 
-    - name: Get changes
-      id: identify
-      uses: jitterbit/get-changed-files@v1
-    - run: |
-        echo ${{ steps.files.output.all }}
-
-    - name: Build image
-      env: 
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-        DOCKER_FOLDER: "axis-ptz-controller"
-        DOCKER_NAMESPACE: ${{ vars.DOCKER_NAMESPACE }}
-        TAG_NAME: ${{ steps.get_tag.outputs.IMAGE_TAG }}
-      run: |
-        GITHUB_REPO=$(basename $GITHUB_REPOSITORY)
-        docker buildx build $DOCKER_FOLDER \
-        --platform linux/arm64,linux/amd64 \
-        --push \
-        --tag $DOCKER_NAMESPACE/$GITHUB_REPO:latest \
-        --tag $DOCKER_NAMESPACE/$GITHUB_REPO:$TAG_NAME
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.DOCKER_FOLDER }}
+          platforms: linux/arm64,linux/amd64
+          push: true
+          tags: ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:latest
