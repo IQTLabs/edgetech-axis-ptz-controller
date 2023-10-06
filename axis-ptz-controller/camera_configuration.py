@@ -1,7 +1,7 @@
 # mypy: ignore-errors
-import coloredlogs
 import datetime
 import logging
+import os
 
 import requests
 from requests.auth import HTTPDigestAuth
