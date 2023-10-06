@@ -24,8 +24,6 @@ TILT_RATE_MAX = 100.0
 JPEG_RESOLUTION = "1920x1080"
 JPEG_COMPRESSION = 5
 
-logger = logging.getLogger("ptz-integration")
-logger.setLevel(logging.INFO)
 
 def make_controller(use_mqtt: bool) -> AxisPtzController:
     """Construct a controller.
@@ -243,12 +241,12 @@ def main() -> None:
     args = parser.parse_args()
 
     # Read the track data
-    logger.info(f"Reading track for id: {args.track_id}")
+    logging.info(f"Reading track for id: {args.track_id}")
     track = read_track_data(args.track_id)
 
     # Make the controller, subscribe to all topics, and publish, or
     # process, one message to each topic
-    logger.info("Making the controller, and subscribing to topics")
+    logging.info("Making the controller, and subscribing to topics")
     controller = make_controller(args.use_mqtt)
     controller.add_subscribe_topic(controller.config_topic, controller._config_callback)
     controller.add_subscribe_topic(
