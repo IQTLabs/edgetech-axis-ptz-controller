@@ -1,13 +1,15 @@
+from datetime import datetime
 import json
 import math
 import os
-from typing import Any, Dict
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 import pytest
 import quaternion
-import axis_ptz_controller
+
+from axis_ptz_controller import AxisPtzController
 import axis_ptz_utilities
 
 
@@ -53,9 +55,10 @@ def R_pole() -> float:
 
 
 @pytest.fixture
-def controller() -> axis_ptz_controller.AxisPtzController:
+def controller() -> AxisPtzController:
     """Construct a controller."""
-    controller = axis_ptz_controller.AxisPtzController(
+    controller = AxisPtzController(
+        hostname=os.environ.get("HOSTNAME", ""),
         camera_ip=os.getenv("CAMERA_IP", ""),
         camera_user=os.getenv("CAMERA_USER", ""),
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
