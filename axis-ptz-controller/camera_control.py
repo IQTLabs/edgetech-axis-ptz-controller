@@ -1,5 +1,5 @@
-import coloredlogs
 import logging
+import os
 
 from sensecam_control import vapix_control
 from typing import Tuple, Union
