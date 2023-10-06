@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import paho.mqtt.client as mqtt
 import pandas as pd
