@@ -131,8 +131,12 @@ class MessageHandler(BaseMQTTPubSub):
         if "camera-pointing" in data:
             logging.info(data["camera-pointing"])
             self.camera_pointing_file.write(
-                ",".join([str(p[k]) for k in self.camera_pointing_keys]) + "\n"
+                ",".join(
+                    [str(data["camera-pointing"][k]) for k in self.camera_pointing_keys]
+                )
+                + "\n"
             )
+            self.camera_pointing_file.flush()
         elif "info" in data:
             logging.info(data["info"]["message"])
 
@@ -195,31 +199,44 @@ def main() -> None:
     logging.info("Making the handler, and subscribing to topics")
     handler = make_handler()
     handler.add_subscribe_topic(handler.logger_topic, handler._logger_callback)
-    logger_msg = {
-        "timestamp": str(int(datetime.utcnow().timestamp())),
-        "data": {
-            "info": {
-                "message": "Subscribed to the logger",
-            }
-        },
+    data = {
+        "info": {
+            "message": "Subscribed to the logger",
+        }
     }
-    handler.publish_to_topic(handler.logger_topic, json.dumps(logger_msg))
+    logger_msg = handler.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Logger",
+        data_payload=json.dumps(data),
+    )
+    handler.publish_to_topic(handler.logger_topic, logger_msg)
 
     # Publish the configuration and orientation message, and the first
     # object message
-    config_msg = get_config_msg()
-    orientation_msg = get_orientation_msg()
+    controller = make_controller(True)
+    config_msg = get_config_msg(controller)
+    orientation_msg = get_orientation_msg(controller)
     index = 0
-    object_msg = make_object_msg(track, index)
-    logger.info(f"Publishing config msg: {config_msg}")
-    handler.publish_to_topic(handler.config_topic, json.dumps(config_msg))
-    time.sleep(UPDATE_INTERVAL)
-    logger.info(f"Publishing orientation msg: {orientation_msg}")
-    handler.publish_to_topic(handler.orientation_topic, json.dumps(orientation_msg))
-    time.sleep(UPDATE_INTERVAL)
-    logger.info(f"Publishing object msg: {object_msg}")
-    handler.publish_to_topic(handler.object_topic, json.dumps(object_msg))
-    time.sleep(UPDATE_INTERVAL)
+    object_msg = make_object_msg(controller, track, index)
+    logging.info(f"Publishing config msg: {config_msg}")
+    handler.publish_to_topic(handler.config_topic, config_msg)
+    time.sleep(LOOP_INTERVAL)
+
+    logging.info(f"Publishing orientation msg: {orientation_msg}")
+    handler.publish_to_topic(handler.orientation_topic, orientation_msg)
+    time.sleep(LOOP_INTERVAL)
+
+    logging.info(f"Publishing object msg: {object_msg}")
+    handler.publish_to_topic(handler.object_topic, object_msg)
+    time.sleep(LOOP_INTERVAL)
 
     # Loop in camera time
     dt_c = LOOP_INTERVAL
@@ -229,13 +246,14 @@ def main() -> None:
         timestamp_c += dt_c
 
         # Process each object message when received
-        if time_c >= track["latLonTime"][index + 1]:
-            index = track["latLonTime"][time_c >= track["latLonTime"]].index[-1]
-            object_msg = make_object_msg(track, index)
-            logger.info(f"Publishing object msg: {object_msg}")
-            handler.publish_to_topic(handler.object_topic, json.dumps(object_msg))
+        if timestamp_c >= track["timestamp"][index + 1]:
+            index = track["timestamp"][timestamp_c >= track["timestamp"]].index[-1]
+            object_msg = make_object_msg(controller, track, index)
+            logging.info(f"Publishing object msg: {object_msg}")
+            handler.publish_to_topic(handler.object_topic, object_msg)
 
     # Read camera pointing file as a dataframe, and plot
+    time.sleep(5)
     handler.camera_pointing_file.close()
     ts = pd.read_csv(handler.camera_pointing_filename)
     plot_time_series(ts)
