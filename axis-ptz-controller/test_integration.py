@@ -9,7 +9,7 @@ from typing import Any, Dict
 from matplotlib import pyplot as plt
 import pandas as pd
 
-import axis_ptz_controller
+from axis_ptz_controller import AxisPtzController
 
 HEARTBEAT_INTERVAL = 10
 UPDATE_INTERVAL = 0.01
@@ -27,8 +27,7 @@ JPEG_COMPRESSION = 5
 logger = logging.getLogger("ptz-integration")
 logger.setLevel(logging.INFO)
 
-
-def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
+def make_controller(use_mqtt: bool) -> AxisPtzController:
     """Construct a controller.
 
     Note that if use_mqtt = True then an MQTT broker must be started
@@ -43,7 +42,8 @@ def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
     -------
     None
     """
-    controller = axis_ptz_controller.AxisPtzController(
+    controller = AxisPtzController(
+        hostname=os.environ.get("HOSTNAME", ""),
         camera_ip=os.getenv("CAMERA_IP", ""),
         camera_user=os.getenv("CAMERA_USER", ""),
         camera_password=os.getenv("CAMERA_PASSWORD", ""),
