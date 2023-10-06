@@ -19,10 +19,7 @@ from test_integration import (
     read_track_data,
 )
 
-UPDATE_INTERVAL = 0.1
-
-logger = logging.getLogger("ptz-messages")
-logger.setLevel(logging.INFO)
+LOOP_INTERVAL = 0.1
 
 
 class MessageHandler(BaseMQTTPubSub):
@@ -76,11 +73,11 @@ class MessageHandler(BaseMQTTPubSub):
         self.camera_pointing_filename = "camera-pointing.csv"
         self.camera_pointing_file = open(self.camera_pointing_filename, "w")
         self.camera_pointing_keys = [
-            "time_c",
-            "rho_a",
-            "tau_a",
-            "rho_dot_a",
-            "tau_dot_a",
+            "timestamp_c",
+            "rho_o",
+            "tau_o",
+            "rho_dot_o",
+            "tau_dot_o",
             "rho_c",
             "tau_c",
             "rho_dot_c",
@@ -219,11 +216,11 @@ def main() -> None:
     time.sleep(UPDATE_INTERVAL)
 
     # Loop in camera time
-    dt_c = UPDATE_INTERVAL
-    time_c = track["latLonTime"][index]
+    dt_c = LOOP_INTERVAL
+    timestamp_c = track["timestamp"][index]
     while index < track.shape[0] - 1:
-        time.sleep(UPDATE_INTERVAL)
-        time_c += dt_c
+        time.sleep(LOOP_INTERVAL)
+        timestamp_c += dt_c
 
         # Process each object message when received
         if time_c >= track["latLonTime"][index + 1]:
