@@ -358,12 +358,12 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize camera pointing
         if self.use_camera:
             if self.auto_focus:
-                logging.debug(
+                logging.info(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
                 self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
             else:
-                logging.debug(
+                logging.info(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
                 self.camera_control.absolute_move(
@@ -954,6 +954,15 @@ class AxisPtzController(BaseMQTTPubSub):
                     except Exception as e:
                         logging.error(f"Could not capture image to directory: {d}: {e}")
                         return
+            logging.debug(
+                f"Publishing filename: {image_filepath}, for object: {self.object_id}, at: {self.capture_time}"
+            )
+            self._send_data(
+                {
+                    "type": "ImageFileName",
+                    "payload": str(image_filepath),
+                }
+            )
 
             # Populate and publish image metadata, getting current pan
             # and tilt, and accounting for object message age relative
