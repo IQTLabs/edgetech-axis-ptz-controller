@@ -819,15 +819,21 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
-            self.camera_control.continuous_move(
-                pan_rate_index,
-                tilt_rate_index,
-                0.0,
-            )
-            if not self.do_capture:
-                logging.info(f"Starting image capture of object: {self.object_id}")
-                self.do_capture = True
-                self.capture_time = time()
+            if self.camera_control.is_connected():
+                self.camera_control.continuous_move(
+                    pan_rate_index,
+                    tilt_rate_index,
+                    0.0,
+                )
+                if not self.do_capture:
+                    logging.info(f"Starting image capture of object: {self.object_id}")
+                    self.do_capture = True
+                    self.capture_time = time()
+
+            else:
+                # Intialize the object id to point the camera at the
+                # object directly once the camera reconnects
+                self.object_id = "NA"
 
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
