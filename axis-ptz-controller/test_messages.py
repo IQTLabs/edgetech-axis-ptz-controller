@@ -11,11 +11,12 @@ import pandas as pd
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 from test_integration import (
-    read_track_data,
     get_config_msg,
     get_orientation_msg,
+    make_controller,
     make_object_msg,
     plot_time_series,
+    read_track_data,
 )
 
 UPDATE_INTERVAL = 0.1
