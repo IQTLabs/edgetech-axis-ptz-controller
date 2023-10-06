@@ -558,3 +558,16 @@ class TestAxisPtzUtilities:
             lambda_1, varphi_1, lambda_2, varphi_2
         )
         assert math.fabs((d_act - d_exp) / d_exp) < PRECISION
+
+    # TODO: Remove if passing data through filesystem is acceptable
+    # Base64 encode an image from a file
+    def test_encode_image(self) -> None:
+        image_filepath = Path("data/acc31a_97_1_2358_2023-06-14-15-32-59.jpg")
+
+        with open(image_filepath, "rb") as image_file:
+            image = image_file.read()
+
+        encoded_image = axis_ptz_utilities.encode_image(image_filepath)
+        decoded_image = axis_ptz_utilities.decode_image(encoded_image)
+
+        assert decoded_image == image
