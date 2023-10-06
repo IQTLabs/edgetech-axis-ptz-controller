@@ -1,3 +1,8 @@
+"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
+method for making AxisPtzController instances. Instatiates an
+AxisPtzController, and executes its main() method when run as a
+module.
+"""
 import ast
 from datetime import datetime
 import json
@@ -737,8 +742,8 @@ class AxisPtzController(BaseMQTTPubSub):
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
-        # Compute and set focus, command camera pan and tilt rates,
-        # and begin capturing images, if needed
+        # Get, or compute and set focus, command camera pan and tilt
+        # rates, and begin capturing images, if needed
         if self.use_camera:
             if not self.auto_focus:
                 self.focus = int(
@@ -878,7 +883,8 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.do_capture:
-            # Capture an image in JPEG format
+            # Capture an image in JPEG format and publish it's
+            # filename
             self.capture_time = time()
             datetime_c = datetime.utcnow()
             timestr = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
@@ -892,6 +898,8 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.info(
                 f"Capturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
             )
+            # TODO: Update camera configuration to make renaming the
+            # file unnecessary
             with tempfile.TemporaryDirectory() as d:
                 with axis_ptz_utilities.pushd(d):
                     try:
