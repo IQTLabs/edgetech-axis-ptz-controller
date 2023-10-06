@@ -89,31 +89,70 @@ def controller() -> AxisPtzController:
 
 
 @pytest.fixture
-def config_msg() -> Dict[Any, Any]:
+def config_msg(controller: AxisPtzController) -> str:
     """Populate a config message."""
-    with open("data/config_msg.json", "r") as f:
-        msg = json.load(f)
+    with open("data/config_msg_data.json", "r") as f:
+        data = json.load(f)
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Configuration",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
 @pytest.fixture
-def orientation_msg_0s() -> Dict[Any, Any]:
+def orientation_msg_0s(controller: AxisPtzController) -> str:
     """Populate an orientation message with all 0 deg angles."""
-    with open("data/orientation_msg_0s.json", "r") as f:
-        msg = json.load(f)
+    with open("data/orientation_msg_data_0s.json", "r") as f:
+        data = json.load(f)
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Orientation",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
 @pytest.fixture
-def orientation_msg_90s() -> Dict[Any, Any]:
+def orientation_msg_90s(controller: AxisPtzController) -> str:
     """Populate an orientation message with all 90 deg angles."""
-    with open("data/orientation_msg_90s.json", "r") as f:
-        msg = json.load(f)
+    with open("data/orientation_msg_data_90s.json", "r") as f:
+        data = json.load(f)
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Orientation",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
 @pytest.fixture
-def object_msg() -> Dict[Any, Any]:
+def object_msg(controller: AxisPtzController) -> str:
     """Populate a object message with velocity along the line of
     sight, using the calculation noted below.
 
@@ -127,8 +166,21 @@ def object_msg() -> Dict[Any, Any]:
     E_XYZ_to_ENz, _, _, _ = axis_ptz_utilities.compute_E_XYZ_to_ENz(LAMBDA_O, VARPHI_O)
     v_ENz_A_o = np.matmul(E_XYZ_to_ENz, v_ENz_T_o)
     """
-    with open("data/object_msg.json", "r") as f:
-        msg = json.load(f)
+    with open("data/object_msg_data.json", "r") as f:
+        data = json.load(f)
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Selected Object",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
@@ -137,8 +189,8 @@ class TestAxisPtzController:
 
     def test_config_callback(
         self,
-        controller: axis_ptz_controller.AxisPtzController,
-        config_msg: Dict[Any, Any],
+        controller: AxisPtzController,
+        config_msg: str,
     ) -> None:
         # Align ENz with XYZ
         _client = None
@@ -165,9 +217,9 @@ class TestAxisPtzController:
 
     def test_orientation_callback(
         self,
-        controller: axis_ptz_controller.AxisPtzController,
-        config_msg: Dict[Any, Any],
-        orientation_msg_90s: Dict[Any, Any],
+        controller: AxisPtzController,
+        config_msg: str,
+        orientation_msg_90s: str,
     ) -> None:
         # Align ENz with XYZ
         _client = None
@@ -206,26 +258,22 @@ class TestAxisPtzController:
         assert round(controller._compute_angle_delta(1.0, 359.0)) == -2.0
         assert round(controller._compute_angle_delta(359.0, 1.0)) == +2.0
 
-    def test_compute_pan_rate_index(
-        self, controller: axis_ptz_controller.AxisPtzController
-    ) -> None:
+    def test_compute_pan_rate_index(self, controller: AxisPtzController) -> None:
         assert controller._compute_pan_rate_index(-PAN_RATE_MAX * 2.0) == -100
         assert controller._compute_pan_rate_index(0.0) == 0
         assert controller._compute_pan_rate_index(PAN_RATE_MAX * 2.0) == +100
 
-    def test_compute_tilt_rate_index(
-        self, controller: axis_ptz_controller.AxisPtzController
-    ) -> None:
+    def test_compute_tilt_rate_index(self, controller: AxisPtzController) -> None:
         assert controller._compute_tilt_rate_index(-TILT_RATE_MAX * 2.0) == -100
         assert controller._compute_tilt_rate_index(0.0) == 0
         assert controller._compute_tilt_rate_index(TILT_RATE_MAX * 2.0) == +100
 
     def test_object_callback(
         self,
-        controller: axis_ptz_controller.AxisPtzController,
-        config_msg: Dict[Any, Any],
-        orientation_msg_0s: Dict[Any, Any],
-        object_msg: Dict[Any, Any],
+        controller: AxisPtzController,
+        config_msg: str,
+        orientation_msg_0s: str,
+        object_msg: str,
     ) -> None:
         # Align ENz with XYZ
         _client = None
