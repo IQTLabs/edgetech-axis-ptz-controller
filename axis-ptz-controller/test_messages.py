@@ -64,7 +64,7 @@ class MessageHandler(BaseMQTTPubSub):
         self.logger_topic = logger_topic
 
         # Connect MQTT client
-        logger.info("Connecting MQTT client")
+        logging.info("Connecting MQTT client")
         self.connect_client()
         time.sleep(5)
         self.publish_registration("Message Handler Module Registration")
@@ -85,22 +85,28 @@ class MessageHandler(BaseMQTTPubSub):
         ]
         self.camera_pointing_file.write(",".join(self.camera_pointing_keys) + "\n")
 
-    def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
+    def decode_payload(
+        self, msg: Union[mqtt.MQTTMessage, str], data_payload_type: str
+    ) -> Dict[Any, Any]:
         """
         Decode the payload carried by a message.
 
         Parameters
         ----------
-        payload: Any
-            A JSON string with {timestamp: ____, data: ____,}
+        payload: mqtt.MQTTMessage
+            The MQTT message
 
         Returns
         -------
-        data : dict
-            The data component of the payload
+        data : Dict[Any, Any]
+            The data payload of the message payload
         """
-        data = json.loads(str(payload.decode("utf-8")))["data"]
-        return data
+        if type(msg) == mqtt.MQTTMessage:
+            payload = msg.payload.decode()
+        else:
+            payload = msg
+        data_payload = json.loads(payload)[data_payload_type]
+        return json.loads(data_payload)
 
     def _logger_callback(
         self, _client: mqtt.Client, _userdata: Dict[Any, Any], msg: mqtt.MQTTMessage
@@ -121,14 +127,14 @@ class MessageHandler(BaseMQTTPubSub):
         -------
         None
         """
-        data = self.decode_payload(msg.payload)
+        data = self.decode_payload(msg, "Logger")
         if "camera-pointing" in data:
-            p = data["camera-pointing"]
+            logging.info(data["camera-pointing"])
             self.camera_pointing_file.write(
                 ",".join([str(p[k]) for k in self.camera_pointing_keys]) + "\n"
             )
         elif "info" in data:
-            logger.info(data["info"]["message"])
+            logging.info(data["info"]["message"])
 
 
 def make_handler() -> MessageHandler:
@@ -182,11 +188,11 @@ def main() -> None:
     args = parser.parse_args()
 
     # Read the track data
-    logger.info(f"Reading track for id: {args.track_id}")
+    logging.info(f"Reading track for id: {args.track_id}")
     track = read_track_data(args.track_id)
 
     # Make the handler, and subscribe to the logger topic
-    logger.info("Making the handler, and subscribing to topics")
+    logging.info("Making the handler, and subscribing to topics")
     handler = make_handler()
     handler.add_subscribe_topic(handler.logger_topic, handler._logger_callback)
     logger_msg = {
