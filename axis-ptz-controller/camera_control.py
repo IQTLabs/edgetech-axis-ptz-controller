@@ -70,3 +70,17 @@ class CameraControl(vapix_control.CameraControl):
 
         """
         return self._camera_command({"focus": focus})
+
+    def is_connected(self) -> bool:
+        """
+        Operation to test camera connection.
+
+        Returns:
+            Bool indicating connection, or not
+
+        """
+        resp = self._camera_command({"query": "position"})
+        if resp.status_code == 200:
+            return True
+        else:
+            return False
