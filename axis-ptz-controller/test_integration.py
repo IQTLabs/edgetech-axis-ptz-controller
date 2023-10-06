@@ -12,7 +12,7 @@ import pandas as pd
 from axis_ptz_controller import AxisPtzController
 
 HEARTBEAT_INTERVAL = 10
-UPDATE_INTERVAL = 0.01
+LOOP_INTERVAL = 0.01
 CAPTURE_INTERVAL = 2
 LEAD_TIME = 0.0
 PAN_GAIN = 0.1
@@ -51,12 +51,11 @@ def make_controller(use_mqtt: bool) -> AxisPtzController:
         config_topic=os.getenv("CONFIG_TOPIC", ""),
         orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
         object_topic=os.getenv("OBJECT_TOPIC", ""),
+        image_filename_topic=os.getenv("IMAGE_FILENAME_TOPIC", ""),
         capture_topic=os.getenv("CAPTURE_TOPIC", ""),
         logger_topic=os.getenv("LOGGER_TOPIC", ""),
-        image_filename_topic=os.getenv("IMAGE_FILENAME_TOPIC", ""),
-        hostname=os.getenv("HOSTNAME", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
-        update_interval=UPDATE_INTERVAL,
+        loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
         lead_time=LEAD_TIME,
         pan_gain=PAN_GAIN,
@@ -308,7 +307,7 @@ def main() -> None:
     history["tau_dot_c"] = [controller.tau_dot_c]
 
     # Loop in camera time
-    dt_c = controller.update_interval
+    dt_c = controller.loop_interval
     timestamp_c = history["timestamp_c"][0]
     while index < track.shape[0] - 1:
         timestamp_c += dt_c
