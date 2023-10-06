@@ -35,21 +35,21 @@ class AxisPtzController(BaseMQTTPubSub):
 
     def __init__(
         self,
+        hostname: str,
         camera_ip: str,
         camera_user: str,
         camera_password: str,
         config_topic: str,
         orientation_topic: str,
         object_topic: str,
-        capture_topic: str,
-        logger_topic: str,
-        heartbeat_interval: int,
         image_filename_topic: str,
-        hostname: str,
+        image_capture_topic: str,
+        logger_topic: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
-        update_interval: float = 0.1,
+        heartbeat_interval: int = 10,
+        loop_interval: float = 0.1,
         capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
@@ -79,6 +79,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         Parameters
         ----------
+        hostname (str): Name of host
         camera_ip: str
             Camera IP address
         camera_user: str
@@ -91,19 +92,21 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for subscribing to orientation messages
         object_topic: str
             MQTT topic for subscribing to object messages
-        capture_topic: str
-            MQTT topic for publising capture messages
+        image_filename_topic: str
+            MQTT topic for publising image filenames
+        image_capture_topic: str
+            MQTT topic for publising image metadata
         logger_topic: str
             MQTT topic for publishing logger messages
-        heartbeat_interval: int
-            Interval at which heartbeat message is to be published [s]
         lambda_t: float
             Tripod geodetic longitude [deg]
         varphi_t: float = 0.0,
             Tripod geodetic latitude [deg]
         h_t: float = 0.0,
             Tripod geodetic altitude [deg]
-        update_interval: float
+        heartbeat_interval: int
+            Interval at which heartbeat message is to be published [s]
+        loop_interval: float
             Interval at which pointing of the camera is computed [s]
         capture_interval: int
             Interval at which the camera image is captured [s]
@@ -158,21 +161,21 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
+        self.hostname = hostname
         self.camera_ip = camera_ip
         self.camera_user = camera_user
         self.camera_password = camera_password
         self.config_topic = config_topic
         self.orientation_topic = orientation_topic
         self.object_topic = object_topic
-        self.capture_topic = capture_topic
-        self.logger_topic = logger_topic
-        self.heartbeat_interval = heartbeat_interval
         self.image_filename_topic = image_filename_topic
-        self.hostname = hostname
+        self.image_capture_topic = image_capture_topic
+        self.logger_topic = logger_topic
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
         self.h_t = h_t
-        self.update_interval = update_interval
+        self.heartbeat_interval = heartbeat_interval
+        self.loop_interval = loop_interval
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
         self.lead_time = lead_time
@@ -970,9 +973,9 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         None
         """
-        self.timestamp_c += self.update_interval
-        self.rho_c += self.rho_dot_c * self.update_interval
-        self.tau_c += self.tau_dot_c * self.update_interval
+        self.timestamp_c += self.loop_interval
+        self.rho_c += self.rho_dot_c * self.loop_interval
+        self.tau_c += self.tau_dot_c * self.loop_interval
 
     def _exit_handler(self, signum: int, frame: Optional[FrameType]) -> None:
         """Exit the controller gracefully by stopping continuous pan
@@ -1027,7 +1030,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     schedule.run_pending()
 
                 # Update camera pointing
-                sleep(self.update_interval)
+                sleep(self.loop_interval)
                 if not self.use_camera:
                     self._update_pointing()
 
