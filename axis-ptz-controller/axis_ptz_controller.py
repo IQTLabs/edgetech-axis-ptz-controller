@@ -65,6 +65,7 @@ class AxisPtzController(BaseMQTTPubSub):
         auto_focus: bool = False,
         include_age: bool = True,
         log_to_mqtt: bool = False,
+        log_level: str = "INFO",
         continue_on_exception: bool = False,
         **kwargs: Any,
     ):
@@ -140,6 +141,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Flag to include object message age in lead time, or not
         log_to_mqtt: bool
             Flag to publish logger messages to MQTT, or not
+        log_level (str): One of 'NOTSET', 'DEBUG', 'INFO', 'WARN',
+            'WARNING', 'ERROR', 'FATAL', 'CRITICAL'
         continue_on_exception: bool
             Continue on unhandled exceptions if True, raise exception
             if False (the default)
@@ -185,6 +188,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.auto_focus = auto_focus
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
+        self.log_level = log_level
         self.continue_on_exception = continue_on_exception
 
         # Always construct camera configuration and control since
@@ -321,12 +325,12 @@ class AxisPtzController(BaseMQTTPubSub):
         # Initialize camera pointing
         if self.use_camera:
             if self.auto_focus:
-                logging.info(
+                logging.debug(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
                 self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
             else:
-                logging.info(
+                logging.debug(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
                 self.camera_control.absolute_move(
@@ -370,6 +374,7 @@ class AxisPtzController(BaseMQTTPubSub):
     auto_focus: {auto_focus}
     include_age = {include_age}
     log_to_mqtt = {log_to_mqtt}
+    log_level = {log_level}
     continue_on_exception = {continue_on_exception}
             """
         )
