@@ -42,16 +42,16 @@ def make_controller(use_mqtt: bool) -> AxisPtzController:
     """
     controller = AxisPtzController(
         hostname=os.environ.get("HOSTNAME", ""),
-        camera_ip=os.getenv("CAMERA_IP", ""),
-        camera_user=os.getenv("CAMERA_USER", ""),
-        camera_password=os.getenv("CAMERA_PASSWORD", ""),
-        mqtt_ip=os.getenv("MQTT_IP", ""),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        image_filename_topic=os.getenv("IMAGE_FILENAME_TOPIC", ""),
-        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        camera_ip=os.environ.get("CAMERA_IP", ""),
+        camera_user=os.environ.get("CAMERA_USER", ""),
+        camera_password=os.environ.get("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.environ.get("MQTT_IP", ""),
+        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
+        object_topic=os.environ.get("OBJECT_TOPIC", ""),
+        image_filename_topic=os.environ.get("IMAGE_FILENAME_TOPIC", ""),
+        image_capture_topic=os.environ.get("IMAGE_CAPTURE_TOPIC", ""),
+        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
@@ -87,10 +87,10 @@ def get_config_msg(controller: AxisPtzController) -> str:
     data: Dict[str, Any] = {}
     data["axis-ptz-controller"] = {}
     data["axis-ptz-controller"]["tripod_longitude"] = float(
-        os.getenv("TRIPOD_LONGITUDE", "-77.0")
+        os.environ.get("TRIPOD_LONGITUDE", "-77.0")
     )  # [deg]
     data["axis-ptz-controller"]["tripod_latitude"] = float(
-        os.getenv("TRIPOD_LATITUDE", "38.0")
+        os.environ.get("TRIPOD_LATITUDE", "38.0")
     )  # [deg]
     data["axis-ptz-controller"]["tripod_altitude"] = 86.46  # [m]
     msg = controller.generate_payload_json(
