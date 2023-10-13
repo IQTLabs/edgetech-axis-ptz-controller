@@ -437,7 +437,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.image_filename_topic = config.get(
             "image_filename_topic", self.image_filename_topic
         )
-        self.image_capture_topic = config.get("image_capture_topic", self.image_capture_topic)
+        self.image_capture_topic = config.get(
+            "image_capture_topic", self.image_capture_topic
+        )
         self.logger_topic = config.get("logger_topic", self.logger_topic)
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
         self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
@@ -493,7 +495,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.e_z_XYZ,
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(self.lambda_t, self.varphi_t)
 
-    def _log_config(self: Any) -> None:
+    def _log_config(self) -> None:
         """Logs all paramters that can be set on construction."""
         config = {
             "hostname": self.hostname,
@@ -869,7 +871,7 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Publishing logger msg: {logger_msg}")
             self.publish_to_topic(self.logger_topic, logger_msg)
 
-    def _send_data(self: Any, data: Dict[str, str]) -> bool:
+    def _send_data(self, data: Dict[str, str]) -> bool:
         """Leverages edgetech-core functionality to publish a JSON
         payload to the MQTT broker on the topic specified by type.
 
@@ -916,7 +918,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         return success
 
-    def _compute_angle_delta(self, theta_c, theta_o):
+    def _compute_angle_delta(self, theta_c: float, theta_o: float) -> float:
         """Given the angle of the camera and object in a domain of
         width 360 degrees, determine the angle delta, that is the
         smallest difference in angle, signed according to the sign of

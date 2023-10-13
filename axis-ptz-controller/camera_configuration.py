@@ -1,7 +1,6 @@
 # mypy: ignore-errors
 import datetime
 import logging
-import os
 
 import requests
 from requests.auth import HTTPDigestAuth

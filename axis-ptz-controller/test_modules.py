@@ -258,12 +258,16 @@ class TestAxisPtzController:
         assert round(controller._compute_angle_delta(1.0, 359.0)) == -2.0
         assert round(controller._compute_angle_delta(359.0, 1.0)) == +2.0
 
-    def test_compute_pan_rate_index(self, controller: axis_ptz_controller.AxisPtzController) -> None:
+    def test_compute_pan_rate_index(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
         assert controller._compute_pan_rate_index(-PAN_RATE_MAX * 2.0) == -100
         assert controller._compute_pan_rate_index(0.0) == 0
         assert controller._compute_pan_rate_index(PAN_RATE_MAX * 2.0) == +100
 
-    def test_compute_tilt_rate_index(self, controller: axis_ptz_controller.AxisPtzController) -> None:
+    def test_compute_tilt_rate_index(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
         assert controller._compute_tilt_rate_index(-TILT_RATE_MAX * 2.0) == -100
         assert controller._compute_tilt_rate_index(0.0) == 0
         assert controller._compute_tilt_rate_index(TILT_RATE_MAX * 2.0) == +100
