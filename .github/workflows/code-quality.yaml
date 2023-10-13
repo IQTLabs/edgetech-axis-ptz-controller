@@ -8,11 +8,14 @@ jobs:
     name: Code Quality Checks
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        ssh-key: ${{ secrets.WORKFLOW_PK }}
     - uses: actions/setup-python@v4
       with:
         python-version: 3.9.13
     - run: pip install --upgrade pip
-    - run: pip install "black<23" pylint==v3.0.0a3 mypy==v0.991 types-requests
+    - run: pip install "black<23" pylint==v3.0.0a3 mypy==v0.991
     - run: black --diff --check $(git ls-files '*.py')
     - run: pylint --disable=all --enable=unused-import $(git ls-files '*.py')
     - run: mypy --allow-untyped-decorators --ignore-missing-imports --no-warn-return-any --allow-subclassing-any --strict $(git ls-files '*.py')
