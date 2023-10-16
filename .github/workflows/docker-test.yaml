@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Docker buildx
         id: buildx
@@ -26,4 +28,5 @@ jobs:
         with:
           context: ${{ env.DOCKER_FOLDER }}
           platforms: linux/arm64,linux/amd64
+          push: false
           tags: ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:testing-PR${{ github.event.pull_request.number }}
