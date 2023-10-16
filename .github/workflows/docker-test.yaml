@@ -20,12 +20,6 @@ jobs:
         with:
           version: latest
 
-      - name: Log in to DockerHub
-        uses: docker/login-action@v3 
-        with:
-          username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
       - name: Set DOCKER_FOLDER
         run: echo "DOCKER_FOLDER=$(echo ${{ github.event.repository.name }} | sed 's/edgetech-//')" >> $GITHUB_ENV
 
@@ -34,5 +28,5 @@ jobs:
         with:
           context: ${{ env.DOCKER_FOLDER }}
           platforms: linux/arm64,linux/amd64
-          push: true
+          push: false
           tags: ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:testing-PR${{ github.event.pull_request.number }}
