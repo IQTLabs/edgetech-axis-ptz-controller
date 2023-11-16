@@ -9,10 +9,10 @@ from typing import Any, Dict
 from matplotlib import pyplot as plt
 import pandas as pd
 
-import axis_ptz_controller
+from axis_ptz_controller import AxisPtzController
 
 HEARTBEAT_INTERVAL = 10
-UPDATE_INTERVAL = 0.01
+LOOP_INTERVAL = 0.01
 CAPTURE_INTERVAL = 2
 LEAD_TIME = 0.0
 PAN_GAIN = 0.1
@@ -24,11 +24,8 @@ TILT_RATE_MAX = 100.0
 JPEG_RESOLUTION = "1920x1080"
 JPEG_COMPRESSION = 5
 
-logger = logging.getLogger("ptz-integration")
-logger.setLevel(logging.INFO)
 
-
-def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
+def make_controller(use_mqtt: bool) -> AxisPtzController:
     """Construct a controller.
 
     Note that if use_mqtt = True then an MQTT broker must be started
@@ -43,20 +40,20 @@ def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
     -------
     None
     """
-    controller = axis_ptz_controller.AxisPtzController(
-        camera_ip=os.getenv("CAMERA_IP", ""),
-        camera_user=os.getenv("CAMERA_USER", ""),
-        camera_password=os.getenv("CAMERA_PASSWORD", ""),
-        mqtt_ip=os.getenv("MQTT_IP", ""),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
-        image_filename_topic=os.getenv("IMAGE_FILENAME_TOPIC", ""),
-        hostname=os.getenv("HOSTNAME", ""),
+    controller = AxisPtzController(
+        hostname=os.environ.get("HOSTNAME", ""),
+        camera_ip=os.environ.get("CAMERA_IP", ""),
+        camera_user=os.environ.get("CAMERA_USER", ""),
+        camera_password=os.environ.get("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.environ.get("MQTT_IP", ""),
+        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
+        object_topic=os.environ.get("OBJECT_TOPIC", ""),
+        image_filename_topic=os.environ.get("IMAGE_FILENAME_TOPIC", ""),
+        image_capture_topic=os.environ.get("IMAGE_CAPTURE_TOPIC", ""),
+        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
-        update_interval=UPDATE_INTERVAL,
+        loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
         lead_time=LEAD_TIME,
         pan_gain=PAN_GAIN,
@@ -74,7 +71,7 @@ def make_controller(use_mqtt: bool) -> axis_ptz_controller.AxisPtzController:
     return controller
 
 
-def get_config_msg() -> Dict[Any, Any]:
+def get_config_msg(controller: AxisPtzController) -> str:
     """Populate a config message, reading actual, by private longitude
     and latitude from the environment.
 
@@ -84,23 +81,35 @@ def get_config_msg() -> Dict[Any, Any]:
 
     Returns
     -------
-    msg : Dict[Any, Any]
+    msg : str
         The configuration message
     """
-    msg: Dict[Any, Any] = {}
-    msg["data"] = {}
-    msg["data"]["axis-ptz-controller"] = {}
-    msg["data"]["axis-ptz-controller"]["tripod_longitude"] = float(
-        os.getenv("TRIPOD_LONGITUDE", "-77.0")
+    data: Dict[str, Any] = {}
+    data["axis-ptz-controller"] = {}
+    data["axis-ptz-controller"]["tripod_longitude"] = float(
+        os.environ.get("TRIPOD_LONGITUDE", "-77.0")
     )  # [deg]
-    msg["data"]["axis-ptz-controller"]["tripod_latitude"] = float(
-        os.getenv("TRIPOD_LATITUDE", "38.0")
+    data["axis-ptz-controller"]["tripod_latitude"] = float(
+        os.environ.get("TRIPOD_LATITUDE", "38.0")
     )  # [deg]
-    msg["data"]["axis-ptz-controller"]["tripod_altitude"] = 86.46  # [m]
+    data["axis-ptz-controller"]["tripod_altitude"] = 86.46  # [m]
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Configuration",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
-def get_orientation_msg() -> Dict[Any, Any]:
+def get_orientation_msg(controller: AxisPtzController) -> str:
     """Populate an orientation message with all 0 deg angles.
 
     Parameters
@@ -109,15 +118,30 @@ def get_orientation_msg() -> Dict[Any, Any]:
 
     Returns
     -------
-    msg : dict
+    msg : str
         The orientation message
     """
-    with open("data/orientation_msg_0s.json", "r") as f:
-        msg = json.load(f)
+    with open("data/orientation_msg_data_0s.json", "r") as f:
+        data = json.load(f)
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Orientation",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
-def make_object_msg(track: pd.DataFrame, index: int) -> Dict[Any, Any]:
+def make_object_msg(
+    controller: AxisPtzController, track: pd.DataFrame, index: int
+) -> str:
     """Populate a object message with track data at the specified
     index.
 
@@ -130,11 +154,23 @@ def make_object_msg(track: pd.DataFrame, index: int) -> Dict[Any, Any]:
 
     Returns
     -------
-    msg : dict
+    msg : str
         The object message
     """
-    msg = {}
-    msg["data"] = track.iloc[index, :].to_dict()
+    data = track.iloc[index, :].to_dict()
+    msg = controller.generate_payload_json(
+        push_timestamp=int(datetime.utcnow().timestamp()),
+        device_type="TBC",
+        id_="TBC",
+        deployment_id="TBC",
+        current_location="TBC",
+        status="Debug",
+        message_type="Event",
+        model_version="null",
+        firmware_version="v0.0.0",
+        data_payload_type="Selected Object",
+        data_payload=json.dumps(data),
+    )
     return msg
 
 
@@ -244,49 +280,34 @@ def main() -> None:
     args = parser.parse_args()
 
     # Read the track data
-    logger.info(f"Reading track for id: {args.track_id}")
+    logging.info(f"Reading track for id: {args.track_id}")
     track = read_track_data(args.track_id)
 
     # Make the controller, subscribe to all topics, and publish, or
     # process, one message to each topic
-    logger.info("Making the controller, and subscribing to topics")
+    logging.info("Making the controller, and subscribing to topics")
     controller = make_controller(args.use_mqtt)
     controller.add_subscribe_topic(controller.config_topic, controller._config_callback)
     controller.add_subscribe_topic(
         controller.orientation_topic, controller._orientation_callback
     )
     controller.add_subscribe_topic(controller.object_topic, controller._object_callback)
-    config_msg = get_config_msg()
-    orientation_msg = get_orientation_msg()
+    config_msg = get_config_msg(controller)
+    orientation_msg = get_orientation_msg(controller)
     index = 0
-    object_msg = make_object_msg(track, index)
+    object_msg = make_object_msg(controller, track, index)
     if controller.use_mqtt:
-        logger.info(f"Publishing config msg: {config_msg}")
-        controller.publish_to_topic(controller.config_topic, json.dumps(config_msg))
-        time.sleep(UPDATE_INTERVAL)
+        logging.info(f"Publishing config msg: {config_msg}")
+        controller.publish_to_topic(controller.config_topic, config_msg)
+        time.sleep(LOOP_INTERVAL)
 
-        logger.info(f"Publishing orientation msg: {orientation_msg}")
-        controller.publish_to_topic(
-            controller.orientation_topic, json.dumps(orientation_msg)
-        )
-        time.sleep(UPDATE_INTERVAL)
+        logging.info(f"Publishing orientation msg: {orientation_msg}")
+        controller.publish_to_topic(controller.orientation_topic, orientation_msg)
+        time.sleep(LOOP_INTERVAL)
 
-        logger.info(f"Publishing object msg: {object_msg}")
-        payload_json = controller.generate_payload_json(
-            push_timestamp=int(datetime.utcnow().timestamp()),
-            device_type="TBC",
-            id_="TBC",
-            deployment_id="TBC",
-            current_location="TBC",
-            status="Debug",
-            message_type="Event",
-            model_version="null",
-            firmware_version="v0.0.0",
-            data_payload_type="Selected Object",
-            data_payload=json.dumps(object_msg["data"]),
-        )
-        controller.publish_to_topic(controller.object_topic, payload_json)
-        time.sleep(UPDATE_INTERVAL)
+        logging.info(f"Publishing object msg: {object_msg}")
+        controller.publish_to_topic(controller.object_topic, object_msg)
+        time.sleep(LOOP_INTERVAL)
 
     else:
         _client = None
@@ -297,7 +318,8 @@ def main() -> None:
 
     # Initialize history for plotting
     history = {}
-    history["timestamp_c"] = [object_msg["data"]["timestamp"]]
+    data = controller.decode_payload(object_msg, "Selected Object")
+    history["timestamp_c"] = [data["timestamp"]]
     history["rho_o"] = [controller.rho_o]
     history["tau_o"] = [controller.tau_o]
     history["rho_dot_o"] = [controller.rho_dot_o]
@@ -308,7 +330,7 @@ def main() -> None:
     history["tau_dot_c"] = [controller.tau_dot_c]
 
     # Loop in camera time
-    dt_c = controller.update_interval
+    dt_c = controller.loop_interval
     timestamp_c = history["timestamp_c"][0]
     while index < track.shape[0] - 1:
         timestamp_c += dt_c
@@ -316,24 +338,11 @@ def main() -> None:
         # Process each object message when received
         if timestamp_c >= track["timestamp"][index + 1]:
             index = track["timestamp"][timestamp_c >= track["timestamp"]].index[-1]
-            object_msg = make_object_msg(track, index)
+            object_msg = make_object_msg(controller, track, index)
             if controller.use_mqtt:
-                logger.info(f"Publishing object msg: {object_msg}")
-                payload_json = controller.generate_payload_json(
-                    push_timestamp=int(datetime.utcnow().timestamp()),
-                    device_type="TBC",
-                    id_="TBC",
-                    deployment_id="TBC",
-                    current_location="TBC",
-                    status="Debug",
-                    message_type="Event",
-                    model_version="null",
-                    firmware_version="v0.0.0",
-                    data_payload_type="Selected Object",
-                    data_payload=json.dumps(object_msg["data"]),
-                )
-                controller.publish_to_topic(controller.object_topic, payload_json)
-                time.sleep(UPDATE_INTERVAL)
+                logging.info(f"Publishing object msg: {object_msg}")
+                controller.publish_to_topic(controller.object_topic, object_msg)
+                time.sleep(LOOP_INTERVAL)
 
             else:
                 controller._object_callback(_client, _userdata, object_msg)

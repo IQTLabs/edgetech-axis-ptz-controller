@@ -1,3 +1,8 @@
+"""Defines the AxisPtzController child class of BaseMQTTPubSub, and a
+method for making AxisPtzController instances. Instatiates an
+AxisPtzController, and executes its main() method when run as a
+module.
+"""
 import ast
 from datetime import datetime
 import json
@@ -30,21 +35,21 @@ class AxisPtzController(BaseMQTTPubSub):
 
     def __init__(
         self,
+        hostname: str,
         camera_ip: str,
         camera_user: str,
         camera_password: str,
         config_topic: str,
         orientation_topic: str,
         object_topic: str,
-        capture_topic: str,
-        logger_topic: str,
-        heartbeat_interval: int,
         image_filename_topic: str,
-        hostname: str,
+        image_capture_topic: str,
+        logger_topic: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
         h_t: float = 0.0,
-        update_interval: float = 0.1,
+        heartbeat_interval: int = 10,
+        loop_interval: float = 0.1,
         capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
@@ -65,6 +70,7 @@ class AxisPtzController(BaseMQTTPubSub):
         auto_focus: bool = False,
         include_age: bool = True,
         log_to_mqtt: bool = False,
+        log_level: str = "INFO",
         continue_on_exception: bool = False,
         **kwargs: Any,
     ):
@@ -73,6 +79,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         Parameters
         ----------
+        hostname (str): Name of host
         camera_ip: str
             Camera IP address
         camera_user: str
@@ -85,19 +92,21 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for subscribing to orientation messages
         object_topic: str
             MQTT topic for subscribing to object messages
-        capture_topic: str
-            MQTT topic for publising capture messages
+        image_filename_topic: str
+            MQTT topic for publising image filenames
+        image_capture_topic: str
+            MQTT topic for publising image metadata
         logger_topic: str
             MQTT topic for publishing logger messages
-        heartbeat_interval: int
-            Interval at which heartbeat message is to be published [s]
         lambda_t: float
             Tripod geodetic longitude [deg]
         varphi_t: float = 0.0,
             Tripod geodetic latitude [deg]
         h_t: float = 0.0,
             Tripod geodetic altitude [deg]
-        update_interval: float
+        heartbeat_interval: int
+            Interval at which heartbeat message is to be published [s]
+        loop_interval: float
             Interval at which pointing of the camera is computed [s]
         capture_interval: int
             Interval at which the camera image is captured [s]
@@ -140,6 +149,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Flag to include object message age in lead time, or not
         log_to_mqtt: bool
             Flag to publish logger messages to MQTT, or not
+        log_level (str): One of 'NOTSET', 'DEBUG', 'INFO', 'WARN',
+            'WARNING', 'ERROR', 'FATAL', 'CRITICAL'
         continue_on_exception: bool
             Continue on unhandled exceptions if True, raise exception
             if False (the default)
@@ -150,21 +161,21 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
+        self.hostname = hostname
         self.camera_ip = camera_ip
         self.camera_user = camera_user
         self.camera_password = camera_password
         self.config_topic = config_topic
         self.orientation_topic = orientation_topic
         self.object_topic = object_topic
-        self.capture_topic = capture_topic
-        self.logger_topic = logger_topic
-        self.heartbeat_interval = heartbeat_interval
         self.image_filename_topic = image_filename_topic
-        self.hostname = hostname
+        self.image_capture_topic = image_capture_topic
+        self.logger_topic = logger_topic
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
         self.h_t = h_t
-        self.update_interval = update_interval
+        self.heartbeat_interval = heartbeat_interval
+        self.loop_interval = loop_interval
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
         self.lead_time = lead_time
@@ -185,6 +196,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.auto_focus = auto_focus
         self.include_age = include_age
         self.log_to_mqtt = log_to_mqtt
+        self.log_level = log_level
         self.continue_on_exception = continue_on_exception
 
         # Always construct camera configuration and control since
@@ -292,30 +304,55 @@ class AxisPtzController(BaseMQTTPubSub):
         # coordinate system, orthogonal transformation matrix from
         # geocentric (XYZ) to topocentric (ENz) coordinates, and East,
         # North, and zenith unit vectors
-        config_msg = {
-            "data": {
-                "axis-ptz-controller": {
-                    "lambda_t": self.lambda_t,
-                    "varphi_t": self.varphi_t,
-                    "h_t": self.h_t,
+        config_msg = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type="Configuration",
+            data_payload=json.dumps(
+                {
+                    "axis-ptz-controller": {
+                        "tripod_longitude": self.lambda_t,
+                        "tripod_latitude": self.varphi_t,
+                        "tripod_altitude": self.h_t,
+                    }
                 }
-            }
-        }
+            ),
+        )
         self._config_callback(None, None, config_msg)
 
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
-        # TODO: Fix key?
-        orientation_msg = {
-            "data": {
-                "camera": {
+        orientation_msg = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type="Orientation",
+            data_payload=json.dumps(
+                {
                     "tripod_yaw": self.alpha,
                     "tripod_pitch": self.beta,
                     "tripod_roll": self.gamma,
                 }
-            }
-        }
+            ),
+        )
         self._orientation_callback(None, None, orientation_msg)
 
         # Initialize camera pointing
@@ -334,47 +371,11 @@ class AxisPtzController(BaseMQTTPubSub):
                 )
 
         # Log configuration parameters
-        logging.info(
-            f"""AxisPtzController initialized with parameters:
+        self._log_config()
 
-    camera_ip = {camera_ip}
-    camera_user = {camera_user}
-    camera_password = {camera_password}
-    config_topic = {config_topic}
-    orientation_topic = {orientation_topic}
-    object_topic = {object_topic}
-    capture_topic = {capture_topic}
-    logger_topic = {logger_topic}
-    heartbeat_interval = {heartbeat_interval}
-    lambda_t = {lambda_t}
-    varphi_t = {varphi_t}
-    h_t = {h_t}
-    update_interval = {update_interval}
-    capture_interval = {capture_interval}
-    capture_dir = {capture_dir}
-    lead_time = {lead_time}
-    pan_gain = {pan_gain}
-    pan_rate_min = {pan_rate_min}
-    pan_rate_max = {pan_rate_max}
-    tilt_gain = {tilt_gain}
-    tilt_rate_min = {tilt_rate_min}
-    tilt_rate_max = {tilt_rate_max}
-    focus_slope = {focus_slope}
-    focus_intercept = {focus_intercept}
-    focus_min = {focus_min}
-    focus_max = {focus_max}
-    jpeg_resolution = {jpeg_resolution}
-    jpeg_compression = {jpeg_compression}
-    use_mqtt = {use_mqtt}
-    use_camera = {use_camera}
-    auto_focus: {auto_focus}
-    include_age = {include_age}
-    log_to_mqtt = {log_to_mqtt}
-    continue_on_exception = {continue_on_exception}
-            """
-        )
-
-    def decode_payload(self, payload: mqtt.MQTTMessage) -> Dict[Any, Any]:
+    def decode_payload(
+        self, msg: Union[mqtt.MQTTMessage, str], data_payload_type: str
+    ) -> Dict[Any, Any]:
         """
         Decode the payload carried by a message.
 
@@ -382,25 +383,26 @@ class AxisPtzController(BaseMQTTPubSub):
         ----------
         payload: mqtt.MQTTMessage
             The MQTT message
+        data_payload_type: str
+            The data payload type
 
         Returns
         -------
         data : Dict[Any, Any]
-            The data component of the payload
+            The data payload of the message payload
         """
-        # TODO: Establish and use message format convention
-        content = json.loads(str(payload.decode("utf-8")))
-        if "data" in content:
-            data = content["data"]
+        if type(msg) == mqtt.MQTTMessage:
+            payload = msg.payload.decode()
         else:
-            data = content
-        return data
+            payload = msg
+        data_payload = json.loads(payload)[data_payload_type]
+        return json.loads(data_payload)
 
     def _config_callback(
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
-        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
+        msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
         """
         Process configuration message.
@@ -419,22 +421,33 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         # Assign data attributes allowed to change during operation,
-        # ignoring config message data without a "camera" key
-        if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)
-        else:
-            data = msg["data"]
+        # ignoring config message data without a "axis-ptz-controller"
+        # key
+        data = self.decode_payload(msg, "Configuration")
         if "axis-ptz-controller" not in data:
             return
         logging.info(f"Processing config msg data: {data}")
-        # TODO: Use module specific key?
         config = data["axis-ptz-controller"]
+        self.camera_ip = config.get("camera_ip", self.camera_ip)
+        self.camera_user = config.get("camera_user", self.camera_user)
+        self.camera_password = config.get("camera_password", self.camera_password)
+        self.config_topic = config.get("config_topic", self.config_topic)
+        self.orientation_topic = config.get("orientation_topic", self.orientation_topic)
+        self.object_topic = config.get("object_topic", self.object_topic)
+        self.image_filename_topic = config.get(
+            "image_filename_topic", self.image_filename_topic
+        )
+        self.image_capture_topic = config.get(
+            "image_capture_topic", self.image_capture_topic
+        )
+        self.logger_topic = config.get("logger_topic", self.logger_topic)
         self.lambda_t = config.get("tripod_longitude", self.lambda_t)  # [deg]
         self.varphi_t = config.get("tripod_latitude", self.varphi_t)  # [deg]
         self.h_t = config.get("tripod_altitude", self.h_t)  # [m]
-        self.update_interval = config.get(
-            "update_interval", self.update_interval
-        )  # [s]
+        self.heartbeat_interval = config.get(
+            "heartbeat_interval", self.heartbeat_interval
+        )
+        self.loop_interval = config.get("loop_interval", self.loop_interval)  # [s]
         self.capture_interval = config.get(
             "capture_interval", self.capture_interval
         )  # [s]
@@ -442,9 +455,30 @@ class AxisPtzController(BaseMQTTPubSub):
         self.lead_time = config.get("lead_time", self.lead_time)  # [s]
         self.zoom = config.get("zoom", self.zoom)  # [0-9999]
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
+        self.pan_rate_min = config.get("pan_rate_min", self.pan_rate_min)
+        self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
         self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
+        self.tilt_gain = config.get("tilt_gain", self.tilt_gain)
+        self.tilt_rate_min = config.get("tilt_rate_min", self.tilt_rate_min)
+        self.tilt_rate_max = config.get("tilt_rate_max", self.tilt_rate_max)
+        self.focus_slope = config.get("focus_slope", self.focus_slope)
+        self.focus_intercept = config.get("focus_intercept", self.focus_intercept)
+        self.focus_min = config.get("focus_min", self.focus_min)
+        self.focus_max = config.get("focus_max", self.focus_max)
+        self.jpeg_resolution = config.get("jpeg_resolution", self.jpeg_resolution)
+        self.jpeg_compression = config.get("jpeg_compression", self.jpeg_compression)
+        self.use_mqtt = config.get("use_mqtt", self.use_mqtt)
+        self.use_camera = config.get("use_camera", self.use_camera)
+        self.auto_focus = config.get("auto_focus", self.auto_focus)
         self.include_age = config.get("include_age", self.include_age)
         self.log_to_mqtt = config.get("log_to_mqtt", self.log_to_mqtt)
+        self.log_level = config.get("log_level", self.log_level)
+        self.continue_on_exception = config.get(
+            "continue_on_exception", self.continue_on_exception
+        )
+
+        # Log configuration parameters
+        self._log_config()
 
         # Compute tripod position in the geocentric (XYZ) coordinate
         # system
@@ -461,11 +495,56 @@ class AxisPtzController(BaseMQTTPubSub):
             self.e_z_XYZ,
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(self.lambda_t, self.varphi_t)
 
+    def _log_config(self) -> None:
+        """Logs all paramters that can be set on construction."""
+        config = {
+            "hostname": self.hostname,
+            "camera_ip": self.camera_ip,
+            "camera_user": self.camera_user,
+            "camera_password": self.camera_password,
+            "config_topic": self.config_topic,
+            "orientation_topic": self.orientation_topic,
+            "object_topic": self.object_topic,
+            "image_filename_topic": self.image_filename_topic,
+            "image_capture_topic": self.image_capture_topic,
+            "logger_topic": self.logger_topic,
+            "lambda_t": self.lambda_t,
+            "varphi_t": self.varphi_t,
+            "h_t": self.h_t,
+            "heartbeat_interval": self.heartbeat_interval,
+            "loop_interval": self.loop_interval,
+            "capture_interval": self.capture_interval,
+            "capture_dir": self.capture_dir,
+            "lead_time": self.lead_time,
+            "pan_gain": self.pan_gain,
+            "pan_rate_min": self.pan_rate_min,
+            "pan_rate_max": self.pan_rate_max,
+            "tilt_gain": self.tilt_gain,
+            "tilt_rate_min": self.tilt_rate_min,
+            "tilt_rate_max": self.tilt_rate_max,
+            "focus_slope": self.focus_slope,
+            "focus_intercept": self.focus_intercept,
+            "focus_min": self.focus_min,
+            "focus_max": self.focus_max,
+            "jpeg_resolution": self.jpeg_resolution,
+            "jpeg_compression": self.jpeg_compression,
+            "use_mqtt": self.use_mqtt,
+            "use_camera": self.use_camera,
+            "auto_focus": self.auto_focus,
+            "include_age": self.include_age,
+            "log_to_mqtt": self.log_to_mqtt,
+            "log_level": self.log_level,
+            "continue_on_exception": self.continue_on_exception,
+        }
+        logging.info(
+            f"AxisPtzController configuration:\n{json.dumps(config, indent=4)}"
+        )
+
     def _orientation_callback(
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
-        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
+        msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
         """
         Process orientation message.
@@ -484,15 +563,11 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         # Assign camera housing rotation angles
-        if type(msg) == mqtt.MQTTMessage:
-            data = self.decode_payload(msg.payload)
-        else:
-            data = msg["data"]
+        data = self.decode_payload(msg, "Orientation")
         logging.info(f"Processing orientation msg data: {data}")
-        camera = data["camera"]
-        self.alpha = camera["tripod_yaw"]  # [deg]
-        self.beta = camera["tripod_pitch"]  # [deg]
-        self.gamma = camera["tripod_roll"]  # [deg]
+        self.alpha = data["tripod_yaw"]  # [deg]
+        self.beta = data["tripod_pitch"]  # [deg]
+        self.gamma = data["tripod_roll"]  # [deg]
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
@@ -521,7 +596,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self,
         _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
-        msg: Union[mqtt.MQTTMessage, Dict[Any, Any]],
+        msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
         """
         Process object message.
@@ -538,14 +613,10 @@ class AxisPtzController(BaseMQTTPubSub):
         Returns
         -------
         None
-
         """
         # Assign identifier, time, position, and velocity of the
         # object
-        if type(msg) == mqtt.MQTTMessage:
-            data = json.loads(self.decode_payload(msg.payload)["Selected Object"])
-        else:
-            data = msg["data"]
+        data = self.decode_payload(msg, "Selected Object")
         if not set(
             [
                 "object_id",
@@ -732,8 +803,8 @@ class AxisPtzController(BaseMQTTPubSub):
             f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
         )
 
-        # Compute and set focus, command camera pan and tilt rates,
-        # and begin capturing images, if needed
+        # Get, or compute and set focus, command camera pan and tilt
+        # rates, and begin capturing images, if needed
         if self.use_camera:
             if not self.auto_focus:
                 self.focus = int(
@@ -750,38 +821,104 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
-            self.camera_control.continuous_move(
-                pan_rate_index,
-                tilt_rate_index,
-                0.0,
-            )
-            if not self.do_capture:
-                logging.info(f"Starting image capture of object: {self.object_id}")
-                self.do_capture = True
-                self.capture_time = time()
+            if self.camera_control.is_connected():
+                self.camera_control.continuous_move(
+                    pan_rate_index,
+                    tilt_rate_index,
+                    0.0,
+                )
+                if not self.do_capture:
+                    logging.info(f"Starting image capture of object: {self.object_id}")
+                    self.do_capture = True
+                    self.capture_time = time()
+
+            else:
+                # Intialize the object id to point the camera at the
+                # object directly once the camera reconnects
+                self.object_id = "NA"
 
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
-            msg = {
-                "timestamp": datetime.utcnow().timestamp(),
-                "data": {
-                    "camera-pointing": {
-                        "timestamp_c": self.timestamp_c,
-                        "rho_o": self.rho_o,
-                        "tau_o": self.tau_o,
-                        "rho_dot_o": self.rho_dot_o,
-                        "tau_dot_o": self.tau_dot_o,
-                        "rho_c": self.rho_c,
-                        "tau_c": self.tau_c,
-                        "rho_dot_c": self.rho_dot_c,
-                        "tau_dot_c": self.tau_dot_c,
+            logger_msg = self.generate_payload_json(
+                push_timestamp=int(datetime.utcnow().timestamp()),
+                device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+                id_=self.hostname,
+                deployment_id=os.environ.get(
+                    "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+                ),
+                current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+                status="Debug",
+                message_type="Event",
+                model_version="null",
+                firmware_version="v0.0.0",
+                data_payload_type="Logger",
+                data_payload=json.dumps(
+                    {
+                        "camera-pointing": {
+                            "timestamp_c": self.timestamp_c,
+                            "rho_o": self.rho_o,
+                            "tau_o": self.tau_o,
+                            "rho_dot_o": self.rho_dot_o,
+                            "tau_dot_o": self.tau_dot_o,
+                            "rho_c": self.rho_c,
+                            "tau_c": self.tau_c,
+                            "rho_dot_c": self.rho_dot_c,
+                            "tau_dot_c": self.tau_dot_c,
+                        }
                     }
-                },
-            }
-            logging.debug(f"Publishing logger msg: {msg}")
-            self.publish_to_topic(self.logger_topic, json.dumps(msg))
+                ),
+            )
+            logging.debug(f"Publishing logger msg: {logger_msg}")
+            self.publish_to_topic(self.logger_topic, logger_msg)
 
-    def _compute_angle_delta(self, theta_c, theta_o):
+    def _send_data(self, data: Dict[str, str]) -> bool:
+        """Leverages edgetech-core functionality to publish a JSON
+        payload to the MQTT broker on the topic specified by type.
+
+        Parameters
+        ----------
+        data : Dict[str, str]
+            Dictionary that maps keys to type and payload
+
+        Returns
+        -------
+        success : bool
+            Returns True if successful publish, else False
+        """
+        # Generate payload as JSON
+        payload = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type=data["type"],
+            data_payload=data["payload"],
+        )
+
+        # Publish payload to the topic selected by type
+        if data["type"] == "ImageFileName":
+            topic = self.image_filename_topic
+
+        elif data["type"] == "ImageMetadata":
+            topic = self.image_capture_topic
+
+        success = self.publish_to_topic(topic, payload)
+        if success:
+            logging.info(f"Successfully published data on channel {topic}: {data}")
+
+        else:
+            logging.error(f"Failed to publish data on channel {topic}: {data}")
+
+        return success
+
+    def _compute_angle_delta(self, theta_c: float, theta_o: float) -> float:
         """Given the angle of the camera and object in a domain of
         width 360 degrees, determine the angle delta, that is the
         smallest difference in angle, signed according to the sign of
@@ -873,7 +1010,8 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         if self.do_capture:
-            # Capture an image in JPEG format
+            # Capture an image in JPEG format and publish it's
+            # filename
             self.capture_time = time()
             datetime_c = datetime.utcnow()
             timestr = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
@@ -887,6 +1025,8 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.info(
                 f"Capturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
             )
+            # TODO: Update camera configuration to make renaming the
+            # file unnecessary
             with tempfile.TemporaryDirectory() as d:
                 with axis_ptz_utilities.pushd(d):
                     try:
@@ -899,6 +1039,15 @@ class AxisPtzController(BaseMQTTPubSub):
                     except Exception as e:
                         logging.error(f"Could not capture image to directory: {d}: {e}")
                         return
+            logging.debug(
+                f"Publishing filename: {image_filepath}, for object: {self.object_id}, at: {self.capture_time}"
+            )
+            self._send_data(
+                {
+                    "type": "ImageFileName",
+                    "payload": str(image_filepath),
+                }
+            )
 
             # Populate and publish image metadata, getting current pan
             # and tilt, and accounting for object message age relative
@@ -924,23 +1073,12 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(
                 f"Publishing metadata: {image_metadata}, for object: {self.object_id}, at: {self.capture_time}"
             )
-
-            out_json = self.generate_payload_json(
-                push_timestamp=str(int(datetime.utcnow().timestamp())),
-                device_type="Collector",
-                id_=self.hostname,
-                deployment_id=f"AISonobuoy-Arlington-{self.hostname}",
-                current_location="-90, -180",
-                status="Debug",
-                message_type="Event",
-                model_version="null",
-                firmware_version="v0.0.0",
-                data_payload_type="ImageFileName",
-                data_payload=str(image_filepath),
+            self._send_data(
+                {
+                    "type": "ImageMetadata",
+                    "payload": json.dumps(image_metadata),
+                }
             )
-
-            self.publish_to_topic(self.image_filename_topic, out_json)
-            self.publish_to_topic(self.capture_topic, json.dumps(image_metadata))
 
     def _update_pointing(self) -> None:
         """Update values of camera pan and tilt using current pan and
@@ -957,9 +1095,9 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         None
         """
-        self.timestamp_c += self.update_interval
-        self.rho_c += self.rho_dot_c * self.update_interval
-        self.tau_c += self.tau_dot_c * self.update_interval
+        self.timestamp_c += self.loop_interval
+        self.rho_c += self.rho_dot_c * self.loop_interval
+        self.tau_c += self.tau_dot_c * self.loop_interval
 
     def _exit_handler(self, signum: int, frame: Optional[FrameType]) -> None:
         """Exit the controller gracefully by stopping continuous pan
@@ -1014,7 +1152,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     schedule.run_pending()
 
                 # Update camera pointing
-                sleep(self.update_interval)
+                sleep(self.loop_interval)
                 if not self.use_camera:
                     self._update_pointing()
 
@@ -1048,47 +1186,53 @@ class AxisPtzController(BaseMQTTPubSub):
                     raise
 
 
-if __name__ == "__main__":
-    # Instantiate controller and execute
-    controller = AxisPtzController(
-        camera_ip=os.getenv("CAMERA_IP", ""),
-        camera_user=os.getenv("CAMERA_USER", ""),
-        camera_password=os.getenv("CAMERA_PASSWORD", ""),
-        mqtt_ip=os.getenv("MQTT_IP"),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
-        heartbeat_interval=int(os.getenv("HEARTBEAT_INTERVAL", 10)),
-        image_filename_topic=str(os.environ.get("IMAGE_FILENAME_TOPIC")),
+def make_controller() -> AxisPtzController:
+    """Instantiate an AxisPtzController."""
+    return AxisPtzController(
         hostname=str(os.environ.get("HOSTNAME")),
-        lambda_t=float(os.getenv("TRIPOD_LONGITUDE", 0.0)),
-        varphi_t=float(os.getenv("TRIPOD_LATITUDE", 0.0)),
-        h_t=float(os.getenv("TRIPOD_ALTITUDE", 0.0)),
-        update_interval=float(os.getenv("UPDATE_INTERVAL", 0.1)),
-        capture_interval=int(os.getenv("CAPTURE_INTERVAL", 2)),
-        capture_dir=os.getenv("CAPTURE_DIR", "."),
-        lead_time=float(os.getenv("LEAD_TIME", 0.5)),
-        pan_gain=float(os.getenv("PAN_GAIN", 0.2)),
-        pan_rate_min=float(os.getenv("PAN_RATE_MIN", 1.8)),
-        pan_rate_max=float(os.getenv("PAN_RATE_MAX", 150.0)),
-        tilt_gain=float(os.getenv("TILT_GAIN", 0.2)),
-        tilt_rate_min=float(os.getenv("TILT_RATE_MIN", 1.8)),
-        tilt_rate_max=float(os.getenv("TILT_RATE_MAX", 150.0)),
-        focus_slope=float(os.getenv("FOCUS_SLOPE", 0.0006)),
-        focus_intercept=float(os.getenv("FOCUS_INTERCEPT", 54)),
-        focus_min=int(os.getenv("FOCUS_MIN", 5555)),
-        focus_max=int(os.getenv("FOCUS_MAX", 9999)),
-        jpeg_resolution=os.getenv("JPEG_RESOLUTION", "1920x1080"),
-        jpeg_compression=int(os.getenv("JPEG_COMPRESSION", 5)),
-        use_mqtt=ast.literal_eval(os.getenv("USE_MQTT", "True")),
-        use_camera=ast.literal_eval(os.getenv("USE_CAMERA", "True")),
-        auto_focus=ast.literal_eval(os.getenv("AUTO_FOCUS", "True")),
-        include_age=ast.literal_eval(os.getenv("INCLUDE_AGE", "True")),
-        log_to_mqtt=ast.literal_eval(os.getenv("LOG_TO_MQTT", "False")),
+        camera_ip=os.environ.get("CAMERA_IP", ""),
+        camera_user=os.environ.get("CAMERA_USER", ""),
+        camera_password=os.environ.get("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.environ.get("MQTT_IP"),
+        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
+        object_topic=os.environ.get("OBJECT_TOPIC", ""),
+        image_filename_topic=str(os.environ.get("IMAGE_FILENAME_TOPIC")),
+        image_capture_topic=os.environ.get("IMAGE_CAPTURE_TOPIC", ""),
+        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
+        lambda_t=float(os.environ.get("TRIPOD_LONGITUDE", 0.0)),
+        varphi_t=float(os.environ.get("TRIPOD_LATITUDE", 0.0)),
+        h_t=float(os.environ.get("TRIPOD_ALTITUDE", 0.0)),
+        heartbeat_interval=int(os.environ.get("HEARTBEAT_INTERVAL", 10)),
+        loop_interval=float(os.environ.get("LOOP_INTERVAL", 0.1)),
+        capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
+        capture_dir=os.environ.get("CAPTURE_DIR", "."),
+        lead_time=float(os.environ.get("LEAD_TIME", 0.5)),
+        pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
+        pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
+        pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
+        tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
+        tilt_rate_min=float(os.environ.get("TILT_RATE_MIN", 1.8)),
+        tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
+        focus_slope=float(os.environ.get("FOCUS_SLOPE", 0.0006)),
+        focus_intercept=float(os.environ.get("FOCUS_INTERCEPT", 54)),
+        focus_min=int(os.environ.get("FOCUS_MIN", 5555)),
+        focus_max=int(os.environ.get("FOCUS_MAX", 9999)),
+        jpeg_resolution=os.environ.get("JPEG_RESOLUTION", "1920x1080"),
+        jpeg_compression=int(os.environ.get("JPEG_COMPRESSION", 5)),
+        use_mqtt=ast.literal_eval(os.environ.get("USE_MQTT", "True")),
+        use_camera=ast.literal_eval(os.environ.get("USE_CAMERA", "True")),
+        auto_focus=ast.literal_eval(os.environ.get("AUTO_FOCUS", "True")),
+        include_age=ast.literal_eval(os.environ.get("INCLUDE_AGE", "True")),
+        log_to_mqtt=ast.literal_eval(os.environ.get("LOG_TO_MQTT", "False")),
+        log_level=os.environ.get("LOG_LEVEL", "False"),
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
     )
+
+
+if __name__ == "__main__":
+    # Instantiate controller and execute
+    controller = make_controller()
     controller.main()

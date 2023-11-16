@@ -1,0 +1,7 @@
+{
+    "axis-ptz-controller": {
+        "tripod_longitude": 270.0,
+        "tripod_latitude": 90.0,
+        "tripod_altitude": 0.0
+    }
+}
