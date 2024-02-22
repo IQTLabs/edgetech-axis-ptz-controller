@@ -53,6 +53,9 @@ class AxisPtzController(BaseMQTTPubSub):
         capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
+        yaw: float = 0.0,
+        pitch: float = 0.0,
+        roll: float = 0.0,
         pan_gain: float = 0.2,
         pan_rate_min: float = 1.8,
         pan_rate_max: float = 150.0,
@@ -115,6 +118,12 @@ class AxisPtzController(BaseMQTTPubSub):
         lead_time: float
             Lead time used when computing camera pointing to the
             object [s]
+        yaw: float
+            Yaw correction to the camera's positioning [degrees]
+        pitch: float
+            Pitch correction to the camera's positioning [degrees]
+        roll: float
+            Roll correction to the camera's positioning [degrees]
         pan_gain: float
             Proportional control gain for pan error [1/s]
         pan_rate_min: float
@@ -199,6 +208,11 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
 
+        # Tripod yaw, pitch, and roll angles
+        self.alpha = yaw  # [deg]
+        self.beta = pitch  # [deg]
+        self.gamma = roll  # [deg]
+
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
         logging.info("Constructing camera configuration and control")
@@ -227,11 +241,6 @@ class AxisPtzController(BaseMQTTPubSub):
         self.h_o = 0.0  # [m]
         self.r_rst_o_0_t = np.zeros((3,))  # [m/s]
         self.v_rst_o_0_t = np.zeros((3,))  # [m/s]
-
-        # Tripod yaw, pitch, and roll angles
-        self.alpha = 0.0  # [deg]
-        self.beta = 0.0  # [deg]
-        self.gamma = 0.0  # [deg]
 
         # Tripod yaw, pitch, and roll rotation quaternions
         self.q_alpha = quaternion.quaternion()
@@ -1209,6 +1218,9 @@ def make_controller() -> AxisPtzController:
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
         lead_time=float(os.environ.get("LEAD_TIME", 0.5)),
+        yaw=float(os.environ.get("YAW", 0.0)),
+        pitch=float(os.environ.get("PITCH", 0.0)),
+        roll=float(os.environ.get("ROLL", 0.0)),
         pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
         pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
