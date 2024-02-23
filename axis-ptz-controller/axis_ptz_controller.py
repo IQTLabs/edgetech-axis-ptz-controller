@@ -371,14 +371,20 @@ class AxisPtzController(BaseMQTTPubSub):
                 logging.info(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
-                self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
+                try:
+                    self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
+                except Exception as e:
+                    logging.error(f"Error: {e}")
             else:
                 logging.info(
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}, and focus: {self.focus}"
                 )
-                self.camera_control.absolute_move(
-                    self.rho_c, self.tau_c, self.zoom, 50, self.focus
-                )
+                try:
+                    self.camera_control.absolute_move(
+                        self.rho_c, self.tau_c, self.zoom, 50, self.focus
+                    )
+                except Exception as e:
+                    logging.error(f"Error: {e}")
 
         # Log configuration parameters
         self._log_config()
@@ -723,7 +729,10 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.info(f"Stopping image capture of object: {object_id}")
             self.do_capture = False
             logging.info("Stopping continuous pan and tilt")
-            self.camera_control.stop_move()
+            try:
+                self.camera_control.stop_move()
+            except Exception as e:
+                logging.error(f"Error: {e}")
 
         if self.use_camera:
             # Get camera pan and tilt
@@ -737,16 +746,23 @@ class AxisPtzController(BaseMQTTPubSub):
                     logging.info(
                         f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
                     )
-                    self.camera_control.absolute_move(
-                        self.rho_o, self.tau_o, self.zoom, 50
-                    )
+                    try:
+                        self.camera_control.absolute_move(
+                            self.rho_o, self.tau_o, self.zoom, 50
+                        )
+                    except Exception as e:
+                        logging.error(f"Error: {e}")
                 else:
                     logging.info(
                         f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
                     )
-                    self.camera_control.absolute_move(
-                        self.rho_o, self.tau_o, self.zoom, 50, self.focus
-                    )
+                    try:
+                        self.camera_control.absolute_move(
+                            self.rho_o, self.tau_o, self.zoom, 50, self.focus
+                        )
+                    except Exception as e:
+                        logging.error(f"Error: {e}")
+
                 duration = max(
                     math.fabs(self._compute_angle_delta(self.rho_c, self.rho_o))
                     / (self.pan_rate_max / 2),
@@ -824,7 +840,10 @@ class AxisPtzController(BaseMQTTPubSub):
                     + self.focus_min
                 )  # [%]
                 logging.debug(f"Commanding focus: {self.focus}")
-                self.camera_control.set_focus(self.focus)
+                try:
+                    self.camera_control.set_focus(self.focus)
+                except Exception as e:
+                    logging.error(f"Error: {e}")
 
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
@@ -832,11 +851,15 @@ class AxisPtzController(BaseMQTTPubSub):
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
             if self.camera_control.is_connected():
-                self.camera_control.continuous_move(
-                    pan_rate_index,
-                    tilt_rate_index,
-                    0.0,
-                )
+                try:
+                    self.camera_control.continuous_move(
+                        pan_rate_index,
+                        tilt_rate_index,
+                        0.0,
+                    )
+                except Exception as e:
+                    logging.error(f"Error: {e}")
+
                 if not self.do_capture:
                     logging.info(f"Starting image capture of object: {self.object_id}")
                     self.do_capture = True
@@ -1062,7 +1085,12 @@ class AxisPtzController(BaseMQTTPubSub):
             # Populate and publish image metadata, getting current pan
             # and tilt, and accounting for object message age relative
             # to the image capture
-            rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
+            try:
+                rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
+            except Exception as e:
+                logging.error(f"Error: {e}")
+                return
+
             object_msg_age = datetime_c.timestamp() - self.timestamp_o  # [s]
             image_metadata = {
                 "timestamp": timestr,
@@ -1127,7 +1155,10 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         if self.use_camera:
             logging.info("Stopping continuous pan and tilt")
-            self.camera_control.stop_move()
+            try:
+                self.camera_control.stop_move()
+            except Exception as e:
+                logging.error(f"Error: {e}")
         logging.info("Exiting")
         sys.exit()
 
@@ -1177,14 +1208,20 @@ class AxisPtzController(BaseMQTTPubSub):
                     self.do_capture = False
                     if self.use_camera:
                         logging.info("Stopping continuous pan and tilt")
-                        self.camera_control.stop_move()
+                        try:
+                            self.camera_control.stop_move()
+                        except Exception as e:
+                            logging.error(f"Error: {e}")
 
             except KeyboardInterrupt as exception:
                 # If keyboard interrupt, fail gracefully
                 logging.warning("Received keyboard interrupt")
                 if self.use_camera:
                     logging.info("Stopping continuous pan and tilt")
-                    self.camera_control.stop_move()
+                    try:
+                        self.camera_control.stop_move()
+                    except Exception as e:
+                        logging.error(f"Error: {e}")
                 logging.warning("Exiting")
                 sys.exit()
 
