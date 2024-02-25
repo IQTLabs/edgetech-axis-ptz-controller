@@ -1276,7 +1276,7 @@ def make_controller() -> AxisPtzController:
         yaw=float(os.environ.get("YAW", 0.0)),
         pitch=float(os.environ.get("PITCH", 0.0)),
         roll=float(os.environ.get("ROLL", 0.0)),
-        zoom=int(os.environ.get("ZOOM", 0)),
+        zoom=int(os.environ.get("ZOOM", 2000)),
         pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
         pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
