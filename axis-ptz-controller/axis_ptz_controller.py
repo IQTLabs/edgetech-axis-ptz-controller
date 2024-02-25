@@ -443,8 +443,10 @@ class AxisPtzController(BaseMQTTPubSub):
         # Assign data attributes allowed to change during operation,
         # ignoring config message data without a "axis-ptz-controller"
         # key
+        logging.info(f"Processing config msg: {msg}")
         data = self.decode_payload(msg, "Configuration")
         if "axis-ptz-controller" not in data:
+            logging.info(f"Configuration message data missing axis-ptz-controller: {data}")
             return
         logging.info(f"Processing config msg data: {data}")
         config = data["axis-ptz-controller"]
