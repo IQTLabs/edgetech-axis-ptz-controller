@@ -414,7 +414,7 @@ class AxisPtzController(BaseMQTTPubSub):
         try:    
             data_payload = json.loads(payload)[data_payload_type]
         except (KeyError, TypeError) as e:
-            logging.error(f"Data payload type: {data_payload_type} not found in payload: {payload}")
+            logging.error(f"Data payload type: {data_payload_type} not found in payload: {data_payload}")
             return {}
         return json.loads(data_payload)
 
