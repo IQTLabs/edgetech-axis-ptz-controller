@@ -56,6 +56,7 @@ class AxisPtzController(BaseMQTTPubSub):
         yaw: float = 0.0,
         pitch: float = 0.0,
         roll: float = 0.0,
+        zoom: int = 2000,
         pan_gain: float = 0.2,
         pan_rate_min: float = 1.8,
         pan_rate_max: float = 150.0,
@@ -124,6 +125,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Pitch correction to the camera's positioning [degrees]
         roll: float
             Roll correction to the camera's positioning [degrees]
+        zoom: int
+            Camera zoom level [0-9999]
         pan_gain: float
             Proportional control gain for pan error [1/s]
         pan_rate_min: float
@@ -213,6 +216,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.beta = pitch  # [deg]
         self.gamma = roll  # [deg]
 
+        self.zoom = zoom  # [0-9999]
+
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
         logging.info("Constructing camera configuration and control")
@@ -294,7 +299,6 @@ class AxisPtzController(BaseMQTTPubSub):
         self.timestamp_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
-        self.zoom = 2000  # 1 to 9999 [-]
         self.focus = 60  # 0 to 100 [%]
 
         # Camera pan and tilt rates
@@ -502,6 +506,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "continue_on_exception", self.continue_on_exception
         )
 
+        self.camera_control.absolute_move( None, None, self.zoom, None )
         # Log configuration parameters
         self._log_config()
 
@@ -536,6 +541,10 @@ class AxisPtzController(BaseMQTTPubSub):
             "lambda_t": self.lambda_t,
             "varphi_t": self.varphi_t,
             "h_t": self.h_t,
+            "yaw": self.alpha,
+            "pitch": self.beta,
+            "roll": self.gamma,
+            "zoom": self.zoom,
             "heartbeat_interval": self.heartbeat_interval,
             "loop_interval": self.loop_interval,
             "capture_interval": self.capture_interval,
@@ -596,7 +605,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
-        logging.debug(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logging.info(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
         (
             self.q_alpha,
             self.q_beta,
@@ -615,7 +624,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c,
             self.tau_c,
         )
-        logging.debug(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
+        logging.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
     def _object_callback(
         self,
@@ -856,7 +865,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
             pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
             tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
-            logging.debug(
+            logging.info(
                 f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
             )
             if self.camera_control.is_connected():
@@ -1267,6 +1276,7 @@ def make_controller() -> AxisPtzController:
         yaw=float(os.environ.get("YAW", 0.0)),
         pitch=float(os.environ.get("PITCH", 0.0)),
         roll=float(os.environ.get("ROLL", 0.0)),
+        zoom=int(os.environ.get("ZOOM", 0)),
         pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
         pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
