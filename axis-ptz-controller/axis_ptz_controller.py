@@ -411,7 +411,11 @@ class AxisPtzController(BaseMQTTPubSub):
             payload = msg.payload.decode()
         else:
             payload = msg
-        data_payload = json.loads(payload)[data_payload_type]
+        try:    
+            data_payload = json.loads(payload)[data_payload_type]
+        except KeyError:
+            logging.error(f"Data payload type: {data_payload_type} not found in payload: {payload}")
+            return {}
         return json.loads(data_payload)
 
     def _config_callback(
