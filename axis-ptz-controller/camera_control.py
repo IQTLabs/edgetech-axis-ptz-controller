@@ -1,5 +1,9 @@
 import logging
 
+# Disable all logs for this module
+import logging
+
+logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
 from sensecam_control import vapix_control
 from typing import Tuple, Union
 
