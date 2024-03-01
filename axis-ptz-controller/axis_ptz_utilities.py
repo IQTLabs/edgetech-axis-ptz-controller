@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 from typing import cast, Generator, Tuple, Union
 
-import coloredlogs
 import numpy as np
 import numpy.typing as npt
 import quaternion

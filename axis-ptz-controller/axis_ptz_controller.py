@@ -376,7 +376,9 @@ class AxisPtzController(BaseMQTTPubSub):
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
                 try:
-                    self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
+                    self.camera_control.absolute_move(
+                        self.rho_c, self.tau_c, self.zoom, 50
+                    )
                 except Exception as e:
                     logging.error(f"Error: {e}")
             else:
@@ -415,13 +417,15 @@ class AxisPtzController(BaseMQTTPubSub):
             payload = msg.payload.decode()
         else:
             payload = msg
-        try:    
+        try:
             json_payload = json.loads(payload)
             data_payload = json_payload[data_payload_type]
         except (KeyError, TypeError) as e:
             logging.error(f"Error: {e}")
             logging.error(json_payload)
-            logging.error(f"Data payload type: {data_payload_type} not found in payload: {data_payload}")
+            logging.error(
+                f"Data payload type: {data_payload_type} not found in payload: {data_payload}"
+            )
             return {}
         return json.loads(data_payload)
 
@@ -452,7 +456,9 @@ class AxisPtzController(BaseMQTTPubSub):
         # key
         data = self.decode_payload(msg, "Configuration")
         if "axis-ptz-controller" not in data:
-            logging.info(f"Configuration message data missing axis-ptz-controller: {data}")
+            logging.info(
+                f"Configuration message data missing axis-ptz-controller: {data}"
+            )
             return
         logging.info(f"Processing config msg data: {data}")
         config = data["axis-ptz-controller"]
@@ -504,7 +510,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.continue_on_exception = config.get(
             "continue_on_exception", self.continue_on_exception
         )
-        self.camera_control.absolute_move( None, None, self.zoom, None )
+        self.camera_control.absolute_move(None, None, self.zoom, None)
 
         # Log configuration parameters
         self._log_config()
@@ -625,15 +631,10 @@ class AxisPtzController(BaseMQTTPubSub):
         )
         logging.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
-
-
-
-       
-
     def _reset_stop_timer(self):
         if hasattr(self, "_timer"):
             self._timer.cancel()
-        self._timer = threading.Timer(3, self._stop_timer_callback)  
+        self._timer = threading.Timer(3, self._stop_timer_callback)
         self._timer.start()
 
     def _stop_timer_callback(self):
@@ -647,7 +648,6 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera_control.stop_move()
         except Exception as e:
             logging.error(f"Error: {e}")
-
 
             # ... existing code ...
 
@@ -771,7 +771,9 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera and self.tau_o < 0:
             logging.info(f"Stopping image capture of object: {object_id}")
             self.do_capture = False
-            logging.info("Stopping continuous pan and tilt - Object is below the horizon")
+            logging.info(
+                "Stopping continuous pan and tilt - Object is below the horizon"
+            )
             try:
                 self.camera_control.stop_move()
             except Exception as e:
@@ -782,7 +784,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
             logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
             self._reset_stop_timer()
-            
+
             # Point the camera at any new object directly
             if self.object_id != object_id:
                 self.object_id = object_id

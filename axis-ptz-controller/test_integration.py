@@ -6,7 +6,6 @@ import os
 import time
 from typing import Any, Dict
 
-import coloredlogs
 from matplotlib import pyplot as plt
 import pandas as pd
 

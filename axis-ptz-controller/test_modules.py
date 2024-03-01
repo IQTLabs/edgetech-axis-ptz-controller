@@ -55,7 +55,7 @@ def R_pole() -> float:
 
 
 @pytest.fixture
-def controller() -> AxisPtzController:
+def controller() -> axis_ptz_controller.AxisPtzController:
     """Construct a controller."""
     controller = axis_ptz_controller.AxisPtzController(
         hostname=os.environ.get("HOSTNAME", ""),
@@ -265,7 +265,9 @@ class TestAxisPtzController:
         assert controller._compute_pan_rate_index(0.0) == 0
         assert controller._compute_pan_rate_index(PAN_RATE_MAX * 2.0) == +100
 
-    def test_compute_tilt_rate_index(self, controller: AxisPtzController) -> None:
+    def test_compute_tilt_rate_index(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
         assert controller._compute_tilt_rate_index(-TILT_RATE_MAX * 2.0) == -100
         assert controller._compute_tilt_rate_index(0.0) == 0
         assert controller._compute_tilt_rate_index(TILT_RATE_MAX * 2.0) == +100
