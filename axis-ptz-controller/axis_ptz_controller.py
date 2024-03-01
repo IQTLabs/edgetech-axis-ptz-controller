@@ -7,6 +7,7 @@ import ast
 from datetime import datetime
 import json
 import logging
+import threading
 import math
 import os
 from pathlib import Path
@@ -626,6 +627,32 @@ class AxisPtzController(BaseMQTTPubSub):
         )
         logging.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
+
+
+
+       
+
+    def _reset_stop_timer(self):
+        if hasattr(self, "_timer"):
+            self._timer.cancel()
+        self._timer = threading.Timer(3, self._timer_callback)  
+        self._timer.start()
+
+    def _stop_timer_callback(self):
+        # Call your function here
+        print("Timer callback called")
+
+        logging.info(f"Stopping image capture of object, updates timed out: {object_id}")
+        self.do_capture = False
+        logging.info("Stopping continuous pan and tilt - updates timed out")
+        try:
+            self.camera_control.stop_move()
+        except Exception as e:
+            logging.error(f"Error: {e}")
+
+
+            # ... existing code ...
+
     def _object_callback(
         self,
         _client: Union[mqtt.Client, None],
@@ -746,7 +773,7 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera and self.tau_o < 0:
             logging.info(f"Stopping image capture of object: {object_id}")
             self.do_capture = False
-            logging.info("Stopping continuous pan and tilt")
+            logging.info("Stopping continuous pan and tilt - Object is below the horizon")
             try:
                 self.camera_control.stop_move()
             except Exception as e:
@@ -756,7 +783,8 @@ class AxisPtzController(BaseMQTTPubSub):
             # Get camera pan and tilt
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
             logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
-
+            self._reset_stop_timer()
+            
             # Point the camera at any new object directly
             if self.object_id != object_id:
                 self.object_id = object_id
