@@ -635,7 +635,7 @@ class AxisPtzController(BaseMQTTPubSub):
     def _reset_stop_timer(self):
         if hasattr(self, "_timer"):
             self._timer.cancel()
-        self._timer = threading.Timer(3, self._timer_callback)  
+        self._timer = threading.Timer(3, self._stop_timer_callback)  
         self._timer.start()
 
     def _stop_timer_callback(self):
