@@ -642,7 +642,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Call your function here
         print("Timer callback called")
 
-        logging.info(f"Stopping image capture of object, updates timed out: {object_id}")
+        logging.info(f"Stopping image capture of object, updates timed out")
         self.do_capture = False
         logging.info("Stopping continuous pan and tilt - updates timed out")
         try:
