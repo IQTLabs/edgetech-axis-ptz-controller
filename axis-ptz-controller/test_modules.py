@@ -9,7 +9,7 @@ import numpy.typing as npt
 import pytest
 import quaternion
 
-from axis_ptz_controller import AxisPtzController
+import axis_ptz_controller
 import axis_ptz_utilities
 
 
@@ -57,18 +57,18 @@ def R_pole() -> float:
 @pytest.fixture
 def controller() -> AxisPtzController:
     """Construct a controller."""
-    controller = AxisPtzController(
+    controller = axis_ptz_controller.AxisPtzController(
         hostname=os.environ.get("HOSTNAME", ""),
-        camera_ip=os.getenv("CAMERA_IP", ""),
-        camera_user=os.getenv("CAMERA_USER", ""),
-        camera_password=os.getenv("CAMERA_PASSWORD", ""),
-        mqtt_ip=os.getenv("MQTT_IP", ""),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        image_filename_topic=os.getenv("IMAGE_FILENAME_TOPIC", ""),
-        capture_topic=os.getenv("CAPTURE_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        camera_ip=os.environ.get("CAMERA_IP", ""),
+        camera_user=os.environ.get("CAMERA_USER", ""),
+        camera_password=os.environ.get("CAMERA_PASSWORD", ""),
+        mqtt_ip=os.environ.get("MQTT_IP", ""),
+        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
+        object_topic=os.environ.get("OBJECT_TOPIC", ""),
+        image_filename_topic=os.environ.get("IMAGE_FILENAME_TOPIC", ""),
+        image_capture_topic=os.environ.get("IMAGE_CAPTURE_TOPIC", ""),
+        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         loop_interval=LOOP_INTERVAL,
         capture_interval=CAPTURE_INTERVAL,
@@ -89,7 +89,7 @@ def controller() -> AxisPtzController:
 
 
 @pytest.fixture
-def config_msg(controller: AxisPtzController) -> str:
+def config_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate a config message."""
     with open("data/config_msg_data.json", "r") as f:
         data = json.load(f)
@@ -110,7 +110,7 @@ def config_msg(controller: AxisPtzController) -> str:
 
 
 @pytest.fixture
-def orientation_msg_0s(controller: AxisPtzController) -> str:
+def orientation_msg_0s(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate an orientation message with all 0 deg angles."""
     with open("data/orientation_msg_data_0s.json", "r") as f:
         data = json.load(f)
@@ -131,7 +131,7 @@ def orientation_msg_0s(controller: AxisPtzController) -> str:
 
 
 @pytest.fixture
-def orientation_msg_90s(controller: AxisPtzController) -> str:
+def orientation_msg_90s(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate an orientation message with all 90 deg angles."""
     with open("data/orientation_msg_data_90s.json", "r") as f:
         data = json.load(f)
@@ -152,7 +152,7 @@ def orientation_msg_90s(controller: AxisPtzController) -> str:
 
 
 @pytest.fixture
-def object_msg(controller: AxisPtzController) -> str:
+def object_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate a object message with velocity along the line of
     sight, using the calculation noted below.
 
@@ -189,7 +189,7 @@ class TestAxisPtzController:
 
     def test_config_callback(
         self,
-        controller: AxisPtzController,
+        controller: axis_ptz_controller.AxisPtzController,
         config_msg: str,
     ) -> None:
         # Align ENz with XYZ
@@ -217,7 +217,7 @@ class TestAxisPtzController:
 
     def test_orientation_callback(
         self,
-        controller: AxisPtzController,
+        controller: axis_ptz_controller.AxisPtzController,
         config_msg: str,
         orientation_msg_90s: str,
     ) -> None:
@@ -252,7 +252,15 @@ class TestAxisPtzController:
         assert qnorm(controller.q_gamma - q_gamma_exp) < PRECISION
         assert np.linalg.norm(controller.E_XYZ_to_uvw - E_XYZ_to_uvw_exp) < PRECISION
 
-    def test_compute_pan_rate_index(self, controller: AxisPtzController) -> None:
+    def test_compute_angle_delta(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
+        assert round(controller._compute_angle_delta(1.0, 359.0)) == -2.0
+        assert round(controller._compute_angle_delta(359.0, 1.0)) == +2.0
+
+    def test_compute_pan_rate_index(
+        self, controller: axis_ptz_controller.AxisPtzController
+    ) -> None:
         assert controller._compute_pan_rate_index(-PAN_RATE_MAX * 2.0) == -100
         assert controller._compute_pan_rate_index(0.0) == 0
         assert controller._compute_pan_rate_index(PAN_RATE_MAX * 2.0) == +100
@@ -264,7 +272,7 @@ class TestAxisPtzController:
 
     def test_object_callback(
         self,
-        controller: AxisPtzController,
+        controller: axis_ptz_controller.AxisPtzController,
         config_msg: str,
         orientation_msg_0s: str,
         object_msg: str,

@@ -1,13 +1,15 @@
 name: Code Quality Checks
 
-on: pull_request
+on: [pull_request_target]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     name: Code Quality Checks
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - uses: actions/setup-python@v4
       with:
         python-version: 3.9.13

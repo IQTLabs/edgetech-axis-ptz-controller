@@ -95,6 +95,8 @@ class MessageHandler(BaseMQTTPubSub):
         ----------
         payload: mqtt.MQTTMessage
             The MQTT message
+        data_payload_type: str
+            The data payload type
 
         Returns
         -------
@@ -156,11 +158,11 @@ def make_handler() -> MessageHandler:
         The message handler
     """
     handler = MessageHandler(
-        mqtt_ip=os.getenv("MQTT_IP", ""),
-        config_topic=os.getenv("CONFIG_TOPIC", ""),
-        orientation_topic=os.getenv("ORIENTATION_TOPIC", ""),
-        object_topic=os.getenv("OBJECT_TOPIC", ""),
-        logger_topic=os.getenv("LOGGER_TOPIC", ""),
+        mqtt_ip=os.environ.get("MQTT_IP", ""),
+        config_topic=os.environ.get("CONFIG_TOPIC", ""),
+        orientation_topic=os.environ.get("ORIENTATION_TOPIC", ""),
+        object_topic=os.environ.get("OBJECT_TOPIC", ""),
+        logger_topic=os.environ.get("LOGGER_TOPIC", ""),
     )
     return handler
 

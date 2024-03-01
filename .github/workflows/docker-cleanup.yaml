@@ -1,0 +1,17 @@
+name: Untag PR Docker Image
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  untag-image:
+    name: Untag PR Docker Image from Dockerhub
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Untag Docker image on DockerHub
+      run: |
+        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ vars.DOCKER_USERNAME }}", "password": "${{ secrets.DOCKER_TOKEN }}"}' "https://hub.docker.com/v2/users/login/" | jq -r .token)
+        curl "https://hub.docker.com/v2/repositories/${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}/tags/testing-PR${{ github.event.pull_request.number }}" -X DELETE -H "Authorization: JWT $TOKEN"

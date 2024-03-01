@@ -1,29 +1,12 @@
 import logging
 import os
 
-import coloredlogs
+# Disable all logs for this module
+import logging
+
+logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
 from sensecam_control import vapix_control
 from typing import Tuple, Union
-
-STYLES = {
-    "critical": {"bold": True, "color": "red"},
-    "debug": {"color": "green"},
-    "error": {"color": "red"},
-    "info": {"color": "white"},
-    "notice": {"color": "magenta"},
-    "spam": {"color": "green", "faint": True},
-    "success": {"bold": True, "color": "green"},
-    "verbose": {"color": "blue"},
-    "warning": {"color": "yellow"},
-}
-coloredlogs.install(
-    level=os.environ.get("LOG_LEVEL", "INFO"),
-    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
-    ""
-    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
-    "%(message)s",
-    level_styles=STYLES,
-)
 
 
 class CameraControl(vapix_control.CameraControl):
@@ -60,7 +43,12 @@ class CameraControl(vapix_control.CameraControl):
         if focus is not None:
             command["focus"] = focus
         logging.info(f"command: {command}")
-        return self._camera_command(command)
+
+        try:
+            return self._camera_command(command)
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return str(e)
 
     def get_ptz(self) -> Tuple[float, float, float, float]:
         """
@@ -70,15 +58,19 @@ class CameraControl(vapix_control.CameraControl):
             Returns a tuple with the position and focus of the camera (P, T, Z, F)
 
         """
-        resp = self._camera_command({"query": "position"})
-        pan = float(resp.text.split()[0].split("=")[1])
-        tilt = float(resp.text.split()[1].split("=")[1])
-        zoom = float(resp.text.split()[2].split("=")[1])
-        focus = float(resp.text.split()[3].split("=")[1])
-        ptz_list = (pan, tilt, zoom, focus)
-        logging.debug(f"PTZ: {ptz_list}")
+        try:
+            resp = self._camera_command({"query": "position"})
+            pan = float(resp.text.split()[0].split("=")[1])
+            tilt = float(resp.text.split()[1].split("=")[1])
+            zoom = float(resp.text.split()[2].split("=")[1])
+            focus = float(resp.text.split()[3].split("=")[1])
+            ptz_list = (pan, tilt, zoom, focus)
+            logging.debug(f"PTZ: {ptz_list}")
+            return ptz_list
 
-        return ptz_list
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return (0, 0, 0, 0)
 
     def set_focus(self, focus: Union[int, None] = None) -> str:
         """
@@ -90,7 +82,11 @@ class CameraControl(vapix_control.CameraControl):
             Returns the response from the device to the command sent.
 
         """
-        return self._camera_command({"focus": focus})
+        try: 
+            return self._camera_command({"focus": focus})
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return str(e)
 
     def is_connected(self) -> bool:
         """
@@ -100,8 +96,10 @@ class CameraControl(vapix_control.CameraControl):
             Bool indicating connection, or not
 
         """
-        resp = self._camera_command({"query": "position"})
-        if resp.status_code == 200:
-            return True
-        else:
-            return False
+        try:
+            resp = self._camera_command({"query": "position"})
+            if resp.status_code == 200:
+                return True
+        except Exception as e:
+            logging.error(f"Error: {e}")
+        return False

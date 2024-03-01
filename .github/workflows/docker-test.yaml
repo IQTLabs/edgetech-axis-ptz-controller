@@ -1,36 +1,32 @@
-name: Container Build Testing
+name: Docker Build Testing
 
-on:
-  pull_request:
+on: [pull_request_target]
+
+
 
 jobs:
-  build:
+  push_to_registry:
+    name: Test Docker Build
     runs-on: ubuntu-latest
-    name: Docker Build Check
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-    
-    - name: Set up qemu
-      uses: docker/setup-qemu-action@v2
-      with:
-        platforms: all
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Set up Docker buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v2
-      with:
-        version: latest
+      - name: Set up Docker buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
 
-    - name: Get changes
-      id: identify
-      uses: jitterbit/get-changed-files@v1
-    - run: |
-        echo ${{ steps.files.output.all }}
+      - name: Set DOCKER_FOLDER
+        run: echo "DOCKER_FOLDER=$(echo ${{ github.event.repository.name }} | sed 's/edgetech-//')" >> $GITHUB_ENV
 
-    - name: Build image
-      env: 
-        DOCKER_FOLDER: "axis-ptz-controller"
-      run: |
-        docker buildx build $DOCKER_FOLDER \
-        --platform linux/arm64,linux/amd64
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.DOCKER_FOLDER }}
+          platforms: linux/arm64,linux/amd64
+          push: false
+          tags: ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:testing-PR${{ github.event.pull_request.number }}

@@ -16,26 +16,6 @@ import quaternion
 R_OPLUS = 6378137  # [m]
 F_INV = 298.257223563
 
-STYLES = {
-    "critical": {"bold": True, "color": "red"},
-    "debug": {"color": "green"},
-    "error": {"color": "red"},
-    "info": {"color": "white"},
-    "notice": {"color": "magenta"},
-    "spam": {"color": "green", "faint": True},
-    "success": {"bold": True, "color": "green"},
-    "verbose": {"color": "blue"},
-    "warning": {"color": "yellow"},
-}
-coloredlogs.install(
-    level=os.environ.get("LOG_LEVEL", "INFO"),
-    fmt="%(asctime)s.%(msecs)03d \033[0;90m%(levelname)-8s "
-    ""
-    "\033[0;36m%(filename)-18s%(lineno)3d\033[00m "
-    "%(message)s",
-    level_styles=STYLES,
-)
-
 
 def compute_e_E_XYZ(d_lambda: float) -> npt.NDArray[np.float64]:
     """Compute components of the east unit vector at a given geodetic
