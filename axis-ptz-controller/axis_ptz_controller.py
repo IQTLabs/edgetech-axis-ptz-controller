@@ -45,6 +45,7 @@ class AxisPtzController(BaseMQTTPubSub):
         object_topic: str,
         image_filename_topic: str,
         image_capture_topic: str,
+        manual_control_topic: str,
         logger_topic: str,
         lambda_t: float = 0.0,
         varphi_t: float = 0.0,
@@ -101,6 +102,8 @@ class AxisPtzController(BaseMQTTPubSub):
             MQTT topic for publising image filenames
         image_capture_topic: str
             MQTT topic for publising image metadata
+        manual_control_topic: str
+            MQTT topic for subscribing to manual control messages
         logger_topic: str
             MQTT topic for publishing logger messages
         lambda_t: float
@@ -183,6 +186,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.object_topic = object_topic
         self.image_filename_topic = image_filename_topic
         self.image_capture_topic = image_capture_topic
+        self.manual_control_topic = manual_control_topic
         self.logger_topic = logger_topic
         self.lambda_t = lambda_t
         self.varphi_t = varphi_t
@@ -950,6 +954,51 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Publishing logger msg: {logger_msg}")
             self.publish_to_topic(self.logger_topic, logger_msg)
 
+    def _manual_control_callback(self, _client: Union[mqtt.Client, None],
+        _userdata: Union[Dict[Any, Any], None],
+        msg: Union[mqtt.MQTTMessage, str],
+    ) -> None:
+        """Process manual control message.
+
+        Parameters
+        ----------
+        data : Dict[str, str]
+            Dictionary that maps keys to type and payload
+
+        Returns
+        -------
+        None
+        """
+        data = self.decode_payload(msg, "Selected Object")
+        if not set( ["pan", "tilt", "zoom"] ) <= set(data.keys()):
+            logging.info(f"Required keys missing from manual control message data: {data}")
+            return
+
+        pan = data["pan"]
+        tilt = data["tilt"]
+        self.zoom = data["zoom"]
+        logging.info(f"Setting zoom to: {self.zoom}")
+        # Get camera pan and tilt
+        self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
+        logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+        logging.info(
+            f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
+        )
+        try:
+            self.camera_control.absolute_move(
+                pan, tilt, self.zoom, 50
+            )
+        except Exception as e:
+            logging.error(f"Error: {e}")
+        duration = max(
+            math.fabs(self._compute_angle_delta(self.rho_c, pan))
+            / (self.pan_rate_max / 2),
+            math.fabs(self._compute_angle_delta(self.tau_c, tilt))
+            / (self.tilt_rate_max / 2),
+        )
+        logging.info(f"Sleeping: {duration} [s]")
+        sleep(duration)
+
     def _send_data(self, data: Dict[str, str]) -> bool:
         """Leverages edgetech-core functionality to publish a JSON
         payload to the MQTT broker on the topic specified by type.
@@ -1224,6 +1273,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.add_subscribe_topic(self.config_topic, self._config_callback)
             self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
             self.add_subscribe_topic(self.object_topic, self._object_callback)
+            self.add_subscribe_topic(self.manual_control_topic, self._manual_control_callback)
 
         if self.use_camera:
             # Schedule image capture
@@ -1292,6 +1342,7 @@ def make_controller() -> AxisPtzController:
         object_topic=os.environ.get("OBJECT_TOPIC", ""),
         image_filename_topic=str(os.environ.get("IMAGE_FILENAME_TOPIC")),
         image_capture_topic=os.environ.get("IMAGE_CAPTURE_TOPIC", ""),
+        manual_control_topic=os.environ.get("MANUAL_CONTROL_TOPIC", ""),
         logger_topic=os.environ.get("LOGGER_TOPIC", ""),
         lambda_t=float(os.environ.get("TRIPOD_LONGITUDE", 0.0)),
         varphi_t=float(os.environ.get("TRIPOD_LATITUDE", 0.0)),
