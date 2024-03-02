@@ -969,7 +969,7 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         None
         """
-        data = self.decode_payload(msg, "Selected Object")
+        data = self.decode_payload(msg, "Manual Control")
         if not set( ["pan", "tilt", "zoom"] ) <= set(data.keys()):
             logging.info(f"Required keys missing from manual control message data: {data}")
             return
