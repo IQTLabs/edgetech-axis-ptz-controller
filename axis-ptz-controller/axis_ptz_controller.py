@@ -980,7 +980,7 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info(f"Setting zoom to: {self.zoom}")
         # Get camera pan and tilt
         self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-        logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+        logging.info(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
         logging.info(
             f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
         )
@@ -990,6 +990,7 @@ class AxisPtzController(BaseMQTTPubSub):
             )
         except Exception as e:
             logging.error(f"Error: {e}")
+        logging.info(f"rho_c: {self.rho_c}, rho_o: {pan}, tau_c: {self.tau_c}, tau_o: {tilt}, pan_rate_max: {self.pan_rate_max}, tilt_rate_max: {self.tilt_rate_max}")
         duration = max(
             math.fabs(self._compute_angle_delta(self.rho_c, pan))
             / (self.pan_rate_max / 2),
