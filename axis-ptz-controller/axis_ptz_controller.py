@@ -991,14 +991,15 @@ class AxisPtzController(BaseMQTTPubSub):
         except Exception as e:
             logging.error(f"Error: {e}")
         logging.info(f"rho_c: {self.rho_c}, rho_o: {pan}, tau_c: {self.tau_c}, tau_o: {tilt}, pan_rate_max: {self.pan_rate_max}, tilt_rate_max: {self.tilt_rate_max}")
-        duration = max(
-            math.fabs(self._compute_angle_delta(self.rho_c, pan))
-            / (self.pan_rate_max / 2),
-            math.fabs(self._compute_angle_delta(self.tau_c, tilt))
-            / (self.tilt_rate_max / 2),
-        )
-        logging.info(f"Sleeping: {duration} [s]")
-        sleep(duration)
+        if tilt > 0 and pan > 0:        
+            duration = max(
+                math.fabs(self._compute_angle_delta(self.rho_c, pan))
+                / (self.pan_rate_max / 2),
+                math.fabs(self._compute_angle_delta(self.tau_c, tilt))
+                / (self.tilt_rate_max / 2),
+            )
+            logging.info(f"Sleeping: {duration} [s]")
+            sleep(duration)
 
     def _send_data(self, data: Dict[str, str]) -> bool:
         """Leverages edgetech-core functionality to publish a JSON
