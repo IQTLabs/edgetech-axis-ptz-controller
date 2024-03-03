@@ -980,7 +980,7 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info(f"Setting zoom to: {self.zoom}")
         # Get camera azimuth and elevation
         self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-        logging.info(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+        logging.info(f"Current Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
         logging.info(
             f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
         )
@@ -1075,6 +1075,9 @@ class AxisPtzController(BaseMQTTPubSub):
         c = math.cos(theta_c) * math.sin(theta_o) - math.sin(theta_c) * math.cos(
             theta_o
         )
+        if math.fabs(c) == 0:
+            logging.info(f"theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}, math.fabs(c): {math.fabs(c)}")
+            return 0
         return math.degrees(math.acos(d)) * c / math.fabs(c)
 
     def _compute_pan_rate_index(self, rho_dot: float) -> int:
