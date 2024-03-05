@@ -984,13 +984,29 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info(
             f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
         )
+        # Compute position of aircraft relative to tripod in ENz, then XYZ,
+        # then uvw coordinates
+        r_ENz_a_t = np.array(
+            [
+                math.sin(math.radians(azimuth)) * math.cos(math.radians(elevation)),
+                math.cos(math.radians(azimuth)) * math.cos(math.radians(elevation)),
+                math.sin(math.radians(elevation)),
+            ]
+        )
+        r_XYZ_a_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_a_t)
+        r_uvw_a_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_a_t)
+
+        # Compute pan an tilt
+        camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
+        camera_tilt = math.degrees(math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2])))  # [deg]
+
         try:
             self.camera_control.absolute_move(
-                azimuth, elevation, self.zoom, 50
+                camera_pan, camera_tilt, self.zoom, 50
             )
         except Exception as e:
             logging.error(f"Error: {e}")
-        logging.info(f"rho_c: {self.rho_c}, rho_o: {azimuth}, tau_c: {self.tau_c}, tau_o: {elevation}, azimuth_rate_max: {self.pan_rate_max}, tilt_rate_max: {self.tilt_rate_max}")
+        logging.info(f"Current Camera Reading - Pan: {self.rho_c},  Tilt: {self.tau_c} \t Target - Azimuth: {azimuth} Elevation: {elevation}  \t Corrected Target - Pan: {camera_pan}, Tilt: {camera_tilt}  [deg]")
         if elevation > 0 and azimuth > 0:        
             duration = max(
                 math.fabs(self._compute_angle_delta(self.rho_c, azimuth))
