@@ -1,0 +1,40 @@
+# Prior to building, copy the following resources from
+# IQTLabs/edgetech-core to the build directory:
+#   - core/base_mqtt_pub_sub.py
+#   - mqtt/*
+# Clone iqt/labs/edgetech-test-harness and build test-harness image
+
+version: "3"
+services:
+  test-harness:
+    image: iqtlabs/edgetech-test-harness:latest
+    volumes:
+      - ${PWD}/test-data:/test-data
+    restart: on-failure
+    depends_on:
+      - mqtt
+      - axis-ptz-controller
+    env_file:
+      - test-harness.env
+  mqtt:
+    image: iqtlabs/edgetech-mqtt:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    restart: unless-stopped
+  axis-ptz-controller:
+    image: iqtlabs/edgetech-axis-ptz-controller:latest
+    build:
+      context: ../axis-ptz-controller
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - mqtt
+    env_file:
+      - axis-ptz-controller.env
+    environment:
+      - TRIPOD_LATITUDE=${TRIPOD_LATITUDE}
+      - TRIPOD_LONGITUDE=${TRIPOD_LONGITUDE}
+      - TRIPOD_ALTITUDE=${TRIPOD_ALTITUDE}
+    volumes:
+      - ./test-data/tosort:/data/tosort
