@@ -3,7 +3,6 @@
 #   - core/base_mqtt_pub_sub.py
 #   - mqtt/*
 # Clone iqt/labs/edgetech-test-harness and build test-harness image
-
 version: "3"
 services:
   test-harness:

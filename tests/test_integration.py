@@ -1,24 +1,25 @@
 import json
-import pandas as pd
+
 from matplotlib import pyplot as plt
+import pandas as pd
 
 
 def test_integration() -> None:
     """
-    Tests integration of the message handler with the MQTT client. Designed to be run after docker-compose.test.yaml.
-    Recommended to run from test.sh.
+    Plots output for manual inspection. Designed to be run after
+    docker-compose.yaml.  Recommended to run from test.sh.
     """
-
+    # Load output
     with open("./test-data/test-output.json") as output_file:
         output = json.load(output_file)
 
+    # Construct and plot time series
     ts = pd.DataFrame.from_dict(
         [
             json.loads(d["message_content"]["Logger"])["camera-pointing"]
             for d in output[:-1]
         ]
     )
-
     plot_time_series(ts)
 
 

@@ -566,7 +566,9 @@ class TestAxisPtzUtilities:
     # TODO: Remove if passing data through filesystem is acceptable
     # Base64 encode an image from a file
     def test_encode_image(self) -> None:
-        image_filepath = Path("test-data/unit-test-data/acc31a_97_1_2358_2023-06-14-15-32-59.jpg")
+        image_filepath = Path(
+            "test-data/unit-test-data/acc31a_97_1_2358_2023-06-14-15-32-59.jpg"
+        )
 
         with open(image_filepath, "rb") as image_file:
             image = image_file.read()

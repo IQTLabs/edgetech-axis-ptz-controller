@@ -94,9 +94,7 @@ def compute_e_z_XYZ(d_lambda: float, d_varphi: float) -> npt.NDArray[np.float64]
     return e_z_XYZ
 
 
-def compute_E_XYZ_to_ENz(
-    d_lambda: float, d_varphi: float
-) -> Tuple[
+def compute_E_XYZ_to_ENz(d_lambda: float, d_varphi: float) -> Tuple[
     npt.NDArray[np.float64],
     npt.NDArray[np.float64],
     npt.NDArray[np.float64],

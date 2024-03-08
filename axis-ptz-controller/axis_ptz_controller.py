@@ -3,6 +3,7 @@ method for making AxisPtzController instances. Instatiates an
 AxisPtzController, and executes its main() method when run as a
 module.
 """
+
 import ast
 from datetime import datetime
 import json
