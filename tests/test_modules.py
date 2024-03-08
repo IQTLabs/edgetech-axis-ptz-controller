@@ -91,7 +91,7 @@ def controller() -> axis_ptz_controller.AxisPtzController:
 @pytest.fixture
 def config_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate a config message."""
-    with open("data/config_msg_data.json", "r") as f:
+    with open("test-data/unit-test-data/config_msg_data.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
         push_timestamp=int(datetime.utcnow().timestamp()),
@@ -112,7 +112,7 @@ def config_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
 @pytest.fixture
 def orientation_msg_0s(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate an orientation message with all 0 deg angles."""
-    with open("data/orientation_msg_data_0s.json", "r") as f:
+    with open("test-data/unit-test-data/orientation_msg_data_0s.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
         push_timestamp=int(datetime.utcnow().timestamp()),
@@ -133,7 +133,7 @@ def orientation_msg_0s(controller: axis_ptz_controller.AxisPtzController) -> str
 @pytest.fixture
 def orientation_msg_90s(controller: axis_ptz_controller.AxisPtzController) -> str:
     """Populate an orientation message with all 90 deg angles."""
-    with open("data/orientation_msg_data_90s.json", "r") as f:
+    with open("test-data/unit-test-data/orientation_msg_data_90s.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
         push_timestamp=int(datetime.utcnow().timestamp()),
@@ -166,7 +166,7 @@ def object_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
     E_XYZ_to_ENz, _, _, _ = axis_ptz_utilities.compute_E_XYZ_to_ENz(LAMBDA_O, VARPHI_O)
     v_ENz_A_o = np.matmul(E_XYZ_to_ENz, v_ENz_T_o)
     """
-    with open("data/object_msg_data.json", "r") as f:
+    with open("test-data/unit-test-data/object_msg_data.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
         push_timestamp=int(datetime.utcnow().timestamp()),
@@ -566,7 +566,7 @@ class TestAxisPtzUtilities:
     # TODO: Remove if passing data through filesystem is acceptable
     # Base64 encode an image from a file
     def test_encode_image(self) -> None:
-        image_filepath = Path("data/acc31a_97_1_2358_2023-06-14-15-32-59.jpg")
+        image_filepath = Path("test-data/unit-test-data/acc31a_97_1_2358_2023-06-14-15-32-59.jpg")
 
         with open(image_filepath, "rb") as image_file:
             image = image_file.read()
