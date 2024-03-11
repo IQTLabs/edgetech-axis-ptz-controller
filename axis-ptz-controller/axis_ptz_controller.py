@@ -125,9 +125,9 @@ class AxisPtzController(BaseMQTTPubSub):
         tripod_yaw: float
             Yaw angle of camera tripod from level North [degrees]
         tripod_pitch: float
-            Pitch angle of camera tripd from level North [degrees]
+            Pitch angle of camera tripod from level North [degrees]
         tripod_roll: float
-            Roll angle of camera tripd from level North [degrees]
+            Roll angle of camera tripod from level North [degrees]
         pan_gain: float
             Proportional control gain for pan error [1/s]
         pan_rate_min: float
@@ -196,6 +196,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
         self.lead_time = lead_time
+        self.alpha = tripod_yaw
+        self.beta = tripod_pitch
+        self.gamma = tripod_roll
         self.pan_gain = pan_gain
         self.pan_rate_min = pan_rate_min
         self.pan_rate_max = pan_rate_max
@@ -217,11 +220,6 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_to_mqtt = log_to_mqtt
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
-
-        # Tripod yaw, pitch, and roll angles
-        self.alpha = tripod_yaw  # [deg]
-        self.beta = tripod_pitch  # [deg]
-        self.gamma = tripod_roll  # [deg]
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -490,6 +488,9 @@ class AxisPtzController(BaseMQTTPubSub):
         )  # [s]
         self.capture_dir = config.get("capture_dir", self.capture_dir)
         self.lead_time = config.get("lead_time", self.lead_time)  # [s]
+        self.alpha = config.get("tripod_yaw", self.alpha)  # [deg]
+        self.beta = config.get("tripod_pitch", self.beta)  # [deg]
+        self.gamma = config.get("tripod_roll", self.gamma)  # [deg]
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
         self.pan_rate_min = config.get("pan_rate_min", self.pan_rate_min)
         self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
@@ -550,14 +551,14 @@ class AxisPtzController(BaseMQTTPubSub):
             "lambda_t": self.lambda_t,
             "varphi_t": self.varphi_t,
             "h_t": self.h_t,
-            "tripod_yaw": self.alpha,
-            "tripod_pitch": self.beta,
-            "tripod_roll": self.gamma,
             "heartbeat_interval": self.heartbeat_interval,
             "loop_interval": self.loop_interval,
             "capture_interval": self.capture_interval,
             "capture_dir": self.capture_dir,
             "lead_time": self.lead_time,
+            "tripod_yaw": self.alpha,
+            "tripod_pitch": self.beta,
+            "tripod_roll": self.gamma,
             "pan_gain": self.pan_gain,
             "pan_rate_min": self.pan_rate_min,
             "pan_rate_max": self.pan_rate_max,
