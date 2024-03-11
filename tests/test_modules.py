@@ -3,11 +3,14 @@ import json
 import math
 import os
 from pathlib import Path
+import sys
 
 import numpy as np
 import numpy.typing as npt
 import pytest
 import quaternion
+
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "axis-ptz-controller"))
 
 import axis_ptz_controller
 import axis_ptz_utilities

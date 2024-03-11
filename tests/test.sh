@@ -3,7 +3,7 @@ PURPLE='\033[1;35m'
 NC='\033[0m' # No Color
 
 echo -e "${PURPLE}Run unit tests${NC}"
-pytest test_modules.py
+python -m pytest test_modules.py
 
 echo -e "${PURPLE}Set up integration tests${NC}"
 source .bashrc
