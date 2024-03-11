@@ -55,19 +55,20 @@ class AxisPtzController(BaseMQTTPubSub):
         capture_interval: int = 2,
         capture_dir: str = ".",
         lead_time: float = 0.5,
-        yaw: float = 0.0,
-        pitch: float = 0.0,
-        roll: float = 0.0,
-        zoom: int = 2000,
+        tripod_yaw: float = 0.0,
+        tripod_pitch: float = 0.0,
+        tripod_roll: float = 0.0,
         pan_gain: float = 0.2,
         pan_rate_min: float = 1.8,
         pan_rate_max: float = 150.0,
         tilt_gain: float = 0.2,
         tilt_rate_min: float = 1.8,
         tilt_rate_max: float = 150.0,
+        zoom: int = 2000,
+        focus: int = 60,
         focus_slope: float = 0.0006,
         focus_intercept: float = 54.0,
-        focus_min: int = 5555,
+        focus_min: int = 7499,
         focus_max: int = 9999,
         jpeg_resolution: str = "1920x1080",
         jpeg_compression: int = 5,
@@ -121,14 +122,12 @@ class AxisPtzController(BaseMQTTPubSub):
         lead_time: float
             Lead time used when computing camera pointing to the
             object [s]
-        yaw: float
-            Yaw correction to the camera's positioning [degrees]
-        pitch: float
-            Pitch correction to the camera's positioning [degrees]
-        roll: float
-            Roll correction to the camera's positioning [degrees]
-        zoom: int
-            Camera zoom level [0-9999]
+        tripod_yaw: float
+            Yaw angle of camera tripod from level North [degrees]
+        tripod_pitch: float
+            Pitch angle of camera tripd from level North [degrees]
+        tripod_roll: float
+            Roll angle of camera tripd from level North [degrees]
         pan_gain: float
             Proportional control gain for pan error [1/s]
         pan_rate_min: float
@@ -141,6 +140,10 @@ class AxisPtzController(BaseMQTTPubSub):
             Camera tilt rate minimum [deg/s]
         tilt_rate_max: float
             Camera tilt rate maximum [deg/s]
+        zoom: int
+            Camera zoom level [0-9999]
+        focus: int
+            Camera focus [0-100%]
         focus_slope: float
             Focus slope from measurement [%/m]
         focus_intercept: float
@@ -199,6 +202,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tilt_gain = tilt_gain
         self.tilt_rate_min = tilt_rate_min
         self.tilt_rate_max = tilt_rate_max
+        self.zoom = zoom
+        self.focus = focus
         self.focus_slope = focus_slope
         self.focus_intercept = focus_intercept
         self.focus_min = focus_min
@@ -214,9 +219,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.continue_on_exception = continue_on_exception
 
         # Tripod yaw, pitch, and roll angles
-        self.alpha = yaw  # [deg]
-        self.beta = pitch  # [deg]
-        self.gamma = roll  # [deg]
+        self.alpha = tripod_yaw  # [deg]
+        self.beta = tripod_pitch  # [deg]
+        self.gamma = tripod_roll  # [deg]
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -294,13 +299,10 @@ class AxisPtzController(BaseMQTTPubSub):
         self.rho_dot_o = 0.0  # [deg/s]
         self.tau_dot_o = 0.0  # [deg/s]
 
-        # Time of pointing update, camera pan and tilt angles, zoom,
-        # and focus
+        # Time of pointing update, camera pan and tilt angles
         self.timestamp_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
-        self.zoom = zoom  # [0-9999]
-        self.focus = 60  # 0 to 100 [%]
 
         # Camera pan and tilt rates
         self.rho_dot_c = 0.0  # [deg/s]
@@ -488,7 +490,6 @@ class AxisPtzController(BaseMQTTPubSub):
         )  # [s]
         self.capture_dir = config.get("capture_dir", self.capture_dir)
         self.lead_time = config.get("lead_time", self.lead_time)  # [s]
-        self.zoom = config.get("zoom", self.zoom)  # [0-9999]
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
         self.pan_rate_min = config.get("pan_rate_min", self.pan_rate_min)
         self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
@@ -496,6 +497,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tilt_gain = config.get("tilt_gain", self.tilt_gain)
         self.tilt_rate_min = config.get("tilt_rate_min", self.tilt_rate_min)
         self.tilt_rate_max = config.get("tilt_rate_max", self.tilt_rate_max)
+        self.zoom = config.get("zoom", self.zoom)  # [0-9999]
+        self.focus = config.get("focus", self.focus)  # [0-100%]
         self.focus_slope = config.get("focus_slope", self.focus_slope)
         self.focus_intercept = config.get("focus_intercept", self.focus_intercept)
         self.focus_min = config.get("focus_min", self.focus_min)
@@ -547,10 +550,9 @@ class AxisPtzController(BaseMQTTPubSub):
             "lambda_t": self.lambda_t,
             "varphi_t": self.varphi_t,
             "h_t": self.h_t,
-            "yaw": self.alpha,
-            "pitch": self.beta,
-            "roll": self.gamma,
-            "zoom": self.zoom,
+            "tripod_yaw": self.alpha,
+            "tripod_pitch": self.beta,
+            "tripod_roll": self.gamma,
             "heartbeat_interval": self.heartbeat_interval,
             "loop_interval": self.loop_interval,
             "capture_interval": self.capture_interval,
@@ -562,6 +564,8 @@ class AxisPtzController(BaseMQTTPubSub):
             "tilt_gain": self.tilt_gain,
             "tilt_rate_min": self.tilt_rate_min,
             "tilt_rate_max": self.tilt_rate_max,
+            "zoom": self.zoom,
+            "focus": self.focus,
             "focus_slope": self.focus_slope,
             "focus_intercept": self.focus_intercept,
             "focus_min": self.focus_min,
@@ -1302,16 +1306,17 @@ def make_controller() -> AxisPtzController:
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
         lead_time=float(os.environ.get("LEAD_TIME", 0.5)),
-        yaw=float(os.environ.get("YAW", 0.0)),
-        pitch=float(os.environ.get("PITCH", 0.0)),
-        roll=float(os.environ.get("ROLL", 0.0)),
-        zoom=int(os.environ.get("ZOOM", 2000)),
+        tripod_yaw=float(os.environ.get("TRIPOD_YAW", 0.0)),
+        tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
+        tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
         pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
         pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
         tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
         tilt_rate_min=float(os.environ.get("TILT_RATE_MIN", 1.8)),
         tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
+        zoom=int(os.environ.get("ZOOM", 2000)),
+        focus=int(os.environ.get("FOCUS", 60)),
         focus_slope=float(os.environ.get("FOCUS_SLOPE", 0.0006)),
         focus_intercept=float(os.environ.get("FOCUS_INTERCEPT", 54)),
         focus_min=int(os.environ.get("FOCUS_MIN", 5555)),
