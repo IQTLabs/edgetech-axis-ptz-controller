@@ -3,7 +3,6 @@ method for making AxisPtzController instances. Instatiates an
 AxisPtzController, and executes its main() method when run as a
 module.
 """
-
 import ast
 from datetime import datetime
 import json
@@ -143,7 +142,7 @@ class AxisPtzController(BaseMQTTPubSub):
         zoom: int
             Camera zoom level [0-9999]
         focus: int
-            Camera focus [0-100%]
+            Camera focus level [0-100%]
         focus_slope: float
             Focus slope from measurement [%/m]
         focus_intercept: float
