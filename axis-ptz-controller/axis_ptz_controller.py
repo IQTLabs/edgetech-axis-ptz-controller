@@ -487,9 +487,7 @@ class AxisPtzController(BaseMQTTPubSub):
         )  # [s]
         self.capture_dir = config.get("capture_dir", self.capture_dir)
         self.lead_time = config.get("lead_time", self.lead_time)  # [s]
-        self.alpha = config.get("tripod_yaw", self.alpha)  # [deg]
-        self.beta = config.get("tripod_pitch", self.beta)  # [deg]
-        self.gamma = config.get("tripod_roll", self.gamma)  # [deg]
+        # Cannot set tripod yaw, pitch, and roll because of side effects
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
         self.pan_rate_min = config.get("pan_rate_min", self.pan_rate_min)
         self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
