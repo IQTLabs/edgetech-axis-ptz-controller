@@ -381,7 +381,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
                 try:
-                    self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 50)
+                    self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 99)
                 except Exception as e:
                     logging.error(f"Error: {e}")
             else:
@@ -390,7 +390,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 )
                 try:
                     self.camera_control.absolute_move(
-                        self.rho_c, self.tau_c, self.zoom, 50, self.focus
+                        self.rho_c, self.tau_c, self.zoom, 99, self.focus
                     )
                 except Exception as e:
                     logging.error(f"Error: {e}")
@@ -798,7 +798,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     )
                     try:
                         self.camera_control.absolute_move(
-                            self.rho_o, self.tau_o, self.zoom, 50
+                            self.rho_o, self.tau_o, self.zoom, 99
                         )
                     except Exception as e:
                         logging.error(f"Error: {e}")
@@ -808,7 +808,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     )
                     try:
                         self.camera_control.absolute_move(
-                            self.rho_o, self.tau_o, self.zoom, 50, self.focus
+                            self.rho_o, self.tau_o, self.zoom, 99, self.focus
                         )
                     except Exception as e:
                         logging.error(f"Error: {e}")
@@ -1002,7 +1002,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         try:
             self.camera_control.absolute_move(
-                camera_pan, camera_tilt, self.zoom, 50
+                camera_pan, camera_tilt, self.zoom, 99
             )
         except Exception as e:
             logging.error(f"Error: {e}")
