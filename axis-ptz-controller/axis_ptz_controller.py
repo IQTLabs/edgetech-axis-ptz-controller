@@ -68,7 +68,7 @@ class AxisPtzController(BaseMQTTPubSub):
         focus: int = 60,
         focus_slope: float = 0.0006,
         focus_intercept: float = 54.0,
-        focus_min: int = 7499,
+        focus_min: int = 5555,
         focus_max: int = 9999,
         jpeg_resolution: str = "1920x1080",
         jpeg_compression: int = 5,
