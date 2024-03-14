@@ -1,5 +1,4 @@
 import logging
-import os
 
 logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
 from sensecam_control import vapix_control
