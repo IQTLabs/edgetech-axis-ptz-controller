@@ -634,13 +634,13 @@ class AxisPtzController(BaseMQTTPubSub):
         )
         logging.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
-    def _reset_stop_timer(self):
+    def _reset_stop_timer(self) -> None:
         if hasattr(self, "_timer"):
-            self._timer.cancel()
+            self._timer.cancel()  # type: ignore
         self._timer = threading.Timer(3, self._stop_timer_callback)
         self._timer.start()
 
-    def _stop_timer_callback(self):
+    def _stop_timer_callback(self) -> None:
         # Call your function here
         print("Timer callback called")
 
