@@ -1,0 +1,2531 @@
+[
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439244,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520715, \"altitude\": 1181.1000000000001, \"ts_altitude\": 1670520714.7, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.055984, \"longitude\": -77.357423, \"timestamp\": 1670520714.7, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439245,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520716, \"altitude\": 1181.1000000000001, \"ts_altitude\": 1670520715.7, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.055984, \"longitude\": -77.357423, \"timestamp\": 1670520715.7, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439246,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520717, \"altitude\": 1181.1000000000001, \"ts_altitude\": 1670520716.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.04946, \"longitude\": -77.357422, \"timestamp\": 1670520716.9, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439247,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520718, \"altitude\": 1173.48, \"ts_altitude\": 1670520718.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.048203, \"longitude\": -77.357423, \"timestamp\": 1670520718.0, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439248,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520719, \"altitude\": 1173.48, \"ts_altitude\": 1670520718.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.046993, \"longitude\": -77.357361, \"timestamp\": 1670520718.9, \"vertical_velocity\": 0.0, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439251,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520722, \"altitude\": 1173.48, \"ts_altitude\": 1670520721.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.043408, \"longitude\": -77.357361, \"timestamp\": 1670520721.9, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439252,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520723, \"altitude\": 1173.48, \"ts_altitude\": 1670520722.7, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.042058, \"longitude\": -77.357361, \"timestamp\": 1670520722.7, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439254,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520724, \"altitude\": 1173.48, \"ts_altitude\": 1670520723.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.042058, \"longitude\": -77.357361, \"timestamp\": 1670520723.9, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439255,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520725, \"altitude\": 1173.48, \"ts_altitude\": 1670520724.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.039322, \"longitude\": -77.357363, \"timestamp\": 1670520724.9, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439255,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520726, \"altitude\": 1173.48, \"ts_altitude\": 1670520725.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.038055, \"longitude\": -77.357361, \"timestamp\": 1670520725.8, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439259,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520729, \"altitude\": 1173.48, \"ts_altitude\": 1670520728.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.034286, \"longitude\": -77.357363, \"timestamp\": 1670520728.8, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439260,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520731, \"altitude\": 1173.48, \"ts_altitude\": 1670520730.6, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.034286, \"longitude\": -77.357363, \"timestamp\": 1670520730.6, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439262,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520732, \"altitude\": 1173.48, \"ts_altitude\": 1670520731.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.034286, \"longitude\": -77.357363, \"timestamp\": 1670520731.9, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439262,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520733, \"altitude\": 1173.48, \"ts_altitude\": 1670520732.3, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.029675, \"longitude\": -77.357361, \"timestamp\": 1670520732.3, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439264,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520734, \"altitude\": 1173.48, \"ts_altitude\": 1670520733.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.029675, \"longitude\": -77.357361, \"timestamp\": 1670520733.9, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439265,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520735, \"altitude\": 1173.48, \"ts_altitude\": 1670520734.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 39.027208, \"longitude\": -77.357361, \"timestamp\": 1670520734.9, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439266,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520736, \"altitude\": 1173.48, \"ts_altitude\": 1670520735.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 39.025955, \"longitude\": -77.357363, \"timestamp\": 1670520735.9, \"vertical_velocity\": 0.0, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439267,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520737, \"altitude\": 1173.48, \"ts_altitude\": 1670520736.7, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 39.024741, \"longitude\": -77.357361, \"timestamp\": 1670520736.7, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439268,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520738, \"altitude\": 1173.48, \"ts_altitude\": 1670520737.7, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 39.023483, \"longitude\": -77.357363, \"timestamp\": 1670520737.7, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439269,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520739, \"altitude\": 1173.48, \"ts_altitude\": 1670520738.8, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 39.023483, \"longitude\": -77.357363, \"timestamp\": 1670520738.8, \"vertical_velocity\": 0.97536, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439270,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520740, \"altitude\": 1173.48, \"ts_altitude\": 1670520739.8, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 39.021011, \"longitude\": -77.357304, \"timestamp\": 1670520739.8, \"vertical_velocity\": 0.65024, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439271,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520741, \"altitude\": 1173.48, \"ts_altitude\": 1670520740.8, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 39.021011, \"longitude\": -77.357304, \"timestamp\": 1670520740.8, \"vertical_velocity\": 0.65024, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439274,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520744, \"altitude\": 1173.48, \"ts_altitude\": 1670520743.7, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 39.016268, \"longitude\": -77.3573, \"timestamp\": 1670520743.7, \"vertical_velocity\": 0.65024, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439275,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520745, \"altitude\": 1173.48, \"ts_altitude\": 1670520744.8, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 39.016268, \"longitude\": -77.3573, \"timestamp\": 1670520744.8, \"vertical_velocity\": 0.65024, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439277,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520747, \"altitude\": 1173.48, \"ts_altitude\": 1670520746.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 39.012497, \"longitude\": -77.357304, \"timestamp\": 1670520746.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439279,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520748, \"altitude\": 1181.1000000000001, \"ts_altitude\": 1670520748.0, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 39.011032, \"longitude\": -77.357304, \"timestamp\": 1670520748.0, \"vertical_velocity\": -2.60096, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439280,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520749, \"altitude\": 1165.8600000000001, \"ts_altitude\": 1670520749.0, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 39.009933, \"longitude\": -77.357304, \"timestamp\": 1670520749.0, \"vertical_velocity\": -3.2512000000000003, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439281,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520750, \"altitude\": 1173.48, \"ts_altitude\": 1670520749.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 39.00856, \"longitude\": -77.357304, \"timestamp\": 1670520749.9, \"vertical_velocity\": -4.55168, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439281,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520751, \"altitude\": 1165.8600000000001, \"ts_altitude\": 1670520750.1, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.00856, \"longitude\": -77.357304, \"timestamp\": 1670520750.1, \"vertical_velocity\": -6.1772800000000005, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439282,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520752, \"altitude\": 1165.8600000000001, \"ts_altitude\": 1670520751.6, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.00856, \"longitude\": -77.357304, \"timestamp\": 1670520751.6, \"vertical_velocity\": -6.1772800000000005, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439284,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520753, \"altitude\": 1143.0, \"ts_altitude\": 1670520752.8, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.00491, \"longitude\": -77.357239, \"timestamp\": 1670520752.8, \"vertical_velocity\": -8.128, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439285,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520754, \"altitude\": 1135.38, \"ts_altitude\": 1670520753.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.004351, \"longitude\": -77.357239, \"timestamp\": 1670520753.9, \"vertical_velocity\": -8.128, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439286,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520755, \"altitude\": 1127.76, \"ts_altitude\": 1670520754.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.002609, \"longitude\": -77.357244, \"timestamp\": 1670520754.9, \"vertical_velocity\": -8.128, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439286,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520756, \"altitude\": 1127.76, \"ts_altitude\": 1670520755.6, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 39.001236, \"longitude\": -77.357244, \"timestamp\": 1670520755.6, \"vertical_velocity\": -8.128, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439288,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520757, \"altitude\": 1104.9, \"ts_altitude\": 1670520757.0, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.999417, \"longitude\": -77.357239, \"timestamp\": 1670520757.0, \"vertical_velocity\": -8.45312, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439289,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520758, \"altitude\": 1097.28, \"ts_altitude\": 1670520758.0, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.99826, \"longitude\": -77.357244, \"timestamp\": 1670520758.0, \"vertical_velocity\": -8.77824, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439290,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520759, \"altitude\": 1089.66, \"ts_altitude\": 1670520758.8, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.996996, \"longitude\": -77.357239, \"timestamp\": 1670520758.8, \"vertical_velocity\": -9.10336, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439291,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520760, \"altitude\": 1089.66, \"ts_altitude\": 1670520759.8, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.996292, \"longitude\": -77.357244, \"timestamp\": 1670520759.8, \"vertical_velocity\": -9.10336, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439291,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520761, \"altitude\": 1089.66, \"ts_altitude\": 1670520760.1, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.996292, \"longitude\": -77.357244, \"timestamp\": 1670520760.1, \"vertical_velocity\": -9.10336, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439293,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520762, \"altitude\": 1082.04, \"ts_altitude\": 1670520762.0, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.996292, \"longitude\": -77.357244, \"timestamp\": 1670520762.0, \"vertical_velocity\": -9.7536, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439294,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520763, \"altitude\": 1051.56, \"ts_altitude\": 1670520762.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.992154, \"longitude\": -77.357239, \"timestamp\": 1670520762.9, \"vertical_velocity\": -10.07872, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439295,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520764, \"altitude\": 1036.3200000000002, \"ts_altitude\": 1670520763.8, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.990936, \"longitude\": -77.357184, \"timestamp\": 1670520763.8, \"vertical_velocity\": -10.40384, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439296,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520765, \"altitude\": 1028.7, \"ts_altitude\": 1670520764.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.989687, \"longitude\": -77.357178, \"timestamp\": 1670520764.9, \"vertical_velocity\": -10.72896, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439297,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520766, \"altitude\": 1013.46, \"ts_altitude\": 1670520765.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.988464, \"longitude\": -77.357184, \"timestamp\": 1670520765.9, \"vertical_velocity\": -10.72896, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439298,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520767, \"altitude\": 1013.46, \"ts_altitude\": 1670520766.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.987732, \"longitude\": -77.357178, \"timestamp\": 1670520766.9, \"vertical_velocity\": -10.40384, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439299,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520768, \"altitude\": 1013.46, \"ts_altitude\": 1670520767.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.987732, \"longitude\": -77.357178, \"timestamp\": 1670520767.9, \"vertical_velocity\": -10.40384, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439300,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520769, \"altitude\": 1005.84, \"ts_altitude\": 1670520768.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.985992, \"longitude\": -77.357184, \"timestamp\": 1670520768.9, \"vertical_velocity\": -10.07872, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439301,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520770, \"altitude\": 990.6, \"ts_altitude\": 1670520770.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.984241, \"longitude\": -77.357178, \"timestamp\": 1670520770.0, \"vertical_velocity\": -9.7536, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439302,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520771, \"altitude\": 975.36, \"ts_altitude\": 1670520770.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.983017, \"longitude\": -77.357184, \"timestamp\": 1670520770.8, \"vertical_velocity\": -9.10336, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439304,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520772, \"altitude\": 967.74, \"ts_altitude\": 1670520772.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.98182, \"longitude\": -77.357178, \"timestamp\": 1670520772.0, \"vertical_velocity\": -8.77824, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439304,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520773, \"altitude\": 960.12, \"ts_altitude\": 1670520772.7, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.980749, \"longitude\": -77.357178, \"timestamp\": 1670520772.7, \"vertical_velocity\": -8.45312, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439306,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520774, \"altitude\": 952.5, \"ts_altitude\": 1670520773.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.979353, \"longitude\": -77.357178, \"timestamp\": 1670520773.9, \"vertical_velocity\": -8.128, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439307,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520775, \"altitude\": 944.88, \"ts_altitude\": 1670520774.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.978119, \"longitude\": -77.357125, \"timestamp\": 1670520774.9, \"vertical_velocity\": -8.128, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439307,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520776, \"altitude\": 937.26, \"ts_altitude\": 1670520775.7, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.976839, \"longitude\": -77.357117, \"timestamp\": 1670520775.7, \"vertical_velocity\": -8.45312, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439309,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520777, \"altitude\": 929.6400000000001, \"ts_altitude\": 1670520777.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.975555, \"longitude\": -77.357125, \"timestamp\": 1670520777.0, \"vertical_velocity\": -7.80288, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439310,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520778, \"altitude\": 922.0200000000001, \"ts_altitude\": 1670520778.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.974418, \"longitude\": -77.357117, \"timestamp\": 1670520778.0, \"vertical_velocity\": -7.477760000000001, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439311,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520779, \"altitude\": 914.4000000000001, \"ts_altitude\": 1670520778.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.972928, \"longitude\": -77.357117, \"timestamp\": 1670520778.9, \"vertical_velocity\": -6.827520000000001, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439312,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520780, \"altitude\": 906.7800000000001, \"ts_altitude\": 1670520779.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.972214, \"longitude\": -77.357125, \"timestamp\": 1670520779.9, \"vertical_velocity\": -6.1772800000000005, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439313,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520781, \"altitude\": 899.1600000000001, \"ts_altitude\": 1670520780.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.970703, \"longitude\": -77.357125, \"timestamp\": 1670520780.9, \"vertical_velocity\": -5.52704, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439314,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520782, \"altitude\": 891.5400000000001, \"ts_altitude\": 1670520781.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.96939, \"longitude\": -77.357117, \"timestamp\": 1670520781.9, \"vertical_velocity\": -4.8768, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439315,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520783, \"altitude\": 883.9200000000001, \"ts_altitude\": 1670520782.8, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.967682, \"longitude\": -77.357125, \"timestamp\": 1670520782.8, \"vertical_velocity\": -3.90144, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439316,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520784, \"altitude\": 883.9200000000001, \"ts_altitude\": 1670520783.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.966309, \"longitude\": -77.357125, \"timestamp\": 1670520783.9, \"vertical_velocity\": -3.2512000000000003, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439317,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520785, \"altitude\": 883.9200000000001, \"ts_altitude\": 1670520784.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.965061, \"longitude\": -77.357117, \"timestamp\": 1670520784.9, \"vertical_velocity\": -2.60096, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439318,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520786, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520785.9, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.963745, \"longitude\": -77.357125, \"timestamp\": 1670520785.9, \"vertical_velocity\": -1.95072, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439319,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520787, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520786.9, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.962547, \"longitude\": -77.357117, \"timestamp\": 1670520786.9, \"vertical_velocity\": -1.6256000000000002, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439320,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520788, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520788.0, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.961411, \"longitude\": -77.357125, \"timestamp\": 1670520788.0, \"vertical_velocity\": -0.97536, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439321,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520789, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520788.9, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.960173, \"longitude\": -77.357117, \"timestamp\": 1670520788.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439322,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520790, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520789.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.958984, \"longitude\": -77.357125, \"timestamp\": 1670520789.9, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439323,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520791, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520791.0, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.957752, \"longitude\": -77.357117, \"timestamp\": 1670520791.0, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439324,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520792, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520791.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.956512, \"longitude\": -77.357125, \"timestamp\": 1670520791.9, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439325,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520793, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520793.0, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.955192, \"longitude\": -77.357117, \"timestamp\": 1670520793.0, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439326,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520794, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520793.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.953795, \"longitude\": -77.357117, \"timestamp\": 1670520793.9, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439327,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520795, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520794.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.953795, \"longitude\": -77.357117, \"timestamp\": 1670520794.9, \"vertical_velocity\": -0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439328,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520796, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520795.8, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.952576, \"longitude\": -77.357065, \"timestamp\": 1670520795.8, \"vertical_velocity\": -0.65024, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439329,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520797, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520796.8, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.951375, \"longitude\": -77.357056, \"timestamp\": 1670520796.8, \"vertical_velocity\": -0.97536, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439331,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520798, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520797.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.95015, \"longitude\": -77.357065, \"timestamp\": 1670520797.9, \"vertical_velocity\": -0.97536, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439331,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520799, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520798.8, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.948907, \"longitude\": -77.357056, \"timestamp\": 1670520798.8, \"vertical_velocity\": -0.97536, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439333,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520800, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520799.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.947678, \"longitude\": -77.357065, \"timestamp\": 1670520799.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439334,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520801, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520800.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.94644, \"longitude\": -77.357056, \"timestamp\": 1670520800.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439335,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520802, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520802.0, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.945251, \"longitude\": -77.357065, \"timestamp\": 1670520802.0, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439336,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520803, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520803.0, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.943973, \"longitude\": -77.357056, \"timestamp\": 1670520803.0, \"vertical_velocity\": 0.0, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439337,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520804, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520803.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.942276, \"longitude\": -77.357065, \"timestamp\": 1670520803.9, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439338,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520805, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520804.9, \"horizontal_velocity\": 135.29898941333335, \"object_id\": \"a1e946\", \"latitude\": 38.94104, \"longitude\": -77.357056, \"timestamp\": 1670520804.9, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439339,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520806, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520805.8, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.93985, \"longitude\": -77.357065, \"timestamp\": 1670520805.8, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439340,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520807, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520806.9, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.938619, \"longitude\": -77.357056, \"timestamp\": 1670520806.9, \"vertical_velocity\": 0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439341,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520808, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520807.9, \"horizontal_velocity\": 135.81343424, \"object_id\": \"a1e946\", \"latitude\": 38.937378, \"longitude\": -77.357065, \"timestamp\": 1670520807.9, \"vertical_velocity\": 0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439342,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520809, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520809.0, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.936012, \"longitude\": -77.357056, \"timestamp\": 1670520809.0, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439343,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520810, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520809.9, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.934662, \"longitude\": -77.357056, \"timestamp\": 1670520809.9, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439344,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520811, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520811.0, \"horizontal_velocity\": 136.32787906666667, \"object_id\": \"a1e946\", \"latitude\": 38.933441, \"longitude\": -77.357065, \"timestamp\": 1670520811.0, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439345,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520812, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520811.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.932195, \"longitude\": -77.357056, \"timestamp\": 1670520811.8, \"vertical_velocity\": -0.97536, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439346,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520813, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520812.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.930969, \"longitude\": -77.357065, \"timestamp\": 1670520812.8, \"vertical_velocity\": -0.97536, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439347,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520814, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520814.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.929728, \"longitude\": -77.357056, \"timestamp\": 1670520814.0, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439348,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520815, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520814.9, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.92875, \"longitude\": -77.357056, \"timestamp\": 1670520814.9, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439349,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520816, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520815.6, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 38.92749, \"longitude\": -77.357065, \"timestamp\": 1670520815.6, \"vertical_velocity\": 1.6256000000000002, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439350,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520817, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520817.0, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 38.925631, \"longitude\": -77.357056, \"timestamp\": 1670520817.0, \"vertical_velocity\": 1.6256000000000002, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439351,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520818, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520818.0, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 38.924515, \"longitude\": -77.357065, \"timestamp\": 1670520818.0, \"vertical_velocity\": 0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439352,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520819, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520818.9, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 38.923816, \"longitude\": -77.357056, \"timestamp\": 1670520818.9, \"vertical_velocity\": -1.30048, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439353,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520820, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520819.8, \"horizontal_velocity\": 137.35676872000002, \"object_id\": \"a1e946\", \"latitude\": 38.921997, \"longitude\": -77.357065, \"timestamp\": 1670520819.8, \"vertical_velocity\": -1.6256000000000002, \"track\": 180.2, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439354,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520821, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520820.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.920836, \"longitude\": -77.357056, \"timestamp\": 1670520820.9, \"vertical_velocity\": -1.6256000000000002, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439355,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520822, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520821.8, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.919479, \"longitude\": -77.357065, \"timestamp\": 1670520821.8, \"vertical_velocity\": -1.6256000000000002, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439356,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520823, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520822.8, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.919479, \"longitude\": -77.357065, \"timestamp\": 1670520822.8, \"vertical_velocity\": -1.6256000000000002, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439358,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520824, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520823.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.918229, \"longitude\": -77.357056, \"timestamp\": 1670520823.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439359,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520825, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520825.0, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.917099, \"longitude\": -77.357065, \"timestamp\": 1670520825.0, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439360,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520826, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520826.0, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.915762, \"longitude\": -77.357056, \"timestamp\": 1670520826.0, \"vertical_velocity\": 0.0, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439361,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520827, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520827.0, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.914124, \"longitude\": -77.357065, \"timestamp\": 1670520827.0, \"vertical_velocity\": 0.0, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439362,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520828, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520827.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.912876, \"longitude\": -77.357056, \"timestamp\": 1670520827.9, \"vertical_velocity\": 0.0, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439363,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520829, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520828.8, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.911652, \"longitude\": -77.357065, \"timestamp\": 1670520828.8, \"vertical_velocity\": -0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439364,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520830, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520829.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.910316, \"longitude\": -77.357056, \"timestamp\": 1670520829.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439365,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520831, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520830.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.909042, \"longitude\": -77.357065, \"timestamp\": 1670520830.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439366,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520832, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520831.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.907669, \"longitude\": -77.357065, \"timestamp\": 1670520831.9, \"vertical_velocity\": -0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439367,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520833, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520833.0, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.906452, \"longitude\": -77.357056, \"timestamp\": 1670520833.0, \"vertical_velocity\": 0.0, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439368,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520834, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520833.8, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.905334, \"longitude\": -77.357056, \"timestamp\": 1670520833.8, \"vertical_velocity\": 0.0, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439369,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520835, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520835.0, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.903938, \"longitude\": -77.357056, \"timestamp\": 1670520835.0, \"vertical_velocity\": 0.32512, \"track\": 179.8, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439370,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520836, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520835.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.902588, \"longitude\": -77.357065, \"timestamp\": 1670520835.9, \"vertical_velocity\": 0.32512, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439371,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520837, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520836.7, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.901471, \"longitude\": -77.357056, \"timestamp\": 1670520836.7, \"vertical_velocity\": 0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439372,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520838, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520837.8, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.900208, \"longitude\": -77.357065, \"timestamp\": 1670520837.8, \"vertical_velocity\": 0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439373,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520839, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520838.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.899003, \"longitude\": -77.357056, \"timestamp\": 1670520838.9, \"vertical_velocity\": 0.65024, \"track\": 180.0, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439374,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520840, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520839.8, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.89784, \"longitude\": -77.357056, \"timestamp\": 1670520839.8, \"vertical_velocity\": 0.97536, \"track\": 180.2, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439375,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520841, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520840.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.895977, \"longitude\": -77.357056, \"timestamp\": 1670520840.9, \"vertical_velocity\": 0.65024, \"track\": 180.4, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439376,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520842, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520841.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.895, \"longitude\": -77.357056, \"timestamp\": 1670520841.9, \"vertical_velocity\": 0.32512, \"track\": 180.4, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439377,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520843, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520842.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.893753, \"longitude\": -77.357065, \"timestamp\": 1670520842.9, \"vertical_velocity\": -0.32512, \"track\": 180.6, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439379,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520844, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520844.0, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 38.892486, \"longitude\": -77.357117, \"timestamp\": 1670520844.0, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439379,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520845, \"altitude\": 876.3000000000001, \"ts_altitude\": 1670520844.9, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 38.891235, \"longitude\": -77.357125, \"timestamp\": 1670520844.9, \"vertical_velocity\": -0.65024, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439380,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520846, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520845.7, \"horizontal_velocity\": 138.38565837333334, \"object_id\": \"a1e946\", \"latitude\": 38.890019, \"longitude\": -77.357178, \"timestamp\": 1670520845.7, \"vertical_velocity\": -0.65024, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439382,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520847, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520847.0, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.88826, \"longitude\": -77.357184, \"timestamp\": 1670520847.0, \"vertical_velocity\": -0.65024, \"track\": 181.1, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439383,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520848, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520847.9, \"horizontal_velocity\": 137.87121354666667, \"object_id\": \"a1e946\", \"latitude\": 38.886993, \"longitude\": -77.357239, \"timestamp\": 1670520847.9, \"vertical_velocity\": -0.65024, \"track\": 181.1, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439384,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520849, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520848.9, \"horizontal_velocity\": 137.92265802933335, \"object_id\": \"a1e946\", \"latitude\": 38.886434, \"longitude\": -77.357239, \"timestamp\": 1670520848.9, \"vertical_velocity\": -0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439385,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520850, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520849.9, \"horizontal_velocity\": 137.92265802933335, \"object_id\": \"a1e946\", \"latitude\": 38.884479, \"longitude\": -77.3573, \"timestamp\": 1670520849.9, \"vertical_velocity\": -0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439386,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520851, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520850.9, \"horizontal_velocity\": 137.92265802933335, \"object_id\": \"a1e946\", \"latitude\": 38.884479, \"longitude\": -77.3573, \"timestamp\": 1670520850.9, \"vertical_velocity\": -0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439386,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520852, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520851.1, \"horizontal_velocity\": 137.92265802933335, \"object_id\": \"a1e946\", \"latitude\": 38.884479, \"longitude\": -77.3573, \"timestamp\": 1670520851.1, \"vertical_velocity\": -0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439388,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520853, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520853.0, \"horizontal_velocity\": 137.92265802933335, \"object_id\": \"a1e946\", \"latitude\": 38.884479, \"longitude\": -77.3573, \"timestamp\": 1670520853.0, \"vertical_velocity\": 0.0, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439389,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520854, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520853.9, \"horizontal_velocity\": 137.40821320266667, \"object_id\": \"a1e946\", \"latitude\": 38.880798, \"longitude\": -77.357423, \"timestamp\": 1670520853.9, \"vertical_velocity\": 0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439390,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520855, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520854.7, \"horizontal_velocity\": 137.40821320266667, \"object_id\": \"a1e946\", \"latitude\": 38.880295, \"longitude\": -77.357423, \"timestamp\": 1670520854.7, \"vertical_velocity\": 0.65024, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439390,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520856, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520855.3, \"horizontal_velocity\": 137.40821320266667, \"object_id\": \"a1e946\", \"latitude\": 38.880295, \"longitude\": -77.357423, \"timestamp\": 1670520855.3, \"vertical_velocity\": 0.65024, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439393,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520859, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520858.3, \"horizontal_velocity\": 137.40821320266667, \"object_id\": \"a1e946\", \"latitude\": 38.880295, \"longitude\": -77.357423, \"timestamp\": 1670520858.3, \"vertical_velocity\": 0.65024, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439395,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520860, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520860.0, \"horizontal_velocity\": 137.40821320266667, \"object_id\": \"a1e946\", \"latitude\": 38.873383, \"longitude\": -77.357602, \"timestamp\": 1670520860.0, \"vertical_velocity\": 0.0, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439396,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520861, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520860.5, \"horizontal_velocity\": 137.40821320266667, \"object_id\": \"a1e946\", \"latitude\": 38.872787, \"longitude\": -77.357602, \"timestamp\": 1670520860.5, \"vertical_velocity\": 0.0, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439401,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520866, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520866.0, \"horizontal_velocity\": 136.89376837600003, \"object_id\": \"a1e946\", \"latitude\": 38.865372, \"longitude\": -77.357841, \"timestamp\": 1670520866.0, \"vertical_velocity\": -0.65024, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439402,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520867, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520866.9, \"horizontal_velocity\": 136.89376837600003, \"object_id\": \"a1e946\", \"latitude\": 38.864136, \"longitude\": -77.357849, \"timestamp\": 1670520866.9, \"vertical_velocity\": -0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439403,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520868, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520867.6, \"horizontal_velocity\": 136.89376837600003, \"object_id\": \"a1e946\", \"latitude\": 38.863495, \"longitude\": -77.357901, \"timestamp\": 1670520867.6, \"vertical_velocity\": -0.32512, \"track\": 181.3, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439405,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520869, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520869.0, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.863495, \"longitude\": -77.357901, \"timestamp\": 1670520869.0, \"vertical_velocity\": -0.32512, \"track\": 181.1, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439409,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520873, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520872.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.863495, \"longitude\": -77.357901, \"timestamp\": 1670520872.8, \"vertical_velocity\": -0.32512, \"track\": 181.1, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439409,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520874, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520873.5, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.863495, \"longitude\": -77.357901, \"timestamp\": 1670520873.5, \"vertical_velocity\": -0.32512, \"track\": 181.1, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439419,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520883, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520882.8, \"horizontal_velocity\": 136.84232389333334, \"object_id\": \"a1e946\", \"latitude\": 38.863495, \"longitude\": -77.357901, \"timestamp\": 1670520882.8, \"vertical_velocity\": -0.32512, \"track\": 181.1, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439420,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520884, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520883.6, \"horizontal_velocity\": 131.1834308, \"object_id\": \"a1e946\", \"latitude\": 38.863495, \"longitude\": -77.357901, \"timestamp\": 1670520883.6, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439421,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520885, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520885.0, \"horizontal_velocity\": 131.1834308, \"object_id\": \"a1e946\", \"latitude\": 38.842667, \"longitude\": -77.358379, \"timestamp\": 1670520885.0, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439422,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520886, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520885.4, \"horizontal_velocity\": 131.1834308, \"object_id\": \"a1e946\", \"latitude\": 38.841977, \"longitude\": -77.358398, \"timestamp\": 1670520885.4, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439422,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520887, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520886.2, \"horizontal_velocity\": 131.1834308, \"object_id\": \"a1e946\", \"latitude\": 38.841977, \"longitude\": -77.358398, \"timestamp\": 1670520886.2, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439424,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520888, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520887.9, \"horizontal_velocity\": 131.1834308, \"object_id\": \"a1e946\", \"latitude\": 38.839184, \"longitude\": -77.358459, \"timestamp\": 1670520887.9, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439425,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520889, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520888.8, \"horizontal_velocity\": 131.1834308, \"object_id\": \"a1e946\", \"latitude\": 38.837906, \"longitude\": -77.358438, \"timestamp\": 1670520888.8, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439426,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520890, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520889.9, \"horizontal_velocity\": 127.58231701333334, \"object_id\": \"a1e946\", \"latitude\": 38.836624, \"longitude\": -77.358498, \"timestamp\": 1670520889.9, \"vertical_velocity\": 0.0, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439427,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520891, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520890.8, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.835972, \"longitude\": -77.358521, \"timestamp\": 1670520890.8, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439442,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520905, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520904.8, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.835297, \"longitude\": -77.358498, \"timestamp\": 1670520904.8, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439443,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520906, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520905.8, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.835297, \"longitude\": -77.358498, \"timestamp\": 1670520905.8, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439444,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520907, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520906.8, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.835297, \"longitude\": -77.358498, \"timestamp\": 1670520906.8, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439445,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520908, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520907.7, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.81781, \"longitude\": -77.358916, \"timestamp\": 1670520907.7, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439447,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520910, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520909.6, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.81781, \"longitude\": -77.358916, \"timestamp\": 1670520909.6, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{
+    "topic": "object",
+    "message_content": {
+        "PushTimestamp": 1693439455,
+        "DeviceType": "TBC",
+        "ID": "TBC",
+        "DeploymentID": "TBC",
+        "CurrentLocation": "TBC",
+        "Status": "Debug",
+        "MessageType": "Event",
+        "ModelVersion": "null",
+        "FirmwareVersion": "v0.0.0",
+        "Selected Object": "{\"ts_entry\": 1670520918, \"altitude\": 868.6800000000001, \"ts_altitude\": 1670520917.3, \"horizontal_velocity\": 126.55342736, \"object_id\": \"a1e946\", \"latitude\": 38.81781, \"longitude\": -77.358916, \"timestamp\": 1670520917.3, \"vertical_velocity\": -0.32512, \"track\": 180.9, \"object_type\": \"aircraft\"}"
+    },
+    "delay": 0.0
+},
+{}
+]
