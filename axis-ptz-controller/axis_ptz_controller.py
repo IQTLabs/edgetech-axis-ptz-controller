@@ -1352,9 +1352,31 @@ class AxisPtzController(BaseMQTTPubSub):
                 else:
                     raise
 
+def _check_required_env_vars() -> None:
+    """Check that all required environment variables are set."""
+    required_env_vars = [
+        "MQTT_IP",
+        "CONFIG_TOPIC",
+        "ORIENTATION_TOPIC",
+        "OBJECT_TOPIC",
+        "IMAGE_FILENAME_TOPIC",
+        "IMAGE_CAPTURE_TOPIC",
+        "LOGGER_TOPIC",
+        "MANUAL_CONTROL_TOPIC",
+        "TRIPOD_LONGITUDE",
+        "TRIPOD_LATITUDE",
+
+    ]
+    for env_var in required_env_vars:
+        if env_var not in os.environ:
+            raise ValueError(f"Environment variable {env_var} is not set")
+
 
 def make_controller() -> AxisPtzController:
     """Instantiate an AxisPtzController."""
+
+    _check_required_env_vars()
+
     return AxisPtzController(
         hostname=str(os.environ.get("HOSTNAME")),
         camera_ip=os.environ.get("CAMERA_IP", ""),
