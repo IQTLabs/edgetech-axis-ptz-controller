@@ -954,6 +954,7 @@ class AxisPtzController(BaseMQTTPubSub):
                             "delta_tau_dot_c": self.delta_tau_dot_c,
                             "delta_rho": self._compute_angle_delta(self.rho_c, self.rho_o),
                             "delta_tau": self._compute_angle_delta(self.tau_c, self.tau_o),
+                            "object_id": self.object_id,
                         }
                     }
                 ),
