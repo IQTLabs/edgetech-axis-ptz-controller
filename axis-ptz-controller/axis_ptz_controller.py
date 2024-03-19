@@ -973,7 +973,9 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Publishing logger msg: {logger_msg}")
             self.publish_to_topic(self.logger_topic, logger_msg)
 
-    def _manual_control_callback(self, _client: Union[mqtt.Client, None],
+    def _manual_control_callback(
+        self,
+        _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
         msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
@@ -989,8 +991,10 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         data = self.decode_payload(msg, "Manual Control")
-        if not set( ["azimuth", "elevation", "zoom"] ) <= set(data.keys()):
-            logging.info(f"Required keys missing from manual control message data: {data}")
+        if not set(["azimuth", "elevation", "zoom"]) <= set(data.keys()):
+            logging.info(
+                f"Required keys missing from manual control message data: {data}"
+            )
             return
 
         azimuth = data["azimuth"]
@@ -1017,16 +1021,18 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Compute pan an tilt
         camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
-        camera_tilt = math.degrees(math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2])))  # [deg]
+        camera_tilt = math.degrees(
+            math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
+        )  # [deg]
 
         try:
-            self.camera_control.absolute_move(
-                camera_pan, camera_tilt, self.zoom, 50
-            )
+            self.camera_control.absolute_move(camera_pan, camera_tilt, self.zoom, 50)
         except Exception as e:
             logging.error(f"Error: {e}")
-        logging.info(f"Current Camera Reading - Pan: {self.rho_c},  Tilt: {self.tau_c} \t Target - Azimuth: {azimuth} Elevation: {elevation}  \t Corrected Target - Pan: {camera_pan}, Tilt: {camera_tilt}  [deg]")
-        if elevation > 0 and azimuth > 0:        
+        logging.info(
+            f"Current Camera Reading - Pan: {self.rho_c},  Tilt: {self.tau_c} \t Target - Azimuth: {azimuth} Elevation: {elevation}  \t Corrected Target - Pan: {camera_pan}, Tilt: {camera_tilt}  [deg]"
+        )
+        if elevation > 0 and azimuth > 0:
             duration = max(
                 math.fabs(self._compute_angle_delta(self.rho_c, azimuth))
                 / (self.pan_rate_max / 2),
@@ -1111,7 +1117,9 @@ class AxisPtzController(BaseMQTTPubSub):
             theta_o
         )
         if math.fabs(c) == 0:
-            logging.info(f"theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}, math.fabs(c): {math.fabs(c)}")
+            logging.info(
+                f"theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}, math.fabs(c): {math.fabs(c)}"
+            )
             return 0
         return math.degrees(math.acos(d)) * c / math.fabs(c)
 
@@ -1313,7 +1321,9 @@ class AxisPtzController(BaseMQTTPubSub):
             self.add_subscribe_topic(self.config_topic, self._config_callback)
             self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
             self.add_subscribe_topic(self.object_topic, self._object_callback)
-            self.add_subscribe_topic(self.manual_control_topic, self._manual_control_callback)
+            self.add_subscribe_topic(
+                self.manual_control_topic, self._manual_control_callback
+            )
 
         if self.use_camera:
             # Schedule image capture
@@ -1368,6 +1378,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 else:
                     raise
 
+
 def _check_required_env_vars() -> None:
     """Check that all required environment variables are set."""
     required_env_vars = [
@@ -1381,7 +1392,6 @@ def _check_required_env_vars() -> None:
         "MANUAL_CONTROL_TOPIC",
         "TRIPOD_LONGITUDE",
         "TRIPOD_LATITUDE",
-
     ]
     for env_var in required_env_vars:
         if env_var not in os.environ:
