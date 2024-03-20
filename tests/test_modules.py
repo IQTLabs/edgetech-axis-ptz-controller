@@ -10,7 +10,9 @@ import numpy.typing as npt
 import pytest
 import quaternion
 
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "axis-ptz-controller"))
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "axis-ptz-controller")
+)
 
 import axis_ptz_controller
 import axis_ptz_utilities
@@ -71,6 +73,7 @@ def controller() -> axis_ptz_controller.AxisPtzController:
         object_topic=os.environ.get("OBJECT_TOPIC", ""),
         image_filename_topic=os.environ.get("IMAGE_FILENAME_TOPIC", ""),
         image_capture_topic=os.environ.get("IMAGE_CAPTURE_TOPIC", ""),
+        manual_control_topic=os.environ.get("MANUAL_CONTROL_TOPIC", ""),
         logger_topic=os.environ.get("LOGGER_TOPIC", ""),
         heartbeat_interval=HEARTBEAT_INTERVAL,
         loop_interval=LOOP_INTERVAL,

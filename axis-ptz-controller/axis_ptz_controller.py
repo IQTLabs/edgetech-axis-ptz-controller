@@ -3,6 +3,7 @@ method for making AxisPtzController instances. Instatiates an
 AxisPtzController, and executes its main() method when run as a
 module.
 """
+
 import ast
 from datetime import datetime
 import json
@@ -64,12 +65,11 @@ class AxisPtzController(BaseMQTTPubSub):
         tilt_gain: float = 0.2,
         tilt_rate_min: float = 1.8,
         tilt_rate_max: float = 150.0,
-        zoom: int = 2000,
-        focus: int = 60,
-        focus_slope: float = 0.0006,
-        focus_intercept: float = 54.0,
-        focus_min: int = 5555,
+        zoom: int = 6000,
+        focus: int = 8749,
+        focus_min: int = 7499,
         focus_max: int = 9999,
+        hyperfocal_distance: float = 22500.0,
         jpeg_resolution: str = "1920x1080",
         jpeg_compression: int = 5,
         use_mqtt: bool = True,
@@ -145,15 +145,13 @@ class AxisPtzController(BaseMQTTPubSub):
         zoom: int
             Camera zoom level [0-9999]
         focus: int
-            Camera focus level [0-100%]
-        focus_slope: float
-            Focus slope from measurement [%/m]
-        focus_intercept: float
-            Focus intercept from measurement [%]
+            Camera focus level [7499-9999]
         focus_min: int
             Focus minimum from settings
         focus_max: int
              Focus maximum from settings
+        hyperfocal_distance: float
+             Distance at or above which focus setting remains minimum [m]
         jpeg_resolution: str
             Image capture resolution, for example, "1920x1080"
         jpeg_compression: int
@@ -210,10 +208,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tilt_rate_max = tilt_rate_max
         self.zoom = zoom
         self.focus = focus
-        self.focus_slope = focus_slope
-        self.focus_intercept = focus_intercept
         self.focus_min = focus_min
         self.focus_max = focus_max
+        self.hyperfocal_distance = hyperfocal_distance
         self.jpeg_resolution = jpeg_resolution
         self.jpeg_compression = jpeg_compression
         self.use_mqtt = use_mqtt
@@ -312,6 +309,12 @@ class AxisPtzController(BaseMQTTPubSub):
         # Camera pan and tilt rate differences
         self.delta_rho_dot_c = 0.0  # [deg/s]
         self.delta_tau_dot_c = 0.0  # [deg/s]
+
+        # Camera focus parameters. Note that the focus setting is
+        # minimum at and greater than the hyperfocal distance, and the
+        # focus setting is maximum when the distance is zero.
+        self.focus_slope = (self.focus_min - self.focus_max) / self.hyperfocal_distance
+        self.focus_intercept = self.focus_max
 
         # Capture boolean and last capture time
         self.do_capture = False
@@ -500,11 +503,12 @@ class AxisPtzController(BaseMQTTPubSub):
         self.tilt_rate_min = config.get("tilt_rate_min", self.tilt_rate_min)
         self.tilt_rate_max = config.get("tilt_rate_max", self.tilt_rate_max)
         self.zoom = config.get("zoom", self.zoom)  # [0-9999]
-        self.focus = config.get("focus", self.focus)  # [0-100%]
-        self.focus_slope = config.get("focus_slope", self.focus_slope)
-        self.focus_intercept = config.get("focus_intercept", self.focus_intercept)
+        self.focus = config.get("focus", self.focus)  # [7499-9999]
         self.focus_min = config.get("focus_min", self.focus_min)
         self.focus_max = config.get("focus_max", self.focus_max)
+        self.hyperfocal_distance = config.get(
+            "hyperfocal_distance", self.hyperfocal_distance
+        )
         self.jpeg_resolution = config.get("jpeg_resolution", self.jpeg_resolution)
         self.jpeg_compression = config.get("jpeg_compression", self.jpeg_compression)
         self.use_mqtt = config.get("use_mqtt", self.use_mqtt)
@@ -568,10 +572,9 @@ class AxisPtzController(BaseMQTTPubSub):
             "tilt_rate_max": self.tilt_rate_max,
             "zoom": self.zoom,
             "focus": self.focus,
-            "focus_slope": self.focus_slope,
-            "focus_intercept": self.focus_intercept,
             "focus_min": self.focus_min,
             "focus_max": self.focus_max,
+            "hyperfocal_distance": self.hyperfocal_distance,
             "jpeg_resolution": self.jpeg_resolution,
             "jpeg_compression": self.jpeg_compression,
             "use_mqtt": self.use_mqtt,
@@ -789,7 +792,9 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera:
             # Get camera pan and tilt
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            logging.debug(f"Camera pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            logging.info(
+                f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
+            )
             self._reset_stop_timer()
 
             # Point the camera at any new object directly
@@ -886,12 +891,14 @@ class AxisPtzController(BaseMQTTPubSub):
         # rates, and begin capturing images, if needed
         if self.use_camera:
             if not self.auto_focus:
+                # Note that focus cannot be negative, since distance3d
+                # is non-negative
                 self.focus = int(
-                    (self.focus_max - self.focus_min)
-                    * (self.focus_slope * self.distance3d + self.focus_intercept)
-                    / 100.0
-                    + self.focus_min
-                )  # [%]
+                    max(
+                        self.focus_min,
+                        self.focus_slope * self.distance3d + self.focus_intercept,
+                    )
+                )
                 logging.debug(f"Commanding focus: {self.focus}")
                 try:
                     self.camera_control.set_focus(self.focus)
@@ -952,8 +959,12 @@ class AxisPtzController(BaseMQTTPubSub):
                             "tau_dot_c": self.tau_dot_c,
                             "delta_rho_dot_c": self.delta_rho_dot_c,
                             "delta_tau_dot_c": self.delta_tau_dot_c,
-                            "delta_rho": self._compute_angle_delta(self.rho_c, self.rho_o),
-                            "delta_tau": self._compute_angle_delta(self.tau_c, self.tau_o),
+                            "delta_rho": self._compute_angle_delta(
+                                self.rho_c, self.rho_o
+                            ),
+                            "delta_tau": self._compute_angle_delta(
+                                self.tau_c, self.tau_o
+                            ),
                             "object_id": self.object_id,
                         }
                     }
@@ -962,7 +973,9 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.debug(f"Publishing logger msg: {logger_msg}")
             self.publish_to_topic(self.logger_topic, logger_msg)
 
-    def _manual_control_callback(self, _client: Union[mqtt.Client, None],
+    def _manual_control_callback(
+        self,
+        _client: Union[mqtt.Client, None],
         _userdata: Union[Dict[Any, Any], None],
         msg: Union[mqtt.MQTTMessage, str],
     ) -> None:
@@ -978,8 +991,10 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         data = self.decode_payload(msg, "Manual Control")
-        if not set( ["azimuth", "elevation", "zoom"] ) <= set(data.keys()):
-            logging.info(f"Required keys missing from manual control message data: {data}")
+        if not set(["azimuth", "elevation", "zoom"]) <= set(data.keys()):
+            logging.info(
+                f"Required keys missing from manual control message data: {data}"
+            )
             return
 
         azimuth = data["azimuth"]
@@ -1006,16 +1021,18 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Compute pan an tilt
         camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
-        camera_tilt = math.degrees(math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2])))  # [deg]
+        camera_tilt = math.degrees(
+            math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
+        )  # [deg]
 
         try:
-            self.camera_control.absolute_move(
-                camera_pan, camera_tilt, self.zoom, 50
-            )
+            self.camera_control.absolute_move(camera_pan, camera_tilt, self.zoom, 50)
         except Exception as e:
             logging.error(f"Error: {e}")
-        logging.info(f"Current Camera Reading - Pan: {self.rho_c},  Tilt: {self.tau_c} \t Target - Azimuth: {azimuth} Elevation: {elevation}  \t Corrected Target - Pan: {camera_pan}, Tilt: {camera_tilt}  [deg]")
-        if elevation > 0 and azimuth > 0:        
+        logging.info(
+            f"Current Camera Reading - Pan: {self.rho_c},  Tilt: {self.tau_c} \t Target - Azimuth: {azimuth} Elevation: {elevation}  \t Corrected Target - Pan: {camera_pan}, Tilt: {camera_tilt}  [deg]"
+        )
+        if elevation > 0 and azimuth > 0:
             duration = max(
                 math.fabs(self._compute_angle_delta(self.rho_c, azimuth))
                 / (self.pan_rate_max / 2),
@@ -1100,7 +1117,9 @@ class AxisPtzController(BaseMQTTPubSub):
             theta_o
         )
         if math.fabs(c) == 0:
-            logging.info(f"theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}, math.fabs(c): {math.fabs(c)}")
+            logging.info(
+                f"theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}, math.fabs(c): {math.fabs(c)}"
+            )
             return 0
         return math.degrees(math.acos(d)) * c / math.fabs(c)
 
@@ -1302,7 +1321,9 @@ class AxisPtzController(BaseMQTTPubSub):
             self.add_subscribe_topic(self.config_topic, self._config_callback)
             self.add_subscribe_topic(self.orientation_topic, self._orientation_callback)
             self.add_subscribe_topic(self.object_topic, self._object_callback)
-            self.add_subscribe_topic(self.manual_control_topic, self._manual_control_callback)
+            self.add_subscribe_topic(
+                self.manual_control_topic, self._manual_control_callback
+            )
 
         if self.use_camera:
             # Schedule image capture
@@ -1357,6 +1378,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 else:
                     raise
 
+
 def _check_required_env_vars() -> None:
     """Check that all required environment variables are set."""
     required_env_vars = [
@@ -1370,7 +1392,6 @@ def _check_required_env_vars() -> None:
         "MANUAL_CONTROL_TOPIC",
         "TRIPOD_LONGITUDE",
         "TRIPOD_LATITUDE",
-
     ]
     for env_var in required_env_vars:
         if env_var not in os.environ:
@@ -1412,12 +1433,11 @@ def make_controller() -> AxisPtzController:
         tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
         tilt_rate_min=float(os.environ.get("TILT_RATE_MIN", 1.8)),
         tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
-        zoom=int(os.environ.get("ZOOM", 2000)),
-        focus=int(os.environ.get("FOCUS", 60)),
-        focus_slope=float(os.environ.get("FOCUS_SLOPE", 0.0006)),
-        focus_intercept=float(os.environ.get("FOCUS_INTERCEPT", 54)),
-        focus_min=int(os.environ.get("FOCUS_MIN", 5555)),
+        zoom=int(os.environ.get("ZOOM", 6000)),
+        focus=int(os.environ.get("FOCUS", 8749)),
+        focus_min=int(os.environ.get("FOCUS_MIN", 7499)),
         focus_max=int(os.environ.get("FOCUS_MAX", 9999)),
+        hyperfocal_distance=float(os.environ.get("HYPERFOCAL_DISTANCE", 22500.0)),
         jpeg_resolution=os.environ.get("JPEG_RESOLUTION", "1920x1080"),
         jpeg_compression=int(os.environ.get("JPEG_COMPRESSION", 5)),
         use_mqtt=ast.literal_eval(os.environ.get("USE_MQTT", "True")),
