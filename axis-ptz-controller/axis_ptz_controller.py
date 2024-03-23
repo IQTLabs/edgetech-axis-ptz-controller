@@ -957,6 +957,8 @@ class AxisPtzController(BaseMQTTPubSub):
                             "tau_c": self.tau_c,
                             "rho_dot_c": self.rho_dot_c,
                             "tau_dot_c": self.tau_dot_c,
+                            "pan_rate_index": pan_rate_index,
+                            "tilt_rate_index": tilt_rate_index,
                             "delta_rho_dot_c": self.delta_rho_dot_c,
                             "delta_tau_dot_c": self.delta_tau_dot_c,
                             "delta_rho": self._compute_angle_delta(
