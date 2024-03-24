@@ -815,9 +815,9 @@ class AxisPtzController(BaseMQTTPubSub):
 
                 duration = max(
                     math.fabs(self._compute_angle_delta(self.rho_c, self.rho_o))
-                    / (self.pan_rate_max / 2),
+                    / (self.pan_rate_max),
                     math.fabs(self._compute_angle_delta(self.tau_c, self.tau_o))
-                    / (self.tilt_rate_max / 2),
+                    / (self.tilt_rate_max),
                 )
                 logging.info(f"Sleeping: {duration} [s]")
                 sleep(duration)
@@ -1010,9 +1010,9 @@ class AxisPtzController(BaseMQTTPubSub):
         if elevation > 0 and azimuth > 0:        
             duration = max(
                 math.fabs(self._compute_angle_delta(self.rho_c, azimuth))
-                / (self.pan_rate_max / 2),
+                / (self.pan_rate_max),
                 math.fabs(self._compute_angle_delta(self.tau_c, elevation))
-                / (self.tilt_rate_max / 2),
+                / (self.tilt_rate_max),
             )
             logging.info(f"Sleeping: {duration} [s]")
             sleep(duration)
