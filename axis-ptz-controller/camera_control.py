@@ -1,8 +1,5 @@
 import logging
 
-# Disable all logs for this module
-import logging
-
 logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
 from sensecam_control import vapix_control
 from typing import Tuple, Union
@@ -65,8 +62,8 @@ class CameraControl(vapix_control.CameraControl):
             focus = float(resp.text.split()[3].split("=")[1])
             ptz_list = (pan, tilt, zoom, focus)
             logging.debug(f"PTZ: {ptz_list}")
-
             return ptz_list
+
         except Exception as e:
             logging.error(f"Error: {e}")
             return (0, 0, 0, 0)
@@ -81,7 +78,7 @@ class CameraControl(vapix_control.CameraControl):
             Returns the response from the device to the command sent.
 
         """
-        try: 
+        try:
             return self._camera_command({"focus": focus})
         except Exception as e:
             logging.error(f"Error: {e}")

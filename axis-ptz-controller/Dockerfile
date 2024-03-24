@@ -1,5 +1,5 @@
 FROM iqtlabs/edgetech-core:latest
-RUN pip3 install poetry==1.5.1
+RUN pip3 install poetry==1.8.2
 
 COPY ./pyproject.toml .
 COPY ./poetry.lock .
