@@ -60,7 +60,7 @@ class AxisPtzController(BaseMQTTPubSub):
         loop_interval: float = 0.1,
         capture_interval: int = 2,
         capture_dir: str = ".",
-        tracking_interval: float = 0.5,
+        tracking_interval: float = 1.0,
         tripod_yaw: float = 0.0,
         tripod_pitch: float = 0.0,
         tripod_roll: float = 0.0,
@@ -1384,7 +1384,7 @@ class AxisPtzController(BaseMQTTPubSub):
             capture_job = schedule.every(self.capture_interval).seconds.do(
                 self._capture_image
             )
-        tracking_interval = self.tracking_interval #0.25
+    
         update_tracking_time = time()
 
         # Enter the main loop
@@ -1401,7 +1401,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
 
                 # Track object
-                if ( self.use_camera and time() - update_tracking_time > tracking_interval ):
+                if ( self.use_camera and time() - update_tracking_time > self.tracking_interval ):
                     update_tracking_time = time()
                     self._track_object()
 
@@ -1485,7 +1485,7 @@ def make_controller() -> AxisPtzController:
         loop_interval=float(os.environ.get("LOOP_INTERVAL", 0.1)),
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
-        tracking_interval=float(os.environ.get("TRACKING_INTERVAL", 0.5)),
+        tracking_interval=float(os.environ.get("TRACKING_INTERVAL", 1.0)),
         tripod_yaw=float(os.environ.get("TRIPOD_YAW", 0.0)),
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
