@@ -60,7 +60,7 @@ class AxisPtzController(BaseMQTTPubSub):
         loop_interval: float = 0.1,
         capture_interval: int = 2,
         capture_dir: str = ".",
-        lead_time: float = 0.5,
+        tracking_interval: float = 0.5,
         tripod_yaw: float = 0.0,
         tripod_pitch: float = 0.0,
         tripod_roll: float = 0.0,
@@ -124,7 +124,7 @@ class AxisPtzController(BaseMQTTPubSub):
             Interval at which the camera image is captured [s]
         capture_dir: str
             Directory in which to place captured images
-        lead_time: float
+        tracking_interval: float
             Lead time used when computing camera pointing to the
             object [s]
         tripod_yaw: float
@@ -195,7 +195,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.loop_interval = loop_interval
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
-        self.lead_time = lead_time
+        self.tracking_interval = tracking_interval
         self.alpha = tripod_yaw
         self.beta = tripod_pitch
         self.gamma = tripod_roll
@@ -508,7 +508,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "capture_interval", self.capture_interval
         )  # [s]
         self.capture_dir = config.get("capture_dir", self.capture_dir)
-        self.lead_time = config.get("lead_time", self.lead_time)  # [s]
+        self.tracking_interval = config.get("tracking_interval", self.tracking_interval)  # [s]
         # Cannot set tripod yaw, pitch, and roll because of side effects
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
         self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
@@ -572,7 +572,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "loop_interval": self.loop_interval,
             "capture_interval": self.capture_interval,
             "capture_dir": self.capture_dir,
-            "lead_time": self.lead_time,
+            "tracking_interval": self.tracking_interval,
             "tripod_yaw": self.alpha,
             "tripod_pitch": self.beta,
             "tripod_roll": self.gamma,
@@ -612,12 +612,12 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        lead_time = self.lead_time  # [s]
+        tracking_interval = self.tracking_interval  # [s]
         if self.include_age:
             object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
-            lead_time += object_msg_age
-        logging.info(f"Using lead time: {lead_time} [s]")
+            tracking_interval += object_msg_age
+        logging.info(f"Using lead time: {tracking_interval} [s]")
 
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
@@ -631,7 +631,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.vertical_rate_o,
             ]
         )
-        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * lead_time
+        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * tracking_interval
 
         # Compute position, at time one, and velocity, at time zero,
         # in the geocentric (XYZ) coordinate system of the object
@@ -1384,7 +1384,7 @@ class AxisPtzController(BaseMQTTPubSub):
             capture_job = schedule.every(self.capture_interval).seconds.do(
                 self._capture_image
             )
-        tracking_interval = self.lead_time #0.25
+        tracking_interval = self.tracking_interval #0.25
         update_tracking_time = time()
 
         # Enter the main loop
@@ -1485,7 +1485,7 @@ def make_controller() -> AxisPtzController:
         loop_interval=float(os.environ.get("LOOP_INTERVAL", 0.1)),
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
-        lead_time=float(os.environ.get("LEAD_TIME", 0.5)),
+        tracking_interval=float(os.environ.get("TRACKING_INTERVAL", 0.5)),
         tripod_yaw=float(os.environ.get("TRIPOD_YAW", 0.0)),
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
