@@ -601,7 +601,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
 
 
-    def _compute_object_pointing(self) -> None:
+    def _compute_object_pointing(self, time_since_last_update=0) -> None:
         # Compute position in the geocentric (XYZ) coordinate system
         # of the object relative to the tripod at time zero, the
         # observation time
@@ -612,7 +612,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        tracking_interval = self.tracking_interval  # [s]
+        tracking_interval =  time_since_last_update #self.tracking_interval  # [s]
         if self.include_age:
             object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
@@ -670,7 +670,7 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
 
 
-    def _track_object(self) -> None:
+    def _track_object(self, time_since_last_update) -> None:
 
         if self.status != Status.TRACKING:
             return
@@ -679,7 +679,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.object_lock.acquire()
 
         start_time = time()
-        self._compute_object_pointing()
+        self._compute_object_pointing(time_since_last_update)
 
         if self.use_camera:
             # Get camera pan and tilt
@@ -1402,8 +1402,9 @@ class AxisPtzController(BaseMQTTPubSub):
 
                 # Track object
                 if ( self.use_camera and time() - update_tracking_time > self.tracking_interval ):
+                    time_since_last_update = time() - self.timestamp_o
                     update_tracking_time = time()
-                    self._track_object()
+                    self._track_object(time_since_last_update)
 
                 # Command zero camera pan and tilt rates, and stop
                 # capturing images if a object message has not been
