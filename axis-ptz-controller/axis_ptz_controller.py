@@ -1195,13 +1195,13 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         """
         if rho_dot < -self.pan_rate_max:
-            self.pan_rate = -100
+            self.pan_rate_index = -100
 
         elif self.pan_rate_max < rho_dot:
-            self.pan_rate = +100
+            self.pan_rate_index = +100
 
         else:
-            self.pan_rate = round((100 / self.pan_rate_max) * rho_dot)
+            self.pan_rate_index = round((100 / self.pan_rate_max) * rho_dot)
 
 
     def _compute_tilt_rate_index(self, tau_dot: float):
@@ -1218,13 +1218,13 @@ class AxisPtzController(BaseMQTTPubSub):
         -------
         """
         if tau_dot < -self.tilt_rate_max:
-            self.tilt_rate = -100
+            self.tilt_rate_index = -100
 
         elif self.tilt_rate_max < tau_dot:
-            self.tilt_rate = 100
+            self.tilt_rate_index = 100
 
         else:
-            self.tilt_rate = round((100 / self.tilt_rate_max) * tau_dot)
+            self.tilt_rate_index = round((100 / self.tilt_rate_max) * tau_dot)
 
     def _capture_image(self) -> None:
         """When enabled, capture an image in JPEG format, and publish
