@@ -19,6 +19,7 @@ from time import sleep, time
 import traceback
 from types import FrameType
 from typing import Any, Dict, Optional, Union
+from enum import Enum
 
 import numpy as np
 import quaternion
@@ -30,6 +31,10 @@ import axis_ptz_utilities
 from camera_configuration import CameraConfiguration
 from camera_control import CameraControl
 
+class Status(Enum):
+    SLEEPING = 0
+    SLEWING = 1
+    TRACKING = 2
 
 class AxisPtzController(BaseMQTTPubSub):
     """Point the camera at an object using a proportional rate
@@ -60,10 +65,8 @@ class AxisPtzController(BaseMQTTPubSub):
         tripod_pitch: float = 0.0,
         tripod_roll: float = 0.0,
         pan_gain: float = 0.2,
-        pan_rate_min: float = 1.8,
         pan_rate_max: float = 150.0,
         tilt_gain: float = 0.2,
-        tilt_rate_min: float = 1.8,
         tilt_rate_max: float = 150.0,
         zoom: int = 6000,
         focus: int = 8749,
@@ -132,14 +135,10 @@ class AxisPtzController(BaseMQTTPubSub):
             Roll angle of camera tripod from level North [degrees]
         pan_gain: float
             Proportional control gain for pan error [1/s]
-        pan_rate_min: float
-            Camera pan rate minimum [deg/s]
         pan_rate_max: float
             Camera pan rate maximum [deg/s]
         tilt_gain: float
             Proportional control gain for tilt error [1/s]
-        tilt_rate_min: float
-            Camera tilt rate minimum [deg/s]
         tilt_rate_max: float
             Camera tilt rate maximum [deg/s]
         zoom: int
@@ -201,10 +200,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.beta = tripod_pitch
         self.gamma = tripod_roll
         self.pan_gain = pan_gain
-        self.pan_rate_min = pan_rate_min
         self.pan_rate_max = pan_rate_max
         self.tilt_gain = tilt_gain
-        self.tilt_rate_min = tilt_rate_min
         self.tilt_rate_max = tilt_rate_max
         self.zoom = zoom
         self.focus = focus
@@ -293,6 +290,9 @@ class AxisPtzController(BaseMQTTPubSub):
         # to camera fixed (rst) coordinates
         self.E_XYZ_to_rst = np.zeros((3, 3))
 
+        self.r_XYZ_o_0_t = np.zeros((3,))
+        self.v_XYZ_o_0_t = np.zeros((3,))
+
         # Object pan and tilt rates
         self.rho_dot_o = 0.0  # [deg/s]
         self.tau_dot_o = 0.0  # [deg/s]
@@ -309,6 +309,19 @@ class AxisPtzController(BaseMQTTPubSub):
         # Camera pan and tilt rate differences
         self.delta_rho_dot_c = 0.0  # [deg/s]
         self.delta_tau_dot_c = 0.0  # [deg/s]
+        self.pan_rate_index = 0
+        self.tilt_rate_index = 0
+
+        # Set the status for the controller
+        self.status = Status.SLEEPING
+
+        # Object track, ground speed, and vertical rate
+        self.track_o = 0.0  # [deg]
+        self.ground_speed_o = 0.0  # [m/s]
+        self.vertical_rate_o = 0.0  # [m/s]
+
+        # Lock to make sure object info is not used while being updated
+        self.object_lock = threading.Lock()
 
         # Camera focus parameters. Note that the focus setting is
         # minimum at and greater than the hyperfocal distance, and the
@@ -383,7 +396,9 @@ class AxisPtzController(BaseMQTTPubSub):
                     f"Absolute move to pan: {self.rho_c}, and tilt: {self.tau_c}, with zoom: {self.zoom}"
                 )
                 try:
-                    self.camera_control.absolute_move(self.rho_c, self.tau_c, self.zoom, 99)
+                    self.camera_control.absolute_move(
+                        self.rho_c, self.tau_c, self.zoom, 99
+                    )
                 except Exception as e:
                     logging.error(f"Error: {e}")
             else:
@@ -494,11 +509,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.lead_time = config.get("lead_time", self.lead_time)  # [s]
         # Cannot set tripod yaw, pitch, and roll because of side effects
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
-        self.pan_rate_min = config.get("pan_rate_min", self.pan_rate_min)
         self.pan_rate_max = config.get("pan_rate_max", self.pan_rate_max)
         self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
-        self.tilt_gain = config.get("tilt_gain", self.tilt_gain)
-        self.tilt_rate_min = config.get("tilt_rate_min", self.tilt_rate_min)
         self.tilt_rate_max = config.get("tilt_rate_max", self.tilt_rate_max)
         self.zoom = config.get("zoom", self.zoom)  # [0-9999]
         self.focus = config.get("focus", self.focus)  # [7499-9999]
@@ -563,10 +575,8 @@ class AxisPtzController(BaseMQTTPubSub):
             "tripod_pitch": self.beta,
             "tripod_roll": self.gamma,
             "pan_gain": self.pan_gain,
-            "pan_rate_min": self.pan_rate_min,
             "pan_rate_max": self.pan_rate_max,
             "tilt_gain": self.tilt_gain,
-            "tilt_rate_min": self.tilt_rate_min,
             "tilt_rate_max": self.tilt_rate_max,
             "zoom": self.zoom,
             "focus": self.focus,
@@ -586,6 +596,288 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info(
             f"AxisPtzController configuration:\n{json.dumps(config, indent=4)}"
         )
+
+
+
+    def _compute_object_pointing(self) -> None:
+        # Compute position in the geocentric (XYZ) coordinate system
+        # of the object relative to the tripod at time zero, the
+        # observation time
+        r_XYZ_o_0 = axis_ptz_utilities.compute_r_XYZ(
+            self.lambda_o, self.varphi_o, self.h_o
+        )
+        self.r_XYZ_o_0_t = r_XYZ_o_0 - self.r_XYZ_t
+
+        # Assign lead time, computing and adding age of object
+        # message, if enabled
+        lead_time = self.lead_time  # [s]
+        if self.include_age:
+            object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
+            logging.debug(f"Object msg age: {object_msg_age} [s]")
+            lead_time += object_msg_age
+        logging.info(f"Using lead time: {lead_time} [s]")
+
+        # Compute position and velocity in the topocentric (ENz)
+        # coordinate system of the object relative to the tripod at
+        # time zero, and position at slightly later time one
+        self.r_ENz_o_0_t = np.matmul(self.E_XYZ_to_ENz, self.r_XYZ_o_0_t)
+        self.track_o = math.radians(self.track_o)
+        self.v_ENz_o_0_t = np.array(
+            [
+                self.ground_speed_o * math.sin(self.track_o),
+                self.ground_speed_o * math.cos(self.track_o),
+                self.vertical_rate_o,
+            ]
+        )
+        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * lead_time
+
+        # Compute position, at time one, and velocity, at time zero,
+        # in the geocentric (XYZ) coordinate system of the object
+        # relative to the tripod
+        r_XYZ_o_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_1_t)
+        self.v_XYZ_o_0_t = np.matmul(self.E_XYZ_to_ENz.transpose(), self.v_ENz_o_0_t)
+
+        # Compute the distance between the object and the tripod at
+        # time one
+        self.distance3d = axis_ptz_utilities.norm(r_ENz_o_1_t)
+
+        # TODO: Restore?
+        # Compute the distance between the object and the tripod
+        # along the surface of a spherical Earth
+        # distance2d = axis_ptz_utilities.compute_great_circle_distance(
+        #     self.self.lambda_t,
+        #     self.varphi_t,
+        #     self.lambda_o,
+        #     self.varphi_o,
+        # )  # [m]
+
+        # Compute the object azimuth and elevation relative to the
+        # tripod
+        self.azm_o = math.degrees(math.atan2(r_ENz_o_1_t[0], r_ENz_o_1_t[1]))  # [deg]
+        self.elv_o = math.degrees(
+            math.atan2(r_ENz_o_1_t[2], axis_ptz_utilities.norm(r_ENz_o_1_t[0:2]))
+        )  # [deg]
+        logging.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
+
+        # Compute pan and tilt to point the camera at the object
+        r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_o_1_t)
+        self.rho_o = math.degrees(math.atan2(r_uvw_o_1_t[0], r_uvw_o_1_t[1]))  # [deg]
+        self.tau_o = math.degrees(
+            math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
+        )  # [deg]
+        logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
+
+
+    def _track_object(self) -> None:
+
+        if self.status != Status.TRACKING:
+            return
+        
+        # Make sure Object info is not updated while pointing is being computed
+        self.object_lock.acquire()
+
+        self._compute_object_pointing()
+
+        if self.use_camera:
+            # Get camera pan and tilt
+            self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
+            logging.info(
+                f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
+            )
+        else:
+            logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+
+        # Compute slew rate differences
+        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(
+            self.rho_c, self.rho_o
+        )
+        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(
+            self.tau_c, self.tau_o
+        )
+        logging.debug(
+            f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
+        )
+        # Compute position and velocity in the camera fixed (rst)
+        # coordinate system of the object relative to the tripod at
+        # time zero after pointing the camera at the object
+        (
+            _,
+            _,
+            _,
+            _,
+            _,
+            _,
+            self.E_XYZ_to_rst,
+        ) = axis_ptz_utilities.compute_camera_rotations(
+            self.e_E_XYZ,
+            self.e_N_XYZ,
+            self.e_z_XYZ,
+            self.alpha,
+            self.beta,
+            self.gamma,
+            self.rho_o,
+            self.tau_o,
+        )
+        self.r_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.r_XYZ_o_0_t)
+        self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.v_XYZ_o_0_t)
+
+        # Compute object slew rate
+        omega = (
+            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
+            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
+        )
+        self.rho_dot_o = math.degrees(-omega[2])
+        self.tau_dot_o = math.degrees(omega[0])
+        logging.debug(
+            f"Object pan and tilt rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s]"
+        )
+
+        # Update camera pan and tilt rate
+        self.rho_dot_c = self.rho_dot_o + self.delta_rho_dot_c
+        self.tau_dot_c = self.tau_dot_o + self.delta_tau_dot_c
+        logging.info(
+            f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
+        )
+
+        # Get, or compute and set focus, command camera pan and tilt
+        # rates, and begin capturing images, if needed
+        if self.use_camera:
+            if not self.auto_focus:
+                # Note that focus cannot be negative, since distance3d
+                # is non-negative
+                self.focus = int(
+                    max(
+                        self.focus_min,
+                        self.focus_slope * self.distance3d + self.focus_intercept,
+                    )
+                )
+                logging.debug(f"Commanding focus: {self.focus}")
+                try:
+                    self.camera_control.set_focus(self.focus)
+                except Exception as e:
+                    logging.error(f"Error: {e}")
+
+            self._compute_pan_rate_index(self.rho_dot_c)
+            self._compute_tilt_rate_index(self.tau_dot_c)
+            logging.info(
+                f"Commanding pan and tilt rate indexes: {self.pan_rate_index}, {self.tilt_rate_index}"
+            )
+
+            # All done with object info
+            self.object_lock.release()
+            if self.camera_control.is_connected():
+                try:
+                    self.camera_control.continuous_move(
+                        self.pan_rate_index,
+                        self.tilt_rate_index,
+                        0.0,
+                    )
+                except Exception as e:
+                    logging.error(f"Error: {e}")
+
+                if not self.do_capture:
+                    logging.info(f"Starting image capture of object: {self.object_id}")
+                    self.do_capture = True
+                    self.capture_time = time()
+
+            else:
+                # Intialize the object id to point the camera at the
+                # object directly once the camera reconnects
+                self.object_id = "NA"
+
+        # Log camera pointing using MQTT
+        if self.log_to_mqtt:
+            logger_msg = self.generate_payload_json(
+                push_timestamp=int(datetime.utcnow().timestamp()),
+                device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+                id_=self.hostname,
+                deployment_id=os.environ.get(
+                    "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+                ),
+                current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
+                status="Debug",
+                message_type="Event",
+                model_version="null",
+                firmware_version="v0.0.0",
+                data_payload_type="Logger",
+                data_payload=json.dumps(
+                    {
+                        "camera-pointing": {
+                            "timestamp_c": self.timestamp_c,
+                            "rho_o": self.rho_o,
+                            "tau_o": self.tau_o,
+                            "rho_dot_o": self.rho_dot_o,
+                            "tau_dot_o": self.tau_dot_o,
+                            "rho_c": self.rho_c,
+                            "tau_c": self.tau_c,
+                            "rho_dot_c": self.rho_dot_c,
+                            "tau_dot_c": self.tau_dot_c,
+                            "pan_rate_index": self.pan_rate_index,
+                            "tilt_rate_index": self.tilt_rate_index,
+                            "delta_rho_dot_c": self.delta_rho_dot_c,
+                            "delta_tau_dot_c": self.delta_tau_dot_c,
+                            "delta_rho": self._compute_angle_delta(
+                                self.rho_c, self.rho_o
+                            ),
+                            "delta_tau": self._compute_angle_delta(
+                                self.tau_c, self.tau_o
+                            ),
+                            "object_id": self.object_id,
+                        }
+                    }
+                ),
+            )
+            logging.debug(f"Publishing logger msg: {logger_msg}")
+            self.publish_to_topic(self.logger_topic, logger_msg)
+
+
+    def _slew_camera(self) -> None:
+
+        if self.status == Status.SLEWING:
+            logging.error("Camera is already slewing")
+            return
+        
+        self.status = Status.SLEWING
+
+        # Get camera pan and tilt
+        self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
+        logging.info(
+            f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
+        )
+
+        if self.auto_focus:
+            logging.info(
+                f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
+            )
+            try:
+                self.camera_control.absolute_move(
+                    self.rho_o, self.tau_o, self.zoom, 99
+                )
+            except Exception as e:
+                logging.error(f"Error: {e}")
+        else:
+            logging.info(
+                f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
+            )
+            try:
+                self.camera_control.absolute_move(
+                    self.rho_o, self.tau_o, self.zoom, 99, self.focus
+                )
+            except Exception as e:
+                logging.error(f"Error: {e}")
+
+        duration = max(
+            math.fabs(self._compute_angle_delta(self.rho_c, self.rho_o))
+            / (self.pan_rate_max),
+            math.fabs(self._compute_angle_delta(self.tau_c, self.tau_o))
+            / (self.tilt_rate_max),
+        )
+        logging.info(f"Sleeping: {duration} [s]")
+        sleep(duration)
+
+        # Start Tracking
+        self.status = Status.TRACKING
+
 
     def _orientation_callback(
         self,
@@ -705,80 +997,15 @@ class AxisPtzController(BaseMQTTPubSub):
         self.lambda_o = data["longitude"]  # [deg]
         self.varphi_o = data["latitude"]  # [deg]
         self.h_o = data["altitude"]  # [m]
-        track_o = data["track"]  # [deg]
-        ground_speed_o = data["horizontal_velocity"]  # [m/s]
-        vertical_rate_o = data["vertical_velocity"]  # [m/s]
-
-        # Compute position in the geocentric (XYZ) coordinate system
-        # of the object relative to the tripod at time zero, the
-        # observation time
-        r_XYZ_o_0 = axis_ptz_utilities.compute_r_XYZ(
-            self.lambda_o, self.varphi_o, self.h_o
-        )
-        r_XYZ_o_0_t = r_XYZ_o_0 - self.r_XYZ_t
-
-        # Assign lead time, computing and adding age of object
-        # message, if enabled
-        lead_time = self.lead_time  # [s]
-        if self.include_age:
-            object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
-            logging.debug(f"Object msg age: {object_msg_age} [s]")
-            lead_time += object_msg_age
-        logging.info(f"Using lead time: {lead_time} [s]")
-
-        # Compute position and velocity in the topocentric (ENz)
-        # coordinate system of the object relative to the tripod at
-        # time zero, and position at slightly later time one
-        self.r_ENz_o_0_t = np.matmul(self.E_XYZ_to_ENz, r_XYZ_o_0_t)
-        track_o = math.radians(track_o)
-        self.v_ENz_o_0_t = np.array(
-            [
-                ground_speed_o * math.sin(track_o),
-                ground_speed_o * math.cos(track_o),
-                vertical_rate_o,
-            ]
-        )
-        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * lead_time
-
-        # Compute position, at time one, and velocity, at time zero,
-        # in the geocentric (XYZ) coordinate system of the object
-        # relative to the tripod
-        r_XYZ_o_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_1_t)
-        v_XYZ_o_0_t = np.matmul(self.E_XYZ_to_ENz.transpose(), self.v_ENz_o_0_t)
-
-        # Compute the distance between the object and the tripod at
-        # time one
-        self.distance3d = axis_ptz_utilities.norm(r_ENz_o_1_t)
-
-        # TODO: Restore?
-        # Compute the distance between the object and the tripod
-        # along the surface of a spherical Earth
-        # distance2d = axis_ptz_utilities.compute_great_circle_distance(
-        #     self.self.lambda_t,
-        #     self.varphi_t,
-        #     self.lambda_o,
-        #     self.varphi_o,
-        # )  # [m]
-
-        # Compute the object azimuth and elevation relative to the
-        # tripod
-        self.azm_o = math.degrees(math.atan2(r_ENz_o_1_t[0], r_ENz_o_1_t[1]))  # [deg]
-        self.elv_o = math.degrees(
-            math.atan2(r_ENz_o_1_t[2], axis_ptz_utilities.norm(r_ENz_o_1_t[0:2]))
-        )  # [deg]
-        logging.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
-
-        # Compute pan and tilt to point the camera at the object
-        r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_o_1_t)
-        self.rho_o = math.degrees(math.atan2(r_uvw_o_1_t[0], r_uvw_o_1_t[1]))  # [deg]
-        self.tau_o = math.degrees(
-            math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
-        )  # [deg]
-        logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
+        self.track_o = data["track"]  # [deg]
+        self.ground_speed_o = data["horizontal_velocity"]  # [m/s]
+        self.vertical_rate_o = data["vertical_velocity"]  # [m/s]
         object_id = data["object_id"]
+
         if self.use_camera and self.tau_o < 0:
             logging.info(f"Stopping image capture of object: {object_id}")
             self.do_capture = False
+            self.status = Status.SLEEPING
             logging.info(
                 "Stopping continuous pan and tilt - Object is below the horizon"
             )
@@ -786,192 +1013,23 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.camera_control.stop_move()
             except Exception as e:
                 logging.error(f"Error: {e}")
-
+        
+        # Reset the stop timer because we received an object message
+        self._reset_stop_timer()
+        
         if self.use_camera:
-            # Get camera pan and tilt
-            self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            logging.info(
-                f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
-            )
-            self._reset_stop_timer()
+
 
             # Point the camera at any new object directly
             if self.object_id != object_id:
                 self.object_id = object_id
-                if self.auto_focus:
-                    logging.info(
-                        f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}"
-                    )
-                    try:
-                        self.camera_control.absolute_move(
-                            self.rho_o, self.tau_o, self.zoom, 99
-                        )
-                    except Exception as e:
-                        logging.error(f"Error: {e}")
-                else:
-                    logging.info(
-                        f"Absolute move to pan: {self.rho_o}, and tilt: {self.tau_o}, with zoom: {self.zoom}, and focus: {self.focus}"
-                    )
-                    try:
-                        self.camera_control.absolute_move(
-                            self.rho_o, self.tau_o, self.zoom, 99, self.focus
-                        )
-                    except Exception as e:
-                        logging.error(f"Error: {e}")
-
-                duration = max(
-                    math.fabs(self._compute_angle_delta(self.rho_c, self.rho_o))
-                    / (self.pan_rate_max),
-                    math.fabs(self._compute_angle_delta(self.tau_c, self.tau_o))
-                    / (self.tilt_rate_max),
-                )
-                logging.info(f"Sleeping: {duration} [s]")
-                sleep(duration)
-                return
-
+                # Compute object pointing
+                self._compute_object_pointing()
+                self._slew_camera()
+            else:
+                self._track_object()
         else:
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
-
-        # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(
-            self.rho_c, self.rho_o
-        )
-        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(
-            self.tau_c, self.tau_o
-        )
-        logging.debug(
-            f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
-        )
-
-        # Compute position and velocity in the camera fixed (rst)
-        # coordinate system of the object relative to the tripod at
-        # time zero after pointing the camera at the object
-        (
-            _,
-            _,
-            _,
-            _,
-            _,
-            _,
-            self.E_XYZ_to_rst,
-        ) = axis_ptz_utilities.compute_camera_rotations(
-            self.e_E_XYZ,
-            self.e_N_XYZ,
-            self.e_z_XYZ,
-            self.alpha,
-            self.beta,
-            self.gamma,
-            self.rho_o,
-            self.tau_o,
-        )
-        self.r_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, r_XYZ_o_0_t)
-        self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, v_XYZ_o_0_t)
-
-        # Compute object slew rate
-        omega = (
-            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
-            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
-        )
-        self.rho_dot_o = math.degrees(-omega[2])
-        self.tau_dot_o = math.degrees(omega[0])
-        logging.debug(
-            f"Object pan and tilt rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s]"
-        )
-
-        # Update camera pan and tilt rate
-        self.rho_dot_c = self.rho_dot_o + self.delta_rho_dot_c
-        self.tau_dot_c = self.tau_dot_o + self.delta_tau_dot_c
-        logging.info(
-            f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
-        )
-
-        # Get, or compute and set focus, command camera pan and tilt
-        # rates, and begin capturing images, if needed
-        if self.use_camera:
-            if not self.auto_focus:
-                # Note that focus cannot be negative, since distance3d
-                # is non-negative
-                self.focus = int(
-                    max(
-                        self.focus_min,
-                        self.focus_slope * self.distance3d + self.focus_intercept,
-                    )
-                )
-                logging.debug(f"Commanding focus: {self.focus}")
-                try:
-                    self.camera_control.set_focus(self.focus)
-                except Exception as e:
-                    logging.error(f"Error: {e}")
-
-            pan_rate_index = self._compute_pan_rate_index(self.rho_dot_c)
-            tilt_rate_index = self._compute_tilt_rate_index(self.tau_dot_c)
-            logging.info(
-                f"Commanding pan and tilt rate indexes: {pan_rate_index}, {tilt_rate_index}"
-            )
-            if self.camera_control.is_connected():
-                try:
-                    self.camera_control.continuous_move(
-                        pan_rate_index,
-                        tilt_rate_index,
-                        0.0,
-                    )
-                except Exception as e:
-                    logging.error(f"Error: {e}")
-
-                if not self.do_capture:
-                    logging.info(f"Starting image capture of object: {self.object_id}")
-                    self.do_capture = True
-                    self.capture_time = time()
-
-            else:
-                # Intialize the object id to point the camera at the
-                # object directly once the camera reconnects
-                self.object_id = "NA"
-
-        # Log camera pointing using MQTT
-        if self.log_to_mqtt:
-            logger_msg = self.generate_payload_json(
-                push_timestamp=int(datetime.utcnow().timestamp()),
-                device_type=os.environ.get("DEVICE_TYPE", "Collector"),
-                id_=self.hostname,
-                deployment_id=os.environ.get(
-                    "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
-                ),
-                current_location=os.environ.get("CURRENT_LOCATION", "-90, -180"),
-                status="Debug",
-                message_type="Event",
-                model_version="null",
-                firmware_version="v0.0.0",
-                data_payload_type="Logger",
-                data_payload=json.dumps(
-                    {
-                        "camera-pointing": {
-                            "timestamp_c": self.timestamp_c,
-                            "rho_o": self.rho_o,
-                            "tau_o": self.tau_o,
-                            "rho_dot_o": self.rho_dot_o,
-                            "tau_dot_o": self.tau_dot_o,
-                            "rho_c": self.rho_c,
-                            "tau_c": self.tau_c,
-                            "rho_dot_c": self.rho_dot_c,
-                            "tau_dot_c": self.tau_dot_c,
-                            "pan_rate_index": pan_rate_index,
-                            "tilt_rate_index": tilt_rate_index,
-                            "delta_rho_dot_c": self.delta_rho_dot_c,
-                            "delta_tau_dot_c": self.delta_tau_dot_c,
-                            "delta_rho": self._compute_angle_delta(
-                                self.rho_c, self.rho_o
-                            ),
-                            "delta_tau": self._compute_angle_delta(
-                                self.tau_c, self.tau_o
-                            ),
-                            "object_id": self.object_id,
-                        }
-                    }
-                ),
-            )
-            logging.debug(f"Publishing logger msg: {logger_msg}")
-            self.publish_to_topic(self.logger_topic, logger_msg)
 
     def _manual_control_callback(
         self,
@@ -1123,7 +1181,7 @@ class AxisPtzController(BaseMQTTPubSub):
             return 0
         return math.degrees(math.acos(d)) * c / math.fabs(c)
 
-    def _compute_pan_rate_index(self, rho_dot: float) -> int:
+    def _compute_pan_rate_index(self, rho_dot: float):
         """Compute pan rate index between -100 and 100 using rates in
         deg/s, limiting the results to the specified minimum and
         maximum. Note that the dead zone from -1.8 to 1.8 deg/s is ignored.
@@ -1135,20 +1193,18 @@ class AxisPtzController(BaseMQTTPubSub):
 
         Returns
         -------
-        pan_rate : int
-            Pan rate index
         """
         if rho_dot < -self.pan_rate_max:
-            pan_rate = -100
+            self.pan_rate = -100
 
         elif self.pan_rate_max < rho_dot:
-            pan_rate = +100
+            self.pan_rate = +100
 
         else:
-            pan_rate = round((100 / self.pan_rate_max) * rho_dot)
-        return pan_rate
+            self.pan_rate = round((100 / self.pan_rate_max) * rho_dot)
 
-    def _compute_tilt_rate_index(self, tau_dot: float) -> int:
+
+    def _compute_tilt_rate_index(self, tau_dot: float):
         """Compute tilt rate index between -100 and 100 using rates in
         deg/s, limiting the results to the specified minimum and
         maximum. Note that the dead zone from -1.8 to 1.8 deg/s is ignored.
@@ -1160,18 +1216,15 @@ class AxisPtzController(BaseMQTTPubSub):
 
         Returns
         -------
-        tilt_rate : int
-            Tilt rate index
         """
         if tau_dot < -self.tilt_rate_max:
-            tilt_rate = -100
+            self.tilt_rate = -100
 
         elif self.tilt_rate_max < tau_dot:
-            tilt_rate = +100
+            self.tilt_rate = 100
 
         else:
-            tilt_rate = round((100 / self.tilt_rate_max) * tau_dot)
-        return tilt_rate
+            self.tilt_rate = round((100 / self.tilt_rate_max) * tau_dot)
 
     def _capture_image(self) -> None:
         """When enabled, capture an image in JPEG format, and publish
@@ -1428,10 +1481,8 @@ def make_controller() -> AxisPtzController:
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
         pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
-        pan_rate_min=float(os.environ.get("PAN_RATE_MIN", 1.8)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
         tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
-        tilt_rate_min=float(os.environ.get("TILT_RATE_MIN", 1.8)),
         tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
         zoom=int(os.environ.get("ZOOM", 6000)),
         focus=int(os.environ.get("FOCUS", 8749)),
