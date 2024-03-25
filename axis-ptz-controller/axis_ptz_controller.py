@@ -676,6 +676,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Make sure Object info is not updated while pointing is being computed
         self.object_lock.acquire()
 
+        start_time = time()
         self._compute_object_pointing()
 
         if self.use_camera:
@@ -784,7 +785,8 @@ class AxisPtzController(BaseMQTTPubSub):
                 # Intialize the object id to point the camera at the
                 # object directly once the camera reconnects
                 self.object_id = "NA"
-
+        
+        elapsed_time = time() - start_time
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
             logger_msg = self.generate_payload_json(
@@ -822,6 +824,7 @@ class AxisPtzController(BaseMQTTPubSub):
                             "delta_tau": self._compute_angle_delta(
                                 self.tau_c, self.tau_o
                             ),
+                            "tracking_loop_time": elapsed_time,
                             "object_id": self.object_id,
                         }
                     }
@@ -1018,16 +1021,12 @@ class AxisPtzController(BaseMQTTPubSub):
         self._reset_stop_timer()
         
         if self.use_camera:
-
-
             # Point the camera at any new object directly
             if self.object_id != object_id:
                 self.object_id = object_id
                 # Compute object pointing
                 self._compute_object_pointing()
                 self._slew_camera()
-            else:
-                self._track_object()
         else:
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
@@ -1383,6 +1382,8 @@ class AxisPtzController(BaseMQTTPubSub):
             capture_job = schedule.every(self.capture_interval).seconds.do(
                 self._capture_image
             )
+        tracking_interval = 0.25
+        update_tracking_time = time()
 
         # Enter the main loop
         while True:
@@ -1395,6 +1396,12 @@ class AxisPtzController(BaseMQTTPubSub):
                 sleep(self.loop_interval)
                 if not self.use_camera:
                     self._update_pointing()
+
+
+                # Track object
+                if ( self.use_camera and time() - update_tracking_time > tracking_interval ):
+                    update_tracking_time = time()
+                    self._track_object()
 
                 # Command zero camera pan and tilt rates, and stop
                 # capturing images if a object message has not been
