@@ -271,6 +271,11 @@ class AxisPtzController(BaseMQTTPubSub):
         self.r_ENz_o_0_t = np.zeros((3,))
         self.v_ENz_o_0_t = np.zeros((3,))
 
+        # Position and velocity in the geocentric (XYZ) coordinate
+        # system of the object relative to the tripod at time zero
+        self.r_XYZ_o_0_t = np.zeros((3,))
+        self.v_XYZ_o_0_t = np.zeros((3,))
+
         # Distance between the object and the tripod at time one
         self.distance3d = 0.0  # [m]
 
@@ -289,9 +294,6 @@ class AxisPtzController(BaseMQTTPubSub):
         # Orthogonal transformation matrix from camera housing (uvw)
         # to camera fixed (rst) coordinates
         self.E_XYZ_to_rst = np.zeros((3, 3))
-
-        self.r_XYZ_o_0_t = np.zeros((3,))
-        self.v_XYZ_o_0_t = np.zeros((3,))
 
         # Object pan and tilt rates
         self.rho_dot_o = 0.0  # [deg/s]
@@ -1382,7 +1384,7 @@ class AxisPtzController(BaseMQTTPubSub):
             capture_job = schedule.every(self.capture_interval).seconds.do(
                 self._capture_image
             )
-        tracking_interval = 0.25
+        tracking_interval = self.lead_time #0.25
         update_tracking_time = time()
 
         # Enter the main loop
