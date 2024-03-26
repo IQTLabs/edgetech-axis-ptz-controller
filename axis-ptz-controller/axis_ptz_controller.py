@@ -245,6 +245,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.varphi_o = 0.0  # [deg]
         self.h_o = 0.0  # [m]
         self.r_rst_o_0_t = np.zeros((3,))  # [m/s]
+        self.r_rst_o_1_t = np.zeros((3,))  # [m/s]
         self.v_rst_o_0_t = np.zeros((3,))  # [m/s]
 
         # Tripod yaw, pitch, and roll rotation quaternions
@@ -274,6 +275,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Position and velocity in the geocentric (XYZ) coordinate
         # system of the object relative to the tripod at time zero
         self.r_XYZ_o_0_t = np.zeros((3,))
+        self.r_XYZ_o_1_t = np.zeros((3,))
         self.v_XYZ_o_0_t = np.zeros((3,))
 
         # Distance between the object and the tripod at time one
@@ -612,22 +614,22 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        lead_time = self.tracking_interval  # [s] time_since_last_update 
+        lead_time = 1 #self.tracking_interval  # [s] time_since_last_update 
         if self.include_age:
             object_msg_age = time() - self.timestamp_o      #datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
             lead_time += object_msg_age
-        logging.info(f"Using lead time: {lead_time} [s]")
+        
 
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
         # time zero, and position at slightly later time one
         self.r_ENz_o_0_t = np.matmul(self.E_XYZ_to_ENz, self.r_XYZ_o_0_t)
-        self.track_o = math.radians(self.track_o)
+        radian_track_o = math.radians(self.track_o)
         self.v_ENz_o_0_t = np.array(
             [
-                self.ground_speed_o * math.sin(self.track_o),
-                self.ground_speed_o * math.cos(self.track_o),
+                self.ground_speed_o * math.sin(radian_track_o),
+                self.ground_speed_o * math.cos(radian_track_o),
                 self.vertical_rate_o,
             ]
         )
@@ -636,7 +638,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Compute position, at time one, and velocity, at time zero,
         # in the geocentric (XYZ) coordinate system of the object
         # relative to the tripod
-        r_XYZ_o_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_1_t)
+        self.r_XYZ_o_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_1_t)
         self.v_XYZ_o_0_t = np.matmul(self.E_XYZ_to_ENz.transpose(), self.v_ENz_o_0_t)
 
         # Compute the distance between the object and the tripod at
@@ -662,13 +664,13 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
 
         # Compute pan and tilt to point the camera at the object
-        r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_o_1_t)
+        r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, self.r_XYZ_o_1_t)
         self.rho_o = math.degrees(math.atan2(r_uvw_o_1_t[0], r_uvw_o_1_t[1]))  # [deg]
         self.tau_o = math.degrees(
             math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
         )  # [deg]
         logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
-
+        logging.debug(f"\t🔭\tObject - Pan: {self.rho_o}\t Obj ENz 1t: {r_ENz_o_1_t}\t Obj ENz 0t: {self.r_ENz_o_0_t}\t Obj Velo 0t: {self.v_ENz_o_0_t}\t Lead time: {lead_time}")
 
     def _track_object(self, time_since_last_update) -> None:
 
@@ -684,9 +686,9 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.use_camera:
             # Get camera pan and tilt
             self.rho_c, self.tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            logging.info(
-                f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
-            )
+            # logging.info(
+            #     f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
+            # )
         else:
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
@@ -721,6 +723,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_o,
             self.tau_o,
         )
+        #self.r_rst_o_1_t = np.matmul(self.E_XYZ_to_rst, self.r_XYZ_o_1_t)
         self.r_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.r_XYZ_o_0_t)
         self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.v_XYZ_o_0_t)
 
@@ -729,6 +732,10 @@ class AxisPtzController(BaseMQTTPubSub):
             axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
             / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
         )
+        # omega = (
+        #     axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
+        #     / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
+        # )
         self.rho_dot_o = math.degrees(-omega[2])
         self.tau_dot_o = math.degrees(omega[0])
         logging.debug(
@@ -738,9 +745,9 @@ class AxisPtzController(BaseMQTTPubSub):
         # Update camera pan and tilt rate
         self.rho_dot_c = self.rho_dot_o + self.delta_rho_dot_c
         self.tau_dot_c = self.tau_dot_o + self.delta_tau_dot_c
-        logging.info(
-            f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
-        )
+        # logging.info(
+        #     f"Camera pan and tilt rates: {self.rho_dot_c}, {self.tau_dot_c} [deg/s]"
+        # )
 
         # Get, or compute and set focus, command camera pan and tilt
         # rates, and begin capturing images, if needed
@@ -762,32 +769,32 @@ class AxisPtzController(BaseMQTTPubSub):
 
             self._compute_pan_rate_index(self.rho_dot_c)
             self._compute_tilt_rate_index(self.tau_dot_c)
-            logging.info(
-                f"Commanding pan and tilt rate indexes: {self.pan_rate_index}, {self.tilt_rate_index}"
-            )
+            # logging.info(
+            #     f"Commanding pan and tilt rate indexes: {self.pan_rate_index}, {self.tilt_rate_index}"
+            # )
 
             # All done with object info
             self.object_lock.release()
-            if self.camera_control.is_connected():
-                try:
-                    self.camera_control.continuous_move(
-                        self.pan_rate_index,
-                        self.tilt_rate_index,
-                        0.0,
-                    )
-                except Exception as e:
-                    logging.error(f"Error: {e}")
 
-                if not self.do_capture:
-                    logging.info(f"Starting image capture of object: {self.object_id}")
-                    self.do_capture = True
-                    self.capture_time = time()
+            try:
+                logging.disable(logging.INFO)
+                self.camera_control.continuous_move(
+                    self.pan_rate_index,
+                    self.tilt_rate_index,
+                    0.0,
+                )
+                logging.disable(logging.NOTSET)
 
-            else:
-                # Intialize the object id to point the camera at the
-                # object directly once the camera reconnects
-                self.object_id = "NA"
-        
+            except Exception as e:
+                logging.error(f"Error: {e}")
+
+            if not self.do_capture:
+                logging.info(f"Starting image capture of object: {self.object_id}")
+                self.do_capture = True
+                self.capture_time = time()
+
+
+        #logging.info(f"\t⏱️\tRATES - 🎥 Pan: {self.rho_dot_c}\tTilt: {self.tau_dot_c}\t🛩️  Pan: {self.rho_dot_o}\tTilt: {self.tau_dot_o} ANGLES: 🎥  Pan: {self.rho_c}\tTilt: {self.tau_c}\t🛩️  Pan: {self.rho_o}\tTilt: {self.tau_o} ")
         elapsed_time = time() - start_time
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
@@ -998,7 +1005,7 @@ class AxisPtzController(BaseMQTTPubSub):
         ) <= set(data.keys()):
             logging.info(f"Required keys missing from object message data: {data}")
             return
-        logging.info(f"Processing object msg data: {data}")
+        logging.info(f"\t🗒️\tProcessing object msg data: {data['object_id']} \t {data['latitude']} \t {data['longitude']} \t {data['altitude']}")
         self.timestamp_o = float(data["timestamp"])  # [s]
         self.timestamp_c = self.timestamp_o
         self.lambda_o = data["longitude"]  # [deg]
@@ -1142,10 +1149,7 @@ class AxisPtzController(BaseMQTTPubSub):
             topic = self.image_capture_topic
 
         success = self.publish_to_topic(topic, payload)
-        if success:
-            logging.info(f"Successfully published data on channel {topic}: {data}")
-
-        else:
+        if not success:
             logging.error(f"Failed to publish data on channel {topic}: {data}")
 
         return success
@@ -1255,7 +1259,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 timestr,
             )
             logging.info(
-                f"Capturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
+                f"\t📸\tCapturing image of object: {self.object_id}, at: {self.capture_time}, in: {image_filepath}"
             )
             # TODO: Update camera configuration to make renaming the
             # file unnecessary
@@ -1266,7 +1270,7 @@ class AxisPtzController(BaseMQTTPubSub):
                             resolution=self.jpeg_resolution,
                             compression=self.jpeg_compression,
                         )
-                        logging.info(f"Camera configuration response: {text}")
+                        logging.debug(f"Camera configuration response: {text}")
                         shutil.move(list(Path(d).glob("*.jpg"))[0], image_filepath)
                     except Exception as e:
                         logging.error(f"Could not capture image to directory: {d}: {e}")
@@ -1404,7 +1408,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
                 # Track object
                 if ( self.use_camera and time() - update_tracking_time > self.tracking_interval ):
-                    time_since_last_update = time() - self.timestamp_o
+                    time_since_last_update = time() - update_tracking_time
                     update_tracking_time = time()
                     self._track_object(time_since_last_update)
 
