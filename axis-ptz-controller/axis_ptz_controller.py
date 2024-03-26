@@ -723,19 +723,19 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_o,
             self.tau_o,
         )
-        #self.r_rst_o_1_t = np.matmul(self.E_XYZ_to_rst, self.r_XYZ_o_1_t)
+        self.r_rst_o_1_t = np.matmul(self.E_XYZ_to_rst, self.r_XYZ_o_1_t)
         self.r_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.r_XYZ_o_0_t)
         self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.v_XYZ_o_0_t)
 
         # Compute object slew rate
-        omega = (
-            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
-            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
-        )
         # omega = (
-        #     axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
-        #     / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
+        #     axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
+        #     / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
         # )
+        omega = (
+            axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
+            / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
+        )
         self.rho_dot_o = math.degrees(-omega[2])
         self.tau_dot_o = math.degrees(omega[0])
         logging.debug(
@@ -916,14 +916,13 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Assign camera housing rotation angles
         data = self.decode_payload(msg, "Orientation")
-        logging.info(f"Processing orientation msg data: {data}")
+        logging.info(f"\t🌎\tProcessing orientation msg data: {data}")
         self.alpha = data["tripod_yaw"]  # [deg]
         self.beta = data["tripod_pitch"]  # [deg]
         self.gamma = data["tripod_roll"]  # [deg]
 
         # Compute the rotations from the geocentric (XYZ) coordinate
         # system to the camera housing fixed (uvw) coordinate system
-        logging.info(f"Initial E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
         (
             self.q_alpha,
             self.q_beta,
@@ -942,7 +941,6 @@ class AxisPtzController(BaseMQTTPubSub):
             self.rho_c,
             self.tau_c,
         )
-        logging.info(f"Final E_XYZ_to_uvw: {self.E_XYZ_to_uvw}")
 
     def _reset_stop_timer(self) -> None:
         if hasattr(self, "_timer"):
