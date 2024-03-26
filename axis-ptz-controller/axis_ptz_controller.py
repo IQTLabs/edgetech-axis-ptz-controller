@@ -612,12 +612,12 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        tracking_interval =   self.tracking_interval  # [s] time_since_last_update 
+        lead_time = self.tracking_interval  # [s] time_since_last_update 
         if self.include_age:
             object_msg_age = time() - self.timestamp_o      #datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
-            tracking_interval += object_msg_age
-        logging.info(f"Using lead time: {tracking_interval} [s]")
+            lead_time += object_msg_age
+        logging.info(f"Using lead time: {lead_time} [s]")
 
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
@@ -631,7 +631,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.vertical_rate_o,
             ]
         )
-        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * tracking_interval
+        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * lead_time
 
         # Compute position, at time one, and velocity, at time zero,
         # in the geocentric (XYZ) coordinate system of the object
@@ -827,6 +827,7 @@ class AxisPtzController(BaseMQTTPubSub):
                                 self.tau_c, self.tau_o
                             ),
                             "tracking_loop_time": elapsed_time,
+                            "time_since_last_update": time_since_last_update,
                             "object_id": self.object_id,
                         }
                     }
