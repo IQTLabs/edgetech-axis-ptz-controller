@@ -1,7 +1,7 @@
 import logging
-
-logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
 from sensecam_control import vapix_control
+logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
+logging.getLogger("sensecam_control").setLevel(logging.CRITICAL)
 from typing import Tuple, Union
 
 
@@ -38,13 +38,13 @@ class CameraControl(vapix_control.CameraControl):
         # Defensively only set focus if needed
         if focus is not None:
             command["focus"] = focus
-        logging.info(f"command: {command}")
-
+        # logging.info(f"command: {command}")
+        logging.disable(logging.INFO)
         try:
-            return self._camera_command(command)
+            self._camera_command(command)
         except Exception as e:
             logging.error(f"Error: {e}")
-            return str(e)
+        logging.disable(logging.NOTSET)
 
     def get_ptz(self) -> Tuple[float, float, float, float]:
         """
@@ -55,7 +55,9 @@ class CameraControl(vapix_control.CameraControl):
 
         """
         try:
+            logging.disable(logging.INFO)    
             resp = self._camera_command({"query": "position"})
+            logging.disable(logging.NOTSET)
             pan = float(resp.text.split()[0].split("=")[1])
             tilt = float(resp.text.split()[1].split("=")[1])
             zoom = float(resp.text.split()[2].split("=")[1])
