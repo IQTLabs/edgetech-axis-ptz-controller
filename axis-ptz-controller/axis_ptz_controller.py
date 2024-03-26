@@ -612,9 +612,9 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        tracking_interval =  time_since_last_update #self.tracking_interval  # [s]
+        tracking_interval =   self.tracking_interval  # [s] time_since_last_update 
         if self.include_age:
-            object_msg_age = datetime.utcnow().timestamp() - self.timestamp_o  # [s]
+            object_msg_age = time() - self.timestamp_o      #datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
             tracking_interval += object_msg_age
         logging.info(f"Using lead time: {tracking_interval} [s]")
@@ -948,6 +948,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         logging.info(f"Stopping image capture of object, updates timed out")
         self.do_capture = False
+        self.status = Status.SLEEPING
         logging.info("Stopping continuous pan and tilt - updates timed out")
         try:
             self.camera_control.stop_move()
