@@ -20,6 +20,7 @@ import traceback
 from types import FrameType
 from typing import Any, Dict, Optional, Union
 from enum import Enum
+import threading
 
 import numpy as np
 import quaternion
@@ -305,6 +306,10 @@ class AxisPtzController(BaseMQTTPubSub):
         self.timestamp_c = 0.0  # [s]
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
+
+        # Delta between camera and object pan and tilt angles
+        self.delta_rho = 0.0  # [deg]
+        self.delta_tau = 0.0  # [deg]
 
         # Camera pan and tilt rates
         self.rho_dot_c = 0.0  # [deg/s]
@@ -692,13 +697,15 @@ class AxisPtzController(BaseMQTTPubSub):
         else:
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
+
+        # Compute angle delta between camera and object pan and tilt
+        self.delta_rho = self._compute_angle_delta(self.rho_c, self.rho_o)
+        self.delta_tau = self._compute_angle_delta(self.tau_c, self.tau_o)
+
         # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * self._compute_angle_delta(
-            self.rho_c, self.rho_o
-        )
-        self.delta_tau_dot_c = self.tilt_gain * self._compute_angle_delta(
-            self.tau_c, self.tau_o
-        )
+        self.delta_rho_dot_c = self.pan_gain * self.delta_rho
+        self.delta_tau_dot_c = self.tilt_gain * self.delta_tau
+
         logging.debug(
             f"Delta pan and tilt rates: {self.delta_rho_dot_c}, {self.delta_tau_dot_c} [deg/s]"
         )
@@ -793,6 +800,13 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.do_capture = True
                 self.capture_time = time()
 
+            if ( self.do_capture
+                and time() - self.capture_time >  self.capture_interval
+            ):
+                capture_thread = threading.Thread(target=self._capture_image)
+                capture_thread.daemon = True
+                capture_thread.start()
+
 
         #logging.info(f"\t⏱️\tRATES - 🎥 Pan: {self.rho_dot_c}\tTilt: {self.tau_dot_c}\t🛩️  Pan: {self.rho_dot_o}\tTilt: {self.tau_dot_o} ANGLES: 🎥  Pan: {self.rho_c}\tTilt: {self.tau_c}\t🛩️  Pan: {self.rho_o}\tTilt: {self.tau_o} ")
         elapsed_time = time() - start_time
@@ -827,12 +841,8 @@ class AxisPtzController(BaseMQTTPubSub):
                             "tilt_rate_index": self.tilt_rate_index,
                             "delta_rho_dot_c": self.delta_rho_dot_c,
                             "delta_tau_dot_c": self.delta_tau_dot_c,
-                            "delta_rho": self._compute_angle_delta(
-                                self.rho_c, self.rho_o
-                            ),
-                            "delta_tau": self._compute_angle_delta(
-                                self.tau_c, self.tau_o
-                            ),
+                            "delta_rho": self.delta_rho,
+                            "delta_tau": self.delta_tau,
                             "tracking_loop_time": elapsed_time,
                             "time_since_last_update": time_since_last_update,
                             "object_id": self.object_id,
@@ -842,6 +852,8 @@ class AxisPtzController(BaseMQTTPubSub):
             )
             logging.debug(f"Publishing logger msg: {logger_msg}")
             self.publish_to_topic(self.logger_topic, logger_msg)
+
+
 
 
     def _slew_camera(self) -> None:
@@ -1307,6 +1319,8 @@ class AxisPtzController(BaseMQTTPubSub):
                     "object_msg_age": object_msg_age,
                     "r_ENz_o_0_t": self.r_ENz_o_0_t.tolist(),
                     "v_ENz_o_0_t": self.v_ENz_o_0_t.tolist(),
+                    "delta_rho": self.delta_rho,
+                    "delta_tau": self.delta_tau,
                 },
             }
             logging.debug(
@@ -1383,11 +1397,6 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.manual_control_topic, self._manual_control_callback
             )
 
-        if self.use_camera:
-            # Schedule image capture
-            capture_job = schedule.every(self.capture_interval).seconds.do(
-                self._capture_image
-            )
     
         update_tracking_time = time()
 
