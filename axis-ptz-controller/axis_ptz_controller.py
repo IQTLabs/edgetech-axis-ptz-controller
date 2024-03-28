@@ -619,7 +619,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        lead_time = self.tracking_interval  # [s] time_since_last_update 
+        lead_time = 0#self.tracking_interval  # [s] time_since_last_update 
         if self.include_age:
             object_msg_age = time() - self.timestamp_o      #datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
@@ -735,14 +735,14 @@ class AxisPtzController(BaseMQTTPubSub):
         self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.v_XYZ_o_0_t)
 
         # Compute object slew rate
-        omega = (
-            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
-            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
-        )
         # omega = (
-        #     axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
-        #     / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
+        #     axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
+        #     / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
         # )
+        omega = (
+            axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
+            / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
+        )
         self.rho_dot_o = math.degrees(-omega[2])
         self.tau_dot_o = math.degrees(omega[0])
         logging.debug(
