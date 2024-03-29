@@ -251,6 +251,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.h_o = 0.0  # [m]
         self.r_rst_o_0_t = np.zeros((3,))  # [m/s]
         self.r_rst_o_1_t = np.zeros((3,))  # [m/s]
+        self.r_rst_o_N_t = np.zeros((3,))  # [m/s]
         self.v_rst_o_0_t = np.zeros((3,))  # [m/s]
 
         # Tripod yaw, pitch, and roll rotation quaternions
@@ -280,6 +281,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Position and velocity in the geocentric (XYZ) coordinate
         # system of the object relative to the tripod at time zero
         self.r_XYZ_o_0_t = np.zeros((3,))
+        self.r_XYZ_o_N_t = np.zeros((3,))
         self.r_XYZ_o_1_t = np.zeros((3,))
         self.v_XYZ_o_0_t = np.zeros((3,))
 
@@ -293,6 +295,9 @@ class AxisPtzController(BaseMQTTPubSub):
         # Object pan and tilt angles
         self.rho_o = 0.0  # [deg]
         self.tau_o = 0.0  # [deg]
+
+        self.rho_o_now = 0.0  # [deg]
+        self.tau_o_now = 0.0  # [deg]
 
         # Pan, and tilt rotation quaternions
         self.q_row = quaternion.quaternion()
@@ -626,6 +631,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # Assign lead time, computing and adding age of object
         # message, if enabled
         time_delta = self.lead_time  # [s] time_since_last_update 
+        object_msg_age = 0
         if self.include_age:
             object_msg_age = time() - self.timestamp_o      #datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
@@ -644,11 +650,13 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.vertical_rate_o,
             ]
         )
-        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * time_delta
+        r_ENz_o_N_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * object_msg_age # where the object is now
+        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * time_delta # where the object will be in the future, for leading
 
         # Compute position, at time one, and velocity, at time zero,
         # in the geocentric (XYZ) coordinate system of the object
         # relative to the tripod
+        self.r_XYZ_o_N_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_N_t)
         self.r_XYZ_o_1_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_o_1_t)
         self.v_XYZ_o_0_t = np.matmul(self.E_XYZ_to_ENz.transpose(), self.v_ENz_o_0_t)
 
@@ -675,7 +683,12 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.debug(f"Object azimuth and elevation: {self.azm_o}, {self.elv_o} [deg]")
 
         # Compute pan and tilt to point the camera at the object
+        r_uvw_o_n_t = np.matmul(self.E_XYZ_to_uvw, self.r_XYZ_o_N_t)
         r_uvw_o_1_t = np.matmul(self.E_XYZ_to_uvw, self.r_XYZ_o_1_t)
+        self.rho_o_now = math.degrees(math.atan2(r_uvw_o_n_t[0], r_uvw_o_n_t[1]))  # [deg]
+        self.tau_o_now = math.degrees(
+            math.atan2(r_uvw_o_n_t[2], axis_ptz_utilities.norm(r_uvw_o_n_t[0:2]))
+        )
         self.rho_o = math.degrees(math.atan2(r_uvw_o_1_t[0], r_uvw_o_1_t[1]))  # [deg]
         self.tau_o = math.degrees(
             math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
@@ -741,20 +754,20 @@ class AxisPtzController(BaseMQTTPubSub):
         self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.v_XYZ_o_0_t)
 
         # Compute object slew rate
+        # omega = (
+        #     axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
+        #     / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
+        # )
         omega = (
-            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
-            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
-        )
-        omega_2 = (
             axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
             / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
         )
         self.rho_dot_o = math.degrees(-omega[2])
         self.tau_dot_o = math.degrees(omega[0])
-        rho_2_dot_o = math.degrees(-omega_2[2])
-        tau_2_dot_o = math.degrees(omega_2[0])
+        # rho_2_dot_o = math.degrees(-omega_2[2])
+        # tau_2_dot_o = math.degrees(omega_2[0])
 
-        logging.info(f"Object pan and tilt orig rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s] vs {rho_2_dot_o}, {tau_2_dot_o} [deg/s]")
+        # logging.info(f"Object pan and tilt orig rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s] vs {rho_2_dot_o}, {tau_2_dot_o} [deg/s]")
         logging.debug(
             f"Object pan and tilt rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s]"
         )
@@ -1329,8 +1342,8 @@ class AxisPtzController(BaseMQTTPubSub):
                     "object_msg_age": object_msg_age,
                     "r_ENz_o_0_t": self.r_ENz_o_0_t.tolist(),
                     "v_ENz_o_0_t": self.v_ENz_o_0_t.tolist(),
-                    "delta_rho": self.delta_rho,
-                    "delta_tau": self.delta_tau,
+                    "delta_rho": self._compute_angle_delta(rho_c, self.rho_o_now),
+                    "delta_tau": self._compute_angle_delta(tau_c, self.tau_o_now),
                 },
             }
             logging.debug(
