@@ -681,7 +681,7 @@ class AxisPtzController(BaseMQTTPubSub):
             math.atan2(r_uvw_o_1_t[2], axis_ptz_utilities.norm(r_uvw_o_1_t[0:2]))
         )  # [deg]
         logging.debug(f"Object pan and tilt: {self.rho_o}, {self.tau_o} [deg]")
-        logging.debug(f"\t🔭\tObject - Pan: {self.rho_o}\t Obj ENz 1t: {r_ENz_o_1_t}\t Obj ENz 0t: {self.r_ENz_o_0_t}\t Obj Velo 0t: {self.v_ENz_o_0_t}\t Lead time: {lead_time}")
+        logging.debug(f"\t🔭\tObject - Pan: {self.rho_o}\t Obj ENz 1t: {r_ENz_o_1_t}\t Obj ENz 0t: {self.r_ENz_o_0_t}\t Obj Velo 0t: {self.v_ENz_o_0_t}\t Lead time: {time_delta}")
 
     def _track_object(self, time_since_last_update) -> None:
 
