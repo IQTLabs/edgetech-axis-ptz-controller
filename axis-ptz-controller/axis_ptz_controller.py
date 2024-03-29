@@ -80,6 +80,7 @@ class AxisPtzController(BaseMQTTPubSub):
         use_camera: bool = True,
         auto_focus: bool = False,
         include_age: bool = True,
+        lead_time: float = 0.5,
         log_to_mqtt: bool = False,
         log_level: str = "INFO",
         continue_on_exception: bool = False,
@@ -164,6 +165,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Flag to auto focus, or not
         include_age: bool
             Flag to include object message age in lead time, or not
+        lead_time: float
+            Lead time used when computing camera pointing
         log_to_mqtt: bool
             Flag to publish logger messages to MQTT, or not
         log_level (str): One of 'NOTSET', 'DEBUG', 'INFO', 'WARN',
@@ -215,6 +218,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.use_camera = use_camera
         self.auto_focus = auto_focus
         self.include_age = include_age
+        self.lead_time = lead_time
         self.log_to_mqtt = log_to_mqtt
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
@@ -534,6 +538,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.use_camera = config.get("use_camera", self.use_camera)
         self.auto_focus = config.get("auto_focus", self.auto_focus)
         self.include_age = config.get("include_age", self.include_age)
+        self.lead_time = config.get("lead_time", self.lead_time)  # [s]
         self.log_to_mqtt = config.get("log_to_mqtt", self.log_to_mqtt)
         self.log_level = config.get("log_level", self.log_level)
         self.continue_on_exception = config.get(
@@ -598,6 +603,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "use_camera": self.use_camera,
             "auto_focus": self.auto_focus,
             "include_age": self.include_age,
+            "lead_time": self.lead_time,
             "log_to_mqtt": self.log_to_mqtt,
             "log_level": self.log_level,
             "continue_on_exception": self.continue_on_exception,
@@ -619,11 +625,11 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
-        lead_time = self.tracking_interval  # [s] time_since_last_update 
+        time_delta = self.lead_time  # [s] time_since_last_update 
         if self.include_age:
             object_msg_age = time() - self.timestamp_o      #datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {object_msg_age} [s]")
-            lead_time += object_msg_age
+            time_delta += object_msg_age
         
 
         # Compute position and velocity in the topocentric (ENz)
@@ -638,7 +644,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.vertical_rate_o,
             ]
         )
-        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * lead_time
+        r_ENz_o_1_t = self.r_ENz_o_0_t + self.v_ENz_o_0_t * time_delta
 
         # Compute position, at time one, and velocity, at time zero,
         # in the geocentric (XYZ) coordinate system of the object
@@ -1518,6 +1524,7 @@ def make_controller() -> AxisPtzController:
         use_camera=ast.literal_eval(os.environ.get("USE_CAMERA", "True")),
         auto_focus=ast.literal_eval(os.environ.get("AUTO_FOCUS", "True")),
         include_age=ast.literal_eval(os.environ.get("INCLUDE_AGE", "True")),
+        lead_time=float(os.environ.get("LEAD_TIME", 0.0)),
         log_to_mqtt=ast.literal_eval(os.environ.get("LOG_TO_MQTT", "False")),
         log_level=os.environ.get("LOG_LEVEL", "False"),
         continue_on_exception=ast.literal_eval(
