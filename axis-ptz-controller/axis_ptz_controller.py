@@ -741,16 +741,20 @@ class AxisPtzController(BaseMQTTPubSub):
         self.v_rst_o_0_t = np.matmul(self.E_XYZ_to_rst, self.v_XYZ_o_0_t)
 
         # Compute object slew rate
-        # omega = (
-        #     axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
-        #     / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
-        # )
         omega = (
+            axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
+            / axis_ptz_utilities.norm(self.r_rst_o_0_t) ** 2
+        )
+        omega_2 = (
             axis_ptz_utilities.cross(self.r_rst_o_1_t, self.v_rst_o_0_t)
             / axis_ptz_utilities.norm(self.r_rst_o_1_t) ** 2
         )
         self.rho_dot_o = math.degrees(-omega[2])
         self.tau_dot_o = math.degrees(omega[0])
+        rho_2_dot_o = math.degrees(-omega_2[2])
+        tau_2_dot_o = math.degrees(omega_2[0])
+
+        logging.info(f"Object pan and tilt orig rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s] vs {rho_2_dot_o}, {tau_2_dot_o} [deg/s]")
         logging.debug(
             f"Object pan and tilt rates: {self.rho_dot_o}, {self.tau_dot_o} [deg/s]"
         )
