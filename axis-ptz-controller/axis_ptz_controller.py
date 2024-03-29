@@ -21,7 +21,7 @@ from types import FrameType
 from typing import Any, Dict, Optional, Union
 from enum import Enum
 import threading
-
+import camera
 import numpy as np
 import quaternion
 import paho.mqtt.client as mqtt
