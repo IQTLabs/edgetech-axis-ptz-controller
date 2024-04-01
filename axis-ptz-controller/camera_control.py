@@ -19,7 +19,7 @@ class CameraControl(vapix_control.CameraControl):
         zoom: Union[int, None] = None,
         speed: Union[int, None] = None,
         focus: Union[int, None] = None,
-    ) -> str:
+    ) -> None:
         """
         Operation to move pan, tilt or zoom to an absolute destination. Sets focus.
 
@@ -46,7 +46,7 @@ class CameraControl(vapix_control.CameraControl):
             logging.error(f"Error: {e}")
         logging.disable(logging.NOTSET)
 
-    def get_ptz(self) -> Tuple[float, float, float, float]:
+    def get_ptz(self) -> Tuple[float, float, int, int]:
         """
         Operation to request PTZ status.
 
@@ -60,8 +60,8 @@ class CameraControl(vapix_control.CameraControl):
             logging.disable(logging.NOTSET)
             pan = float(resp.text.split()[0].split("=")[1])
             tilt = float(resp.text.split()[1].split("=")[1])
-            zoom = float(resp.text.split()[2].split("=")[1])
-            focus = float(resp.text.split()[3].split("=")[1])
+            zoom = int(resp.text.split()[2].split("=")[1])
+            focus = int(resp.text.split()[3].split("=")[1])
             ptz_list = (pan, tilt, zoom, focus)
             logging.debug(f"PTZ: {ptz_list}")
             return ptz_list

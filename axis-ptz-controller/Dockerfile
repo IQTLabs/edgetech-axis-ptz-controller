@@ -10,4 +10,6 @@ COPY ./axis_ptz_controller.py .
 COPY ./axis_ptz_utilities.py .
 COPY ./camera_configuration.py .
 COPY ./camera_control.py .
+COPY ./camera.py .
+COPY ./object.py .
 ENTRYPOINT [ "python3", "axis_ptz_controller.py" ]
