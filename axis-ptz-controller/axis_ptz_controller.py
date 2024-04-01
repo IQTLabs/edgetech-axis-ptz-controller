@@ -29,6 +29,7 @@ from camera import Camera
 from object import Object
 
 
+
 class Status(Enum):
     SLEEPING = 0
     SLEWING = 1
@@ -549,6 +550,7 @@ class AxisPtzController(BaseMQTTPubSub):
             f"AxisPtzController configuration:\n{json.dumps(config, indent=4)}"
         )
 
+
     def _track_object(self, time_since_last_update: float) -> None:
         if self.status != Status.TRACKING:
             return
@@ -556,6 +558,7 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.object is None:
             logging.error(f"Object is None, not tracking")
             return
+
         # Make sure Object info is not updated while pointing is being computed
         # self.object_lock.acquire()
 
@@ -661,13 +664,13 @@ class AxisPtzController(BaseMQTTPubSub):
             )
             self.publish_to_topic(self.logger_topic, logger_msg)
 
+
     def _slew_camera(self, rho_target: float, tau_target: float) -> None:
         if self.status == Status.SLEWING:
             logging.error("Camera is already slewing")
             return
 
         self.status = Status.SLEWING
-
         self.camera.slew_camera(rho_target, tau_target)
 
         # Start Tracking
@@ -765,6 +768,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         if self.use_camera and self.object.tau < 0:
             logging.info(f"Stopping image capture of object: {self.object.object_id}")
+
             self.do_capture = False
             self.status = Status.SLEEPING
             logging.info(
@@ -994,6 +998,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.add_subscribe_topic(
                 self.manual_control_topic, self._manual_control_callback
             )
+
         update_tracking_time = time()
 
         # Enter the main loop
