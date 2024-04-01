@@ -358,7 +358,7 @@ class AxisPtzController(BaseMQTTPubSub):
         data : Dict[Any, Any]
             The data payload of the message payload
         """
-        if isinstance(msg) == mqtt.MQTTMessage:
+        if isinstance(msg,mqtt.MQTTMessage):
             payload = msg.payload.decode()
         else:
             payload = msg
