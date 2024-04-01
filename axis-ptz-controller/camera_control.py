@@ -1,5 +1,6 @@
 import logging
 from sensecam_control import vapix_control
+
 logging.getLogger("vapix_control").setLevel(logging.CRITICAL)
 logging.getLogger("sensecam_control").setLevel(logging.CRITICAL)
 from typing import Tuple, Union
@@ -55,7 +56,7 @@ class CameraControl(vapix_control.CameraControl):
 
         """
         try:
-            logging.disable(logging.INFO)    
+            logging.disable(logging.INFO)
             resp = self._camera_command({"query": "position"})
             logging.disable(logging.NOTSET)
             pan = float(resp.text.split()[0].split("=")[1])
