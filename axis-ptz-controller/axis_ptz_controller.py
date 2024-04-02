@@ -306,6 +306,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self._config_callback(None, None, config_msg)
 
         os.makedirs(self.capture_dir, exist_ok=True)
+        
         # Initialize the rotations from the geocentric (XYZ)
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
@@ -911,7 +912,8 @@ class AxisPtzController(BaseMQTTPubSub):
                 logging.error(f"Error: {e}")
                 return
 
-            object_msg_age = datetime_c.timestamp() - self.object.msg_timestamp  # [s]
+            # Note: this time does not include any leading
+            object_msg_age = datetime_c.timestamp() - self.object.msg_timestamp  # [s] 
             image_metadata = {
                 "timestamp": timestr,
                 "imagefile": str(image_filepath),
