@@ -84,8 +84,8 @@ class Camera:
 
         # Initialize pan and tilt rate indices, which are between -100
         # and 100
-        self.pan_rate_index = 0
-        self.tilt_rate_index = 0
+        self.pan_rate_index = 0.0
+        self.tilt_rate_index = 0.0
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -410,7 +410,7 @@ class Camera:
             self.pan_rate_index = +100
 
         else:
-            self.pan_rate_index = round((100 / self.pan_rate_max) * rho_dot)
+            self.pan_rate_index = (100 / self.pan_rate_max) * rho_dot
 
     def _compute_tilt_rate_index(self, tau_dot: float) -> None:
         """Compute tilt rate index between -100 and 100 using rates in
@@ -432,7 +432,7 @@ class Camera:
             self.tilt_rate_index = 100
 
         else:
-            self.tilt_rate_index = round((100 / self.tilt_rate_max) * tau_dot)
+            self.tilt_rate_index = (100 / self.tilt_rate_max) * tau_dot
 
     def get_yaw_pitch_roll(self) -> Tuple[float, float, float]:
         """
