@@ -90,6 +90,7 @@ class Object:
 
         self.uvw_point_now_relative_to_tripod = np.zeros((3,))
         self.uvw_point_lead_relative_to_tripod = np.zeros((3,))
+        self.location_update_time = time()
 
     def _config_log(self) -> None:
         """Print to Logging the object configuration"""
@@ -262,6 +263,9 @@ class Object:
         self.rho = self.rho_lead
         self.tau = self.tau_lead
 
+        self.rho_lead_delta = self.rho_lead - self.rho_now
+        self.tau_lead_delta = self.tau_lead - self.tau_now
+
         camera_yaw, camera_pitch, camera_roll = self.camera.get_yaw_pitch_roll()
         camera_E_XYZ, camera_N_XYZ, camera_z_XYZ = self.camera.get_e_n_z()
         # Compute position and velocity in the camera fixed (rst)
@@ -306,37 +310,13 @@ class Object:
             )
             / axis_ptz_utilities.norm(self.rst_point_now_relative_to_tripod) ** 2
         )
-
+        time_delta = time() - self.location_update_time
+        self.location_update_time = time()
+        self.rho_rate_derivative = (self.rho_rate - math.degrees(-omega[2])) / time_delta
+        self.tau_rate_derivative = (self.tau_rate - math.degrees(omega[0])) / time_delta
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
 
-        omega_lead = (
-            axis_ptz_utilities.cross(
-                self.rst_point_lead_relative_to_tripod,
-                self.rst_velocity_msg_relative_to_tripod,
-            )
-            / axis_ptz_utilities.norm(self.rst_point_lead_relative_to_tripod) ** 2
-        )
-
-        self.rho_rate_lead = math.degrees(-omega_lead[2])
-        self.tau_rate_lead = math.degrees(omega_lead[0])
-
-        omega_weird = (
-            axis_ptz_utilities.cross(
-                self.rst_point_lead_relative_to_tripod,
-                self.rst_velocity_msg_relative_to_tripod,
-            )
-            / axis_ptz_utilities.norm(self.rst_point_now_relative_to_tripod) ** 2
-        )
-
-        self.rho_rate_weird = math.degrees(-omega_weird[2])
-        self.tau_rate_weird = math.degrees(omega_weird[0])
-
-        self.rho_rate_weird_delta = self.rho_rate_weird - self.rho_rate
-        self.tau_rate_weird_delta = self.tau_rate_weird - self.tau_rate
-
-        self.rho_rate_lead_delta = self.rho_rate_lead - self.rho_rate
-        self.tau_rate_lead_delta = self.tau_rate_lead - self.tau_rate
 
         # Compute object slew rate
         # omega = (
