@@ -13,6 +13,22 @@ class CameraControl(vapix_control.CameraControl):
     to be gettable and settable.
     """
 
+    def continuous_move(self, pan: int = None, tilt: int = None):
+        """
+        Operation for continuous Pan/Tilt and Zoom movements.
+
+        Args:
+            pan: speed of movement of Pan.
+            tilt: speed of movement of Tilt.
+            zoom: speed of movement of Zoom.
+
+        Returns:
+            Returns the response from the device to the command sent.
+
+        """
+        pan_tilt = str(pan) + "," + str(tilt)
+        return self._camera_command({'continuouspantiltmove': pan_tilt, 'proportionalspeed': "disabled"})
+
     def absolute_move(
         self,
         pan: Union[float, None] = None,

@@ -292,8 +292,7 @@ class Camera:
             logging.disable(logging.INFO)
             self.camera_control.continuous_move(
                 self.pan_rate_index,
-                self.tilt_rate_index,
-                0.0,
+                self.tilt_rate_index
             )
             logging.disable(logging.NOTSET)
 
