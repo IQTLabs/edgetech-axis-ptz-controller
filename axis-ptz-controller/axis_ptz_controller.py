@@ -584,16 +584,16 @@ class AxisPtzController(BaseMQTTPubSub):
         )
 
         # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * self.delta_rho 
-        self.delta_tau_dot_c = self.tilt_gain * self.delta_tau
+        self.rho_c_gain = self.pan_gain * self.delta_rho 
+        self.tau_c_gain = self.tilt_gain * self.delta_tau
 
         # Compute position and velocity in the camera fixed (rst)
         # coordinate system of the object relative to the tripod at
         # time zero after pointing the camera at the object
 
         # Update camera pan and tilt rate
-        self.rho_dot_c = self.object.rho_rate + self.delta_rho_dot_c
-        self.tau_dot_c = self.object.tau_rate + self.delta_tau_dot_c
+        self.rho_dot_c = self.object.rho_rate + self.rho_c_gain
+        self.tau_dot_c = self.object.tau_rate + self.tau_c_gain
 
         # Get, or compute and set focus, command camera pan and tilt
         # rates, and begin capturing images, if needed
@@ -650,13 +650,13 @@ class AxisPtzController(BaseMQTTPubSub):
                             "tau_c": self.camera.tau,
                             "rho_dot_c": self.rho_dot_c,
                             "tau_dot_c": self.tau_dot_c,
+                            "rho_c_gain": self.rho_c_gain,
+                            "tau_c_gain": self.tau_c_gain,
                             "distance": self.object.distance_to_tripod3d,
                             "focus": _focus,
                             "zoom": _zoom,
-                            "rho_lead_delta": self.object.rho_lead_delta,
-                            "tau_lead_delta": self.object.tau_lead_delta,
-                            "rho_rate_derivative": self.object.rho_rate_derivative,
-                            "tau_rate_derivative": self.object.tau_rate_derivative,
+                            "rho_derivative": self.object.rho_derivative,
+                            "tau_derivative": self.object.tau_derivative,
                             "pan_rate_index": self.camera.pan_rate_index,
                             "tilt_rate_index": self.camera.tilt_rate_index,
                             "delta_rho_dot_c": self.delta_rho_dot_c,

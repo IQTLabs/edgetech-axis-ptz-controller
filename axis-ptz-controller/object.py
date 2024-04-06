@@ -260,11 +260,13 @@ class Object:
             )
         )
 
+        time_delta = time() - self.location_update_time
+        self.location_update_time = time()
+        self.rho_derivative = (self.rho - self.rho_lead) / time_delta
+        self.tau_derivative = (self.tau - self.tau_lead) / time_delta
+
         self.rho = self.rho_lead
         self.tau = self.tau_lead
-
-        self.rho_lead_delta = self.rho_lead - self.rho_now
-        self.tau_lead_delta = self.tau_lead - self.tau_now
 
         camera_yaw, camera_pitch, camera_roll = self.camera.get_yaw_pitch_roll()
         camera_E_XYZ, camera_N_XYZ, camera_z_XYZ = self.camera.get_e_n_z()
@@ -310,10 +312,7 @@ class Object:
             )
             / axis_ptz_utilities.norm(self.rst_point_now_relative_to_tripod) ** 2
         )
-        time_delta = time() - self.location_update_time
-        self.location_update_time = time()
-        self.rho_rate_derivative = (self.rho_rate - math.degrees(-omega[2])) / time_delta
-        self.tau_rate_derivative = (self.tau_rate - math.degrees(omega[0])) / time_delta
+
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
 
