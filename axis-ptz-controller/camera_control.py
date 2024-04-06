@@ -70,6 +70,8 @@ class CameraControl(vapix_control.CameraControl):
         except Exception as e:
             logging.error(f"Error: {e}")
             return (0, 0, 0, 0)
+        
+
 
     def set_focus(self, focus: Union[int, None] = None) -> str:
         """

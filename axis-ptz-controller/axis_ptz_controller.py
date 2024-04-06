@@ -584,7 +584,7 @@ class AxisPtzController(BaseMQTTPubSub):
         )
 
         # Compute slew rate differences
-        self.delta_rho_dot_c = self.pan_gain * self.delta_rho
+        self.delta_rho_dot_c = self.pan_gain * self.delta_rho 
         self.delta_tau_dot_c = self.tilt_gain * self.delta_tau
 
         # Compute position and velocity in the camera fixed (rst)
@@ -650,6 +650,13 @@ class AxisPtzController(BaseMQTTPubSub):
                             "tau_c": self.camera.tau,
                             "rho_dot_c": self.rho_dot_c,
                             "tau_dot_c": self.tau_dot_c,
+                            "distance": self.object.distance_to_tripod3d,
+                            "focus": _focus,
+                            "zoom": _zoom,
+                            "rho_rate_weird_delta": self.object.rho_rate_weird_delta,
+                            "tau_rate_weird_delta": self.object.tau_rate_weird_delta,
+                            "rho_rate_lead_delta": self.object.rho_rate_lead_delta,
+                            "tau_rate_lead_delta": self.object.tau_rate_lead_delta,
                             "pan_rate_index": self.camera.pan_rate_index,
                             "tilt_rate_index": self.camera.tilt_rate_index,
                             "delta_rho_dot_c": self.delta_rho_dot_c,

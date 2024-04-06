@@ -310,6 +310,34 @@ class Object:
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
 
+        omega_lead = (
+            axis_ptz_utilities.cross(
+                self.rst_point_lead_relative_to_tripod,
+                self.rst_velocity_msg_relative_to_tripod,
+            )
+            / axis_ptz_utilities.norm(self.rst_point_lead_relative_to_tripod) ** 2
+        )
+
+        self.rho_rate_lead = math.degrees(-omega_lead[2])
+        self.tau_rate_lead = math.degrees(omega_lead[0])
+
+        omega_weird = (
+            axis_ptz_utilities.cross(
+                self.rst_point_lead_relative_to_tripod,
+                self.rst_velocity_msg_relative_to_tripod,
+            )
+            / axis_ptz_utilities.norm(self.rst_point_now_relative_to_tripod) ** 2
+        )
+
+        self.rho_rate_weird = math.degrees(-omega_weird[2])
+        self.tau_rate_weird = math.degrees(omega_weird[0])
+
+        self.rho_rate_weird_delta = self.rho_rate_weird - self.rho_rate
+        self.tau_rate_weird_delta = self.tau_rate_weird - self.tau_rate
+
+        self.rho_rate_lead_delta = self.rho_rate_lead - self.rho_rate
+        self.tau_rate_lead_delta = self.tau_rate_lead - self.tau_rate
+
         # Compute object slew rate
         # omega = (
         #     axis_ptz_utilities.cross(self.r_rst_o_0_t, self.v_rst_o_0_t)
