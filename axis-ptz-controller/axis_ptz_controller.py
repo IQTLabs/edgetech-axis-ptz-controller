@@ -464,7 +464,8 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera.tilt_rate_max = config["tilt_rate_max"]
 
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
-
+        self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
+        
         if "zoom" in config:
             self.camera.update_zoom(config["zoom"])
         if "focus" in config:
