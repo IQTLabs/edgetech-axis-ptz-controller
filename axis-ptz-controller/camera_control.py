@@ -85,6 +85,7 @@ class CameraControl(vapix_control.CameraControl):
 
         except Exception as e:
             logging.error(f"Error: {e}")
+            logging.error(resp.text)
             return (0, 0, 0, 0)
         
 
