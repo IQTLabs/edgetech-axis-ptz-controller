@@ -613,7 +613,10 @@ class AxisPtzController(BaseMQTTPubSub):
             object_rho_derivative = 1
         if object_tau_derivative < 1:
             object_tau_derivative = 1
-
+        if object_rho_derivative > self.pan_derivative_gain_max:
+            object_rho_derivative = self.pan_derivative_gain_max
+        if object_tau_derivative > self.tilt_derivative_gain_max:
+            object_tau_derivative = self.tilt_derivative_gain_max
 
         self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
         self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
