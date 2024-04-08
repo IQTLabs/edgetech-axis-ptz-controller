@@ -465,7 +465,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
         self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
-        
+
         if "zoom" in config:
             self.camera.update_zoom(config["zoom"])
         if "focus" in config:
@@ -585,8 +585,21 @@ class AxisPtzController(BaseMQTTPubSub):
         )
 
         # Compute slew rate differences
-        self.rho_c_gain = self.pan_gain * self.delta_rho * abs(self.object.rho_derivative)
-        self.tau_c_gain = self.tilt_gain * self.delta_tau * abs(self.object.tau_derivative)
+
+        # tracking the rate of change for the object's pan and tilt allows us to amplify the gain
+        # when the object is moving quickly past the camera
+        object_rho_derivative = abs(self.object.rho_derivative)
+        object_tau_derivative = abs(self.object.tau_derivative)
+
+        # we want to make sure the object derivative does not have a dampening effect on the gain
+        if object_rho_derivative < 1:
+            object_rho_derivative = 1
+        if object_tau_derivative < 1:
+            object_tau_derivative = 1
+
+
+        self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
+        self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
 
         # Compute position and velocity in the camera fixed (rst)
         # coordinate system of the object relative to the tripod at
