@@ -585,16 +585,16 @@ class AxisPtzController(BaseMQTTPubSub):
         )
 
         # Compute slew rate differences
-        self.rho_c_gain = self.pan_gain * self.delta_rho 
-        self.tau_c_gain = self.tilt_gain * self.delta_tau
+        self.rho_c_gain = self.pan_gain * self.delta_rho * abs(self.object.rho_derivative)
+        self.tau_c_gain = self.tilt_gain * self.delta_tau * abs(self.object.tau_derivative)
 
         # Compute position and velocity in the camera fixed (rst)
         # coordinate system of the object relative to the tripod at
         # time zero after pointing the camera at the object
 
         # Update camera pan and tilt rate
-        self.rho_dot_c = self.object.rho_rate + self.rho_c_gain
-        self.tau_dot_c = self.object.tau_rate + self.tau_c_gain
+        self.rho_dot_c = self.object.rho_rate + self.rho_c_gain #- (self.object.rho_derivative ** 2)
+        self.tau_dot_c = self.object.tau_rate + self.tau_c_gain #- (self.object.tau_derivative ** 2)
 
         # Get, or compute and set focus, command camera pan and tilt
         # rates, and begin capturing images, if needed

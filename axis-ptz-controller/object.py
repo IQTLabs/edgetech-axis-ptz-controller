@@ -64,6 +64,8 @@ class Object:
 
         # Distance between the object and the tripod at time one
         self.distance_to_tripod3d = 0.0  # [m]
+        self.rho_derivative = 0.0  # [deg/s]
+        self.tau_derivative = 0.0  # [deg/s]
 
         # Position and velocity in the geocentric (XYZ) coordinate
         # system of the object relative to the tripod at time zero
@@ -91,6 +93,7 @@ class Object:
         self.uvw_point_now_relative_to_tripod = np.zeros((3,))
         self.uvw_point_lead_relative_to_tripod = np.zeros((3,))
         self.location_update_time = time()
+        self.uninitialized = True
 
     def _config_log(self) -> None:
         """Print to Logging the object configuration"""
@@ -262,9 +265,15 @@ class Object:
 
         time_delta = time() - self.location_update_time
         self.location_update_time = time()
-        self.rho_derivative = (self.rho - self.rho_lead) / time_delta
-        self.tau_derivative = (self.tau - self.tau_lead) / time_delta
 
+        if not self.uninitialized:
+            self.rho_derivative = (self.rho - self.rho_lead) / time_delta
+            self.tau_derivative = (self.tau - self.tau_lead) / time_delta
+
+        if self.rho_derivative > 100:
+            self.rho_derivative = 100
+        if self.tau_derivative > 100:
+            self.tau_derivative = 100
         self.rho = self.rho_lead
         self.tau = self.tau_lead
 
@@ -315,7 +324,7 @@ class Object:
 
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
-
+        self.uninitialized = False
 
         # Compute object slew rate
         # omega = (

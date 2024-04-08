@@ -386,6 +386,7 @@ class Camera:
             )
             / (self.tilt_rate_max),
         )
+        duration = duration + 0.5
         logging.info(f"Sleeping: {duration} [s]")
         sleep(duration)
 
