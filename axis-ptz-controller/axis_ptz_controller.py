@@ -65,8 +65,10 @@ class AxisPtzController(BaseMQTTPubSub):
         tripod_pitch: float = 0.0,
         tripod_roll: float = 0.0,
         pan_gain: float = 0.2,
+        pan_derivative_gain_max: float = 10.0,
         pan_rate_max: float = 150.0,
         tilt_gain: float = 0.2,
+        tilt_derivative_gain_max: float = 10.0,
         tilt_rate_max: float = 150.0,
         zoom: int = 6000,
         focus: int = 8749,
@@ -136,10 +138,14 @@ class AxisPtzController(BaseMQTTPubSub):
             Roll angle of camera tripod from level North [degrees]
         pan_gain: float
             Proportional control gain for pan error [1/s]
+        pan_derivative_gain_max: float
+            Maximum gain level from the object's pan derivative
         pan_rate_max: float
             Camera pan rate maximum [deg/s]
         tilt_gain: float
             Proportional control gain for tilt error [1/s]
+        tilt_derivative_gain_max: float
+            Maximum gain level from the object's tilt derivative
         tilt_rate_max: float
             Camera tilt rate maximum [deg/s]
         zoom: int
@@ -197,7 +203,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_dir = capture_dir
         self.tracking_interval = tracking_interval
         self.pan_gain = pan_gain
+        self.pan_derivative_gain_max = pan_derivative_gain_max
         self.tilt_gain = tilt_gain
+        self.tilt_derivative_gain_max = tilt_derivative_gain_max
         self.jpeg_resolution = jpeg_resolution
         self.jpeg_compression = jpeg_compression
         self.use_mqtt = use_mqtt
@@ -440,6 +448,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     config["tripod_latitude"],
                     config["tripod_altitude"],
                 )
+                
             else:
                 logging.error(
                     "Tripod longitude, latitude, and altitude must be set together"
@@ -465,6 +474,12 @@ class AxisPtzController(BaseMQTTPubSub):
 
         self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
         self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
+        self.pan_derivative_gain_max = config.get(
+            "pan_derivative_gain_max", self.pan_derivative_gain_max
+        )
+        self.tilt_derivative_gain_max = config.get(
+            "tilt_derivative_gain_max", self.tilt_derivative_gain_max
+        )
 
         if "zoom" in config:
             self.camera.update_zoom(config["zoom"])
@@ -529,7 +544,9 @@ class AxisPtzController(BaseMQTTPubSub):
             "tripod_pitch": self.camera.tripod_pitch,
             "tripod_roll": self.camera.tripod_roll,
             "pan_gain": self.pan_gain,
+            "pan_derivative_gain_max": self.pan_derivative_gain_max,
             "tilt_gain": self.tilt_gain,
+            "tilt_derivative_gain_max": self.tilt_derivative_gain_max,
             "pan_rate_max": self.camera.pan_rate_max,
             "tilt_rate_max": self.camera.tilt_rate_max,
             "zoom": self.camera.zoom,
@@ -1128,8 +1145,10 @@ def make_controller() -> AxisPtzController:
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
         pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
+        pan_derivative_gain_max=float(os.environ.get("PAN_DERIVATIVE_GAIN_MAX", 10.0)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
         tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
+        tilt_derivative_gain_max=float(os.environ.get("TILT_DERIVATIVE_GAIN_MAX", 10.0)),
         tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
         zoom=int(os.environ.get("ZOOM", 6000)),
         focus=int(os.environ.get("FOCUS", 8749)),
