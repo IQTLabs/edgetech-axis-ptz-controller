@@ -82,6 +82,7 @@ class AxisPtzController(BaseMQTTPubSub):
         auto_focus: bool = False,
         include_age: bool = True,
         lead_time: float = 0.5,
+        capture_lead_time: float = 0.25,
         log_to_mqtt: bool = False,
         log_level: str = "INFO",
         continue_on_exception: bool = False,
@@ -172,6 +173,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Flag to include object message age in lead time, or not
         lead_time: float
             Lead time used when computing camera pointing
+        capture_lead_time: float
+            Lead time for the capture position
         log_to_mqtt: bool
             Flag to publish logger messages to MQTT, or not
         log_level (str): One of 'NOTSET', 'DEBUG', 'INFO', 'WARN',
@@ -212,6 +215,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.use_camera = use_camera
         self.include_age = include_age
         self.lead_time = lead_time
+        self.capture_lead_time = capture_lead_time
         self.log_to_mqtt = log_to_mqtt
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
@@ -507,6 +511,9 @@ class AxisPtzController(BaseMQTTPubSub):
             ]  # we need to still keep track of lead_time because we will be creating new Objects later
             self.object.lead_time = config["lead_time"]
 
+        self.capture_lead_time = config.get(
+            "capture_lead_time", self.capture_lead_time
+        )
         self.jpeg_resolution = config.get("jpeg_resolution", self.jpeg_resolution)
         self.jpeg_compression = config.get("jpeg_compression", self.jpeg_compression)
         self.use_mqtt = config.get("use_mqtt", self.use_mqtt)
@@ -561,6 +568,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "auto_focus": self.camera.auto_focus,
             "include_age": self.include_age,
             "lead_time": self.lead_time,
+            "capture_lead_time": self.capture_lead_time,
             "log_to_mqtt": self.log_to_mqtt,
             "log_level": self.log_level,
             "continue_on_exception": self.continue_on_exception,
@@ -920,6 +928,17 @@ class AxisPtzController(BaseMQTTPubSub):
             logging.info(
                 f"\t📸\tCapturing image of object: {self.object.object_id}, at: {self.capture_time}, in: {image_filepath}"
             )
+
+            # Populate and publish image metadata, getting current pan
+            # and tilt, and accounting for object message age relative
+            # to the image capture
+            try:
+                ptz_time = time()
+                rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
+            except Exception as e:
+                logging.error(f"Error: {e}")
+                return
+
             # TODO: Update camera configuration to make renaming the
             # file unnecessary
             with tempfile.TemporaryDirectory() as d:
@@ -944,23 +963,18 @@ class AxisPtzController(BaseMQTTPubSub):
                 }
             )
 
-            # Populate and publish image metadata, getting current pan
-            # and tilt, and accounting for object message age relative
-            # to the image capture
-            try:
-                rho_c, tau_c, _zoom, _focus = self.camera_control.get_ptz()
-            except Exception as e:
-                logging.error(f"Error: {e}")
-                return
-
+            ptz_age = time() - ptz_time
+            logging.info(f"PTZ time: {ptz_age}")
+            adjusted_rho_c = rho_c + self.rho_dot_c * self.capture_lead_time
+            adjusted_tau_c = tau_c + self.tau_dot_c * self.capture_lead_time
             # Note: this time does not include any leading
             object_msg_age = datetime_c.timestamp() - self.object.msg_timestamp  # [s] 
             image_metadata = {
                 "timestamp": timestr,
                 "imagefile": str(image_filepath),
                 "camera": {
-                    "rho_c": rho_c,
-                    "tau_c": tau_c,
+                    "rho_c": adjusted_rho_c,
+                    "tau_c": adjusted_tau_c,
                     "tripod_longitude": self.camera.tripod_longitude,
                     "tripod_latitude": self.camera.tripod_latitude,
                     "zoom": self.camera.zoom,
@@ -1165,6 +1179,7 @@ def make_controller() -> AxisPtzController:
         auto_focus=ast.literal_eval(os.environ.get("AUTO_FOCUS", "True")),
         include_age=ast.literal_eval(os.environ.get("INCLUDE_AGE", "True")),
         lead_time=float(os.environ.get("LEAD_TIME", 0.0)),
+        capture_lead_time=float(os.environ.get("CAPTURE_LEAD_TIME", 0.0)),
         log_to_mqtt=ast.literal_eval(os.environ.get("LOG_TO_MQTT", "False")),
         log_level=os.environ.get("LOG_LEVEL", "False"),
         continue_on_exception=ast.literal_eval(
