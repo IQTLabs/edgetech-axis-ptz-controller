@@ -188,6 +188,13 @@ class Object:
             logging.debug(f"Object msg age: {msg_age} [s]")
             time_delta += msg_age
 
+
+        if (time_delta < 0.0) or (msg_age < 0.0):
+            logging.error(
+                f"Time delta: {time_delta} [s] or msg age: {msg_age} [s] is negative"
+            )
+            self.object_lock.release()
+            return
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
         # time zero, and position at slightly later time one
