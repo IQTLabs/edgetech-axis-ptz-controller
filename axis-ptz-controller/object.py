@@ -189,20 +189,15 @@ class Object:
             time_delta += msg_age
 
 
-        if (time_delta < 0.0) or (msg_age < 0.0):
-            logging.error(
-                f"Time delta: {time_delta} [s] or msg age: {msg_age} [s] is negative"
-            )
-            self.object_lock.release()
-            return
+
         # Compute position and velocity in the topocentric (ENz)
         # coordinate system of the object relative to the tripod at
         # time zero, and position at slightly later time one
 
-        self.enz_point_now_relative_to_tripod = (
-            self.enz_point_msg_relative_to_tripod
-            + msg_age * self.enz_velocity_msg_relative_to_tripod
-        )
+        # self.enz_point_now_relative_to_tripod = (
+        #     self.enz_point_msg_relative_to_tripod
+        #     + msg_age * self.enz_velocity_msg_relative_to_tripod
+        # )
         self.enz_point_lead_relative_to_tripod = (
             self.enz_point_msg_relative_to_tripod
             + time_delta * self.enz_velocity_msg_relative_to_tripod
@@ -212,10 +207,10 @@ class Object:
         # in the geocentric (XYZ) coordinate system of the object
         # relative to the tripod
 
-        self.xyz_point_now_relative_to_tripod = np.matmul(
-            self.camera.get_xyz_to_enz_transformation_matrix().transpose(),
-            self.enz_point_now_relative_to_tripod,
-        )
+        # self.xyz_point_now_relative_to_tripod = np.matmul(
+        #     self.camera.get_xyz_to_enz_transformation_matrix().transpose(),
+        #     self.enz_point_now_relative_to_tripod,
+        # )
         self.xyz_point_lead_relative_to_tripod = np.matmul(
             self.camera.get_xyz_to_enz_transformation_matrix().transpose(),
             self.enz_point_lead_relative_to_tripod,
@@ -243,27 +238,27 @@ class Object:
         )  # [deg]
 
         # Compute pan and tilt to point the camera at the object
-        self.uvw_point_now_relative_to_tripod = np.matmul(
-            self.camera.get_xyz_to_uvw_transformation_matrix(),
-            self.xyz_point_now_relative_to_tripod,
-        )
+        # self.uvw_point_now_relative_to_tripod = np.matmul(
+        #     self.camera.get_xyz_to_uvw_transformation_matrix(),
+        #     self.xyz_point_now_relative_to_tripod,
+        # )
         self.uvw_point_lead_relative_to_tripod = np.matmul(
             self.camera.get_xyz_to_uvw_transformation_matrix(),
             self.xyz_point_lead_relative_to_tripod,
         )
 
-        self.rho_now = math.degrees(
-            math.atan2(
-                self.uvw_point_now_relative_to_tripod[0],
-                self.uvw_point_now_relative_to_tripod[1],
-            )
-        )  # [deg]
-        self.tau_now = math.degrees(
-            math.atan2(
-                self.uvw_point_now_relative_to_tripod[2],
-                axis_ptz_utilities.norm(self.uvw_point_now_relative_to_tripod[0:2]),
-            )
-        )
+        # self.rho_now = math.degrees(
+        #     math.atan2(
+        #         self.uvw_point_now_relative_to_tripod[0],
+        #         self.uvw_point_now_relative_to_tripod[1],
+        #     )
+        # )  # [deg]
+        # self.tau_now = math.degrees(
+        #     math.atan2(
+        #         self.uvw_point_now_relative_to_tripod[2],
+        #         axis_ptz_utilities.norm(self.uvw_point_now_relative_to_tripod[0:2]),
+        #     )
+        # )
 
         self.rho_lead = math.degrees(
             math.atan2(
@@ -277,7 +272,7 @@ class Object:
                 axis_ptz_utilities.norm(self.uvw_point_lead_relative_to_tripod[0:2]),
             )
         )
-
+        logging.inf(f"time delta: {time_delta} [s], distance: {self.distance_to_tripod3d} [m], rho_lead: {self.rho_lead} [deg], tau_lead: {self.tau_lead} [deg],  azm: {self.azm} [deg], elv: {self.elv} [deg], msg_track: {self.msg_track} [deg], uvw_point_lead_relative_to_tripod: {self.uvw_point_lead_relative_to_tripod} [m] xyz_point_lead_relative_to_tripod: {self.xyz_point_lead_relative_to_tripod} [m] enz_point_lead_relative_to_tripod: {self.enz_point_lead_relative_to_tripod} [m] xyz_point_msg_relative_to_tripod: {self.xyz_point_msg_relative_to_tripod} [m] enz_point_msg_relative_to_tripod: {self.enz_point_msg_relative_to_tripod} [m] xyz_velocity_msg_relative_to_tripod: {self.xyz_velocity_msg_relative_to_tripod} [m/s] enz_velocity_msg_relative_to_tripod: {self.enz_velocity_msg_relative_to_tripod} [m/s]")
         self.location_update_period = time() - self.location_update_time
         self.location_update_time = time()
 
@@ -286,6 +281,9 @@ class Object:
             self.tau_derivative = (self.tau - self.tau_lead) / self.location_update_period
 
 
+        if self.rho_derivative > 10:
+            logging.warning(f"rho_derivative: {self.rho_derivative} [deg/s]")
+            logging.info(f"rho: {self.rho} [deg], rho_lead: {self.rho_lead} [deg] period: {self.location_update_period} [s]")
         self.rho = self.rho_lead
         self.tau = self.tau_lead
 
@@ -313,9 +311,9 @@ class Object:
             self.tau_lead,
         )
 
-        self.rst_point_now_relative_to_tripod = np.matmul(
-            self.E_XYZ_to_rst, self.xyz_point_now_relative_to_tripod
-        )
+        # self.rst_point_now_relative_to_tripod = np.matmul(
+        #     self.E_XYZ_to_rst, self.xyz_point_now_relative_to_tripod
+        # )
         self.rst_point_lead_relative_to_tripod = np.matmul(
             self.E_XYZ_to_rst, self.xyz_point_lead_relative_to_tripod
         )
@@ -328,10 +326,10 @@ class Object:
 
         omega = (
             axis_ptz_utilities.cross(
-                self.rst_point_now_relative_to_tripod,
+                self.rst_point_lead_relative_to_tripod,
                 self.rst_velocity_msg_relative_to_tripod,
             )
-            / axis_ptz_utilities.norm(self.rst_point_now_relative_to_tripod) ** 2
+            / axis_ptz_utilities.norm(self.rst_point_lead_relative_to_tripod) ** 2
         )
 
         self.rho_rate = math.degrees(-omega[2])
