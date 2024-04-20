@@ -816,6 +816,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 return
         else:
             self.object.update_from_msg(data)
+            self.object.recompute_location()
 
         if self.use_camera and self.object.tau < 0:
             logging.info(f"Stopping image capture of object: {self.object.object_id}")
