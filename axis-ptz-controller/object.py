@@ -94,7 +94,7 @@ class Object:
         self.uvw_point_now_relative_to_tripod = np.zeros((3,))
         self.uvw_point_lead_relative_to_tripod = np.zeros((3,))
         self.location_update_time = time()
-        self.uninitialized = True
+        self.no_derivative = True
         
         # Lock to make sure object info is not used while being updated
         self.object_lock = threading.Lock()
@@ -167,7 +167,7 @@ class Object:
             self.camera.get_xyz_to_enz_transformation_matrix().transpose(),
             self.enz_velocity_msg_relative_to_tripod,
         )
-
+        self.no_derivative = True # things get weird when you update the object and then recompute the derivative
         self.object_lock.release()
 
     def recompute_location(self) -> None:
@@ -276,7 +276,7 @@ class Object:
         self.location_update_period = time() - self.location_update_time
         self.location_update_time = time()
 
-        if not self.uninitialized:
+        if not self.no_derivative:
             self.rho_derivative = (self.rho - self.rho_lead) / self.location_update_period
             self.tau_derivative = (self.tau - self.tau_lead) / self.location_update_period
 
@@ -334,7 +334,7 @@ class Object:
 
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
-        self.uninitialized = False
+        self.no_derivative = False
 
         self.object_lock.release()
 
