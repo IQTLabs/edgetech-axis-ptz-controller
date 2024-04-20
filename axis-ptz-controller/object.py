@@ -1,6 +1,7 @@
 import logging
 import math
 from time import time
+import threading
 from typing import Any, Dict
 import numpy as np
 import axis_ptz_utilities
@@ -94,6 +95,9 @@ class Object:
         self.uvw_point_lead_relative_to_tripod = np.zeros((3,))
         self.location_update_time = time()
         self.uninitialized = True
+        
+        # Lock to make sure object info is not used while being updated
+        self.object_lock = threading.Lock()
 
     def _config_log(self) -> None:
         """Print to Logging the object configuration"""
@@ -120,7 +124,7 @@ class Object:
             msg (dict): Message containing object position and timestamp
 
         """
-
+        self.object_lock.acquire()
         self.msg_longitude = msg["longitude"]
         self.msg_latitude = msg["latitude"]
         self.msg_altitude = msg["altitude"]
@@ -164,10 +168,14 @@ class Object:
             self.enz_velocity_msg_relative_to_tripod,
         )
 
+        self.object_lock.release()
+
     def recompute_location(self) -> None:
         """Recompute the object's current position and velocity relative to the tripod.
         The amount of time since the last position message is used to calculate
          where the object is."""
+
+        self.object_lock.acquire()
 
         # Assign lead time, computing and adding age of object
         # message, if enabled
@@ -322,6 +330,8 @@ class Object:
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
         self.uninitialized = False
+
+        self.object_lock.release()
 
         # Compute object slew rate
         # omega = (
