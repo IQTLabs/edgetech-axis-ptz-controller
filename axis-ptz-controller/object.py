@@ -263,17 +263,14 @@ class Object:
             )
         )
 
-        time_delta = time() - self.location_update_time
+        self.location_update_period = time() - self.location_update_time
         self.location_update_time = time()
 
         if not self.uninitialized:
-            self.rho_derivative = (self.rho - self.rho_lead) / time_delta
-            self.tau_derivative = (self.tau - self.tau_lead) / time_delta
+            self.rho_derivative = (self.rho - self.rho_lead) / self.location_update_period
+            self.tau_derivative = (self.tau - self.tau_lead) / self.location_update_period
 
-        if self.rho_derivative > 100:
-            self.rho_derivative = 100
-        if self.tau_derivative > 100:
-            self.tau_derivative = 100
+
         self.rho = self.rho_lead
         self.tau = self.tau_lead
 

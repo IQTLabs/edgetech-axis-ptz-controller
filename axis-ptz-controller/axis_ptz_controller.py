@@ -697,6 +697,7 @@ class AxisPtzController(BaseMQTTPubSub):
                             "distance": self.object.distance_to_tripod3d,
                             "focus": _focus,
                             "zoom": _zoom,
+                            "object_location_update_period": self.object.location_update_period,
                             "rho_derivative": self.object.rho_derivative,
                             "tau_derivative": self.object.tau_derivative,
                             "pan_rate_index": self.camera.pan_rate_index,
