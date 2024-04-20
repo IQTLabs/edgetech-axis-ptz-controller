@@ -272,7 +272,6 @@ class Object:
                 axis_ptz_utilities.norm(self.uvw_point_lead_relative_to_tripod[0:2]),
             )
         )
-        logging.info(f"time delta: {time_delta} [s], distance: {self.distance_to_tripod3d} [m], rho_lead: {self.rho_lead} [deg], tau_lead: {self.tau_lead} [deg],  azm: {self.azm} [deg], elv: {self.elv} [deg], msg_track: {self.msg_track} [deg], uvw_point_lead_relative_to_tripod: {self.uvw_point_lead_relative_to_tripod} [m] xyz_point_lead_relative_to_tripod: {self.xyz_point_lead_relative_to_tripod} [m] enz_point_lead_relative_to_tripod: {self.enz_point_lead_relative_to_tripod} [m] xyz_point_msg_relative_to_tripod: {self.xyz_point_msg_relative_to_tripod} [m] enz_point_msg_relative_to_tripod: {self.enz_point_msg_relative_to_tripod} [m] xyz_velocity_msg_relative_to_tripod: {self.xyz_velocity_msg_relative_to_tripod} [m/s] enz_velocity_msg_relative_to_tripod: {self.enz_velocity_msg_relative_to_tripod} [m/s]")
         self.location_update_period = time() - self.location_update_time
         self.location_update_time = time()
 
@@ -281,9 +280,6 @@ class Object:
             self.tau_derivative = (self.tau - self.tau_lead) / self.location_update_period
 
 
-        if self.rho_derivative > 10:
-            logging.warning(f"rho_derivative: {self.rho_derivative} [deg/s]")
-            logging.info(f"rho: {self.rho} [deg], rho_lead: {self.rho_lead} [deg] period: {self.location_update_period} [s]")
         self.rho = self.rho_lead
         self.tau = self.tau_lead
 
