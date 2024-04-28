@@ -12,7 +12,7 @@ import numpy.typing as npt
 import quaternion
 
 # WGS84 parameters
-R_OPLUS = 6371008.7714 #6378137  # [m]
+R_OPLUS = 6378137 #6371008.7714 #6378137  # [m]
 F_INV = 298.257223563
 
 

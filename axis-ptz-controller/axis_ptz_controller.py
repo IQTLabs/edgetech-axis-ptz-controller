@@ -686,6 +686,8 @@ class AxisPtzController(BaseMQTTPubSub):
                             "timestamp_c": self.timestamp_c,
                             "rho_o": self.object.rho,
                             "tau_o": self.object.tau,
+                            "rho_camera_o": self.object.camera_pan,
+                            "tau_camera_o": self.object.camera_tilt,
                             "rho_dot_o": self.object.rho_rate,
                             "tau_dot_o": self.object.tau_rate,
                             "rho_c": self.camera.rho,
