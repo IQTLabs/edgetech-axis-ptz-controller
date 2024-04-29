@@ -673,7 +673,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 math.sin(math.radians(self.object.tau)),
             ]
         )
-        r_XYZ_a_t = np.matmul(self.camera.get_xyz_to_enz_transformation_matrix.transpose(), r_ENz_a_t)
+        r_XYZ_a_t = np.matmul(self.camera.get_xyz_to_enz_transformation_matrix().transpose(), r_ENz_a_t)
         r_uvw_a_t = np.matmul(self.camera.get_xyz_to_uvw_transformation_matrix, r_XYZ_a_t)
 
         # Compute pan an tilt
