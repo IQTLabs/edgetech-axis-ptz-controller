@@ -7,6 +7,7 @@ module.
 import ast
 from datetime import datetime
 import json
+import math
 import logging
 import threading
 import os
@@ -20,6 +21,7 @@ from typing import Any, Dict, Union
 from enum import Enum
 import paho.mqtt.client as mqtt
 import schedule
+import numpy as np
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
@@ -662,6 +664,25 @@ class AxisPtzController(BaseMQTTPubSub):
         #     f"\t⏱️\t {round(elapsed_time,3)}s RATES - 🎥 Pan: {self.rho_dot_c}\tTilt: {self.tau_dot_c}\t🛩️  Pan: {self.object.rho_rate}\tTilt: {self.object.tau_rate} ANGLES: 🎥  Pan: {self.rho_c}\tTilt: {self.tau_c}\t🛩️  Pan: {self.object.rho}\tTilt: {self.object.tau} "
         # )
 
+        # Compute position of aircraft relative to tripod in ENz, then XYZ,
+        # then uvw coordinates
+        r_ENz_a_t = np.array(
+            [
+                math.sin(math.radians(self.object.rho)) * math.cos(math.radians(self.object.tau)),
+                math.cos(math.radians(self.object.rho)) * math.cos(math.radians(self.object.tau)),
+                math.sin(math.radians(self.object.tau)),
+            ]
+        )
+        r_XYZ_a_t = np.matmul(self.camera.get_xyz_to_enz_transformation_matrix.transpose(), r_ENz_a_t)
+        r_uvw_a_t = np.matmul(self.camera.get_xyz_to_uvw_transformation_matrix, r_XYZ_a_t)
+
+        # Compute pan an tilt
+        self.camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
+        self.camera_tilt = math.degrees(
+            math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
+        )  # [deg]
+
+
         # Log camera pointing using MQTT
         if self.log_to_mqtt:
             logger_msg = self.generate_payload_json(
@@ -686,8 +707,10 @@ class AxisPtzController(BaseMQTTPubSub):
                             "timestamp_c": self.timestamp_c,
                             "rho_o": self.object.rho,
                             "tau_o": self.object.tau,
-                            "rho_camera_o": self.object.camera_pan,
-                            "tau_camera_o": self.object.camera_tilt,
+                            "rho_camera_o": self.camera_pan,
+                            "tau_camera_o": self.camera_tilt,
+                            "corrected_rho_delta": self.object.rho - self.camera_pan,
+                            "corrected_tau_delta": self.object.tau - self.camera_tilt,
                             "rho_dot_o": self.object.rho_rate,
                             "tau_dot_o": self.object.tau_rate,
                             "rho_c": self.camera.rho,

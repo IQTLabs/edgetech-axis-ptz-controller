@@ -283,24 +283,6 @@ class Object:
         self.rho = self.rho_lead
         self.tau = self.tau_lead
 
-        # Compute position of aircraft relative to tripod in ENz, then XYZ,
-        # then uvw coordinates
-        r_ENz_a_t = np.array(
-            [
-                math.sin(math.radians(self.rho)) * math.cos(math.radians(self.tau)),
-                math.cos(math.radians(self.rho)) * math.cos(math.radians(self.tau)),
-                math.sin(math.radians(self.tau)),
-            ]
-        )
-        r_XYZ_a_t = np.matmul(self.E_XYZ_to_ENz.transpose(), r_ENz_a_t)
-        r_uvw_a_t = np.matmul(self.E_XYZ_to_uvw, r_XYZ_a_t)
-
-        # Compute pan an tilt
-        self.camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
-        self.camera_tilt = math.degrees(
-            math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
-        )  # [deg]
-
         camera_yaw, camera_pitch, camera_roll = self.camera.get_yaw_pitch_roll()
         camera_E_XYZ, camera_N_XYZ, camera_z_XYZ = self.camera.get_e_n_z()
         # Compute position and velocity in the camera fixed (rst)
