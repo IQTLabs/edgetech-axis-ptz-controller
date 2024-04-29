@@ -171,6 +171,9 @@ def compute_r_XYZ(
                 ((1.0 - f) ** 2 * N + o_h) * np.sin(r_varphi_np),
             ),
         )
+    else:
+        logging.error(f"compute_r_XYZ - Invalid data type for d_lambda: {type(d_lambda)}")
+        raise ValueError("Invalid data type for d_lambda")
     return r_XYZ
 
 
