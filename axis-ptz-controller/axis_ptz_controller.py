@@ -592,7 +592,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # self.object_lock.acquire()
 
         start_time = time()
-        self.object.recompute_location()
+
 
         if self.use_camera:
             # Get camera pan and tilt
@@ -602,6 +602,11 @@ class AxisPtzController(BaseMQTTPubSub):
             # )
         else:
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+
+        # recompute the object's current location
+        # we want to do this after getting the camera's current location because that is a network call
+        # and it there is latency and jitter in how long it takes.
+        self.object.recompute_location()
 
         # Compute angle delta between camera and object pan and tilt
         self.delta_rho = axis_ptz_utilities.compute_angle_delta(
