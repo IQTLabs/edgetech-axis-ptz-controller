@@ -876,17 +876,26 @@ class AxisPtzController(BaseMQTTPubSub):
         None
         """
         data = self.decode_payload(msg, "Manual Control")
-        if not set(["azimuth", "elevation", "zoom"]) <= set(data.keys()):
-            logging.info(
-                f"Required keys missing from manual control message data: {data}"
-            )
-            return
 
-        azimuth = data["azimuth"]
-        elevation = data["elevation"]
-        zoom = data["zoom"]
-        logging.info(f"Setting zoom to: {zoom}")
-        self.camera.move_to_azimuth_elevation(azimuth, elevation, zoom)
+
+        if set(["azimuth", "elevation", "zoom"]) <= set(data.keys()):
+            azimuth = data["azimuth"]
+            elevation = data["elevation"]
+            zoom = data["zoom"]
+            logging.info(f"Setting camera to azimuth: {azimuth}, elevation: {elevation}, zoom: {zoom}")
+            self.camera.move_to_azimuth_elevation(azimuth, elevation, zoom)
+        
+        if set(["pan_rate", "tilt_rate"]) <= set(data.keys()):
+            pan_rate = data["pan_rate"]
+            tilt_rate = data["tilt_rate"]
+            logging.info(f"Setting camera pan rate to: {pan_rate}, tilt rate to: {tilt_rate}")
+            self.camera.update_pan_tilt_rates(pan_rate, tilt_rate)
+
+        if set(["pan", "tilt"]) <= set(data.keys()):
+            pan = data["pan"]
+            tilt = data["tilt"]
+            logging.info(f"Setting camera to pan: {pan}, tilt: {tilt}")
+            self.camera.slew_camera(pan, tilt)
 
     def _send_data(self, data: Dict[str, str]) -> bool:
         """Leverages edgetech-core functionality to publish a JSON
