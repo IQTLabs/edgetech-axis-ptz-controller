@@ -167,8 +167,7 @@ class Object:
             self.camera.get_xyz_to_enz_transformation_matrix().transpose(),
             self.enz_velocity_msg_relative_to_tripod,
         )
-        logging.info(f"XYZ object velocity relative to tripod: {self.xyz_velocity_msg_relative_to_tripod} [m/s]")
-        logging.info(f"ENZ object velocity relative to tripod: {self.enz_velocity_msg_relative_to_tripod} [m/s]")
+
         self.no_derivative = True # things get weird when you update the object and then recompute the derivative
         self.object_lock.release()
 
@@ -322,6 +321,7 @@ class Object:
             self.E_XYZ_to_rst, self.xyz_velocity_msg_relative_to_tripod
         )
 
+        
         omega = (
             axis_ptz_utilities.cross(
                 self.rst_point_lead_relative_to_tripod,
@@ -329,7 +329,7 @@ class Object:
             )
             / axis_ptz_utilities.norm(self.rst_point_lead_relative_to_tripod) ** 2
         )
-
+        
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])
         self.no_derivative = False
