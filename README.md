@@ -103,18 +103,12 @@ Running this repo requires that you have
 
 ## Usage
 
-Spinning up this system requires an MQTT server and this container to
-be included in your `docker-compose.yml`. You can find an example of
-this workflow in this repository's `docker-compose.yml`. Additionally,
-some editing of relevant environment variables will be required based
-upon your system's configuration of topics to subscribe to and MQTT
-configuration. Examples of these environment variables can be found in
-this repository's `template.axis-ptz-controller.env` file.
-
-Copying the project `docker-compose` statements into a master
-`docker-compose.yml` and `.env` files with your entire system of
-containers is the preferred workflow. Find an application architecture
-diagram example of how the usage of this module was envisioned below.
+This module is designed to be used in concert with other modules to
+build a complete tracking system. [SkyScan]() is an example of that.
+ Checkout the `docker-compose.yml` in that repo to see how these modules
+ can be connected together. The configuration for the system is stored in environment files that are loaded
+ in when it is started up. Examples of the different environment files
+ are included in the SkyScan repo, configure them to match your setup.
 
 ```mermaid 
 
@@ -134,6 +128,8 @@ style controller fill:#F9D308,color:#ffffff
 style capturedata fill:#80c342,color:#ffffff
 
 ```
+
+
 
 ## Roadmap
 

@@ -541,6 +541,7 @@ class AxisPtzController(BaseMQTTPubSub):
             "image_filename_topic": self.image_filename_topic,
             "image_capture_topic": self.image_capture_topic,
             "logger_topic": self.logger_topic,
+            "manual_control_topic": self.manual_control_topic,
             "tripod_longitude": self.camera.tripod_longitude,
             "tripod_latitude": self.camera.tripod_latitude,
             "tripod_altitude": self.camera.tripod_altitude,
