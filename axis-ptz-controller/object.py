@@ -167,6 +167,8 @@ class Object:
             self.camera.get_xyz_to_enz_transformation_matrix().transpose(),
             self.enz_velocity_msg_relative_to_tripod,
         )
+        logging.info(f"XYZ object velocity relative to tripod: {self.xyz_velocity_msg_relative_to_tripod} [m/s]")
+        logging.info(f"ENZ object velocity relative to tripod: {self.enz_velocity_msg_relative_to_tripod} [m/s]")
         self.no_derivative = True # things get weird when you update the object and then recompute the derivative
         self.object_lock.release()
 
@@ -202,7 +204,7 @@ class Object:
             self.enz_point_msg_relative_to_tripod
             + time_delta * self.enz_velocity_msg_relative_to_tripod
         )
-
+        
         # Compute position, at time one, and velocity, at time zero,
         # in the geocentric (XYZ) coordinate system of the object
         # relative to the tripod
