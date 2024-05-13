@@ -161,6 +161,8 @@ class Camera:
             "E_XYZ_to_ENz": self.E_XYZ_to_ENz,
             "E_XYZ_to_uvw": self.E_XYZ_to_uvw,
             "xyz_point": self.xyz_point,
+            "pan_rate_max": self.pan_rate_max,
+            "tilt_rate_max": self.tilt_rate_max,
         }
 
         logging.info(f"Camera configuration: {config}")
@@ -411,6 +413,7 @@ class Camera:
 
         else:
             self.pan_rate_index = (100 / self.pan_rate_max) * rho_dot
+        self.pan_rate_index = round(self.pan_rate_index)
 
     def _compute_tilt_rate_index(self, tau_dot: float) -> None:
         """Compute tilt rate index between -100 and 100 using rates in
@@ -433,6 +436,8 @@ class Camera:
 
         else:
             self.tilt_rate_index = (100 / self.tilt_rate_max) * tau_dot
+        
+        self.tilt_rate_index = round(self.tilt_rate_index)
 
     def get_yaw_pitch_roll(self) -> Tuple[float, float, float]:
         """

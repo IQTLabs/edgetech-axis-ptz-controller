@@ -20,7 +20,6 @@ class CameraControl(vapix_control.CameraControl):
         Args:
             pan: speed of movement of Pan.
             tilt: speed of movement of Tilt.
-            zoom: speed of movement of Zoom.
 
         Returns:
             Returns the response from the device to the command sent.

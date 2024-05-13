@@ -322,22 +322,22 @@ class Object:
         )
 
         
-        # omega = (
-        #     axis_ptz_utilities.cross(
-        #         self.rst_point_lead_relative_to_tripod,
-        #         self.rst_velocity_msg_relative_to_tripod,
-        #     )
-        #     / axis_ptz_utilities.norm(self.rst_point_lead_relative_to_tripod) ** 2
-        # )
-
-        # The original code use the position when the last MSG was received, not the position with leading, giving this a try
         omega = (
             axis_ptz_utilities.cross(
-                self.rst_point_msg_relative_to_tripod,
+                self.rst_point_lead_relative_to_tripod,
                 self.rst_velocity_msg_relative_to_tripod,
             )
-            / axis_ptz_utilities.norm(self.rst_point_msg_relative_to_tripod) ** 2
+            / axis_ptz_utilities.norm(self.rst_point_lead_relative_to_tripod) ** 2
         )
+
+        # The original code use the position when the last MSG was received, not the position with leading, giving this a try
+        # omega = (
+        #     axis_ptz_utilities.cross(
+        #         self.rst_point_msg_relative_to_tripod,
+        #         self.rst_velocity_msg_relative_to_tripod,
+        #     )
+        #     / axis_ptz_utilities.norm(self.rst_point_msg_relative_to_tripod) ** 2
+        # )
         
         self.rho_rate = math.degrees(-omega[2])
         self.tau_rate = math.degrees(omega[0])

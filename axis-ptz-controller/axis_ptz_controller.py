@@ -846,8 +846,12 @@ class AxisPtzController(BaseMQTTPubSub):
                 include_age=self.include_age,
                 lead_time=self.lead_time,
             )
+
             self.object.update_from_msg(data)
             self.object.recompute_location()
+
+            logging.info(f"Tracking object: {self.object.object_id}")
+
             if self.use_camera:
                 self._slew_camera(self.object.rho, self.object.tau)
                 return
@@ -857,7 +861,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         if self.use_camera and self.object.tau < 0:
             logging.info(f"Stopping image capture of object: {self.object.object_id}")
-
+            self.object = None
             self.do_capture = False
             self.status = Status.SLEEPING
             logging.info(
