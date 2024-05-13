@@ -413,7 +413,7 @@ class Camera:
 
         else:
             self.pan_rate_index = (100 / self.pan_rate_max) * rho_dot
-        self.pan_rate_index = round(self.pan_rate_index)
+
 
     def _compute_tilt_rate_index(self, tau_dot: float) -> None:
         """Compute tilt rate index between -100 and 100 using rates in
@@ -436,8 +436,7 @@ class Camera:
 
         else:
             self.tilt_rate_index = (100 / self.tilt_rate_max) * tau_dot
-        
-        self.tilt_rate_index = round(self.tilt_rate_index)
+
 
     def get_yaw_pitch_roll(self) -> Tuple[float, float, float]:
         """
