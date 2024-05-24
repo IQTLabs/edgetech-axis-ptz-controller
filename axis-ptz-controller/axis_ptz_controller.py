@@ -833,6 +833,7 @@ class AxisPtzController(BaseMQTTPubSub):
             ]
         ) <= set(data.keys()):
             logging.info(f"Required keys missing from object message data: {data}")
+            self.object = None
             return
         logging.info(
             f"\t🗒️\tProcessing object msg data: {data['object_id']} \t {data['latitude']} \t {data['longitude']} \t {data['altitude']}"

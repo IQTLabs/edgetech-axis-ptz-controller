@@ -413,7 +413,7 @@ class Camera:
 
         else:
             self.pan_rate_index = (100 / self.pan_rate_max) * rho_dot
-
+        # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
     def _compute_tilt_rate_index(self, tau_dot: float) -> None:
         """Compute tilt rate index between -100 and 100 using rates in
@@ -436,7 +436,7 @@ class Camera:
 
         else:
             self.tilt_rate_index = (100 / self.tilt_rate_max) * tau_dot
-
+        # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
     def get_yaw_pitch_roll(self) -> Tuple[float, float, float]:
         """
