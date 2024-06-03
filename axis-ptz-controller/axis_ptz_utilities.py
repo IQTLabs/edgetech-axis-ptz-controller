@@ -309,6 +309,11 @@ def compute_angle_delta( theta_c: float, theta_o: float) -> float:
             f"theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}, math.fabs(c): {math.fabs(c)}"
         )
         return 0
+    if (d > 1.0) or (d < -1.0):
+        logging.info(
+            f"D fail - theta_c: {theta_c}, theta_o: {theta_o}, d: {d}, c: {c}"
+        )
+        return 0
     return math.degrees(math.acos(d)) * c / math.fabs(c)
 
 def compute_camera_rotations(
