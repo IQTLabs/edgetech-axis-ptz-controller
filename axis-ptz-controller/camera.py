@@ -326,9 +326,7 @@ class Camera:
             logging.info(
                 f"Current Camera pan and tilt: {self.rho}, {self.tau} [deg]"
             )
-            logging.info(
-                f"Absolute move to pan: {self.rho}, and tilt: {self.tau}, with zoom: {self.zoom}"
-            )
+
             # Compute position of aircraft relative to tripod in ENz, then XYZ,
             # then uvw coordinates
             r_ENz_a_t = np.array(
@@ -347,6 +345,9 @@ class Camera:
                 math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
             )  # [deg]
 
+            logging.info(
+                f"Absolute Move - Target pan: {azimuth} tilt: {elevation} Corrected pan: {camera_pan}, and tilt: {camera_tilt}, with zoom: {self.zoom}"
+            )
             if elevation > 0 and azimuth > 0:
                 self.slew_camera(camera_pan, camera_tilt)
 
