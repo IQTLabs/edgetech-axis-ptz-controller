@@ -604,6 +604,11 @@ class AxisPtzController(BaseMQTTPubSub):
         else:
             logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
+
+        if self.object is None:
+            logging.error(f"Not sure why it is None here, but not earlier")
+            return
+
         # recompute the object's current location
         # we want to do this after getting the camera's current location because that is a network call
         # and it there is latency and jitter in how long it takes.
