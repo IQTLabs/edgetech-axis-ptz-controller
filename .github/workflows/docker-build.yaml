@@ -28,7 +28,7 @@ jobs:
         run: echo "DOCKER_FOLDER=$(echo ${{ github.event.repository.name }} | sed 's/edgetech-//')" >> $GITHUB_ENV
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ${{ env.DOCKER_FOLDER }}
           platforms: linux/arm64,linux/amd64
