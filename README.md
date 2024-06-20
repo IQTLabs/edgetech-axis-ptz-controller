@@ -136,7 +136,7 @@ Distributed under the [Apache
 ## Contact IQTLabs
 
   - Twitter: [@iqtlabs](https://twitter.com/iqtlabs)
-  - Email: info@iqtlabs.org
+  - Email: labsinfo@iqt.org
 
 See our other projects: [https://github.com/IQTLabs/](https://github.com/IQTLabs/)
 
