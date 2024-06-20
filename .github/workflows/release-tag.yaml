@@ -36,3 +36,4 @@ jobs:
           tags: |
             ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:${{ github.event.release.name }}
             ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:stable
+            ${{ vars.DOCKER_NAMESPACE }}/${{ github.event.repository.name }}:latest
