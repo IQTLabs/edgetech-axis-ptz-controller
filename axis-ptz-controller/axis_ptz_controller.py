@@ -658,7 +658,10 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera.update_focus(self.object.distance_to_tripod3d)
             self.camera.update_pan_tilt_rates(self.rho_dot_c, self.tau_dot_c)
 
-            if not self.do_capture:
+            if self.object is None:
+                logging.error(f"REALLY not sure why it is None here, but not earlier")
+                return
+            if not self.do_capture and self.object is not None:
                 logging.info(
                     f"Starting image capture of object: {self.object.object_id}"
                 )
