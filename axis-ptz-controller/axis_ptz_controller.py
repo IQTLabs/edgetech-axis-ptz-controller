@@ -594,172 +594,179 @@ class AxisPtzController(BaseMQTTPubSub):
 
         start_time = time()
 
+        try:
 
-        if self.use_camera:
-            # Get camera pan and tilt
-            self.rho_c, self.tau_c, _zoom, _focus = self.camera.get_ptz()
-            # logging.info(
-            #     f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
-            # )
-        else:
-            logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
+            if self.use_camera:
+                # Get camera pan and tilt
+                self.rho_c, self.tau_c, _zoom, _focus = self.camera.get_ptz()
+                # logging.info(
+                #     f"Camera pan, tilt, zoom, and focus: {self.rho_c} [deg], {self.tau_c} [deg], {_zoom}, {_focus}"
+                # )
+            else:
+                logging.debug(f"Controller pan and tilt: {self.rho_c}, {self.tau_c} [deg]")
 
-
-        if self.object is None:
-            logging.error(f"Not sure why it is None here, but not earlier")
-            return
-
-        # recompute the object's current location
-        # we want to do this after getting the camera's current location because that is a network call
-        # and it there is latency and jitter in how long it takes.
-        self.object.recompute_location()
-
-        # Compute angle delta between camera and object pan and tilt
-        self.delta_rho = axis_ptz_utilities.compute_angle_delta(
-            self.camera.rho, self.object.rho
-        )
-        self.delta_tau = axis_ptz_utilities.compute_angle_delta(
-            self.camera.tau, self.object.tau
-        )
-
-        # Compute slew rate differences
-
-        # tracking the rate of change for the object's pan and tilt allows us to amplify the gain
-        # when the object is moving quickly past the camera
-        object_rho_derivative = abs(self.object.rho_derivative)
-        object_tau_derivative = abs(self.object.tau_derivative)
-
-        # we want to make sure the object derivative does not have a dampening effect on the gain
-        if object_rho_derivative < 1:
-            object_rho_derivative = 1
-        if object_tau_derivative < 1:
-            object_tau_derivative = 1
-        if object_rho_derivative > self.pan_derivative_gain_max:
-            object_rho_derivative = self.pan_derivative_gain_max
-        if object_tau_derivative > self.tilt_derivative_gain_max:
-            object_tau_derivative = self.tilt_derivative_gain_max
-
-        self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
-        self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
-
-        # Compute position and velocity in the camera fixed (rst)
-        # coordinate system of the object relative to the tripod at
-        # time zero after pointing the camera at the object
-
-        # Update camera pan and tilt rate
-        self.rho_dot_c = self.object.rho_rate + self.rho_c_gain #- (self.object.rho_derivative ** 2)
-        self.tau_dot_c = self.object.tau_rate + self.tau_c_gain #- (self.object.tau_derivative ** 2)
-
-        # Get, or compute and set focus, command camera pan and tilt
-        # rates, and begin capturing images, if needed
-        if self.use_camera:
-            # Note that focus cannot be negative, since distance_to_tripod3d
-            # is non-negative
-            self.camera.update_focus(self.object.distance_to_tripod3d)
-            self.camera.update_pan_tilt_rates(self.rho_dot_c, self.tau_dot_c)
 
             if self.object is None:
-                logging.error(f"REALLY not sure why it is None here, but not earlier")
+                logging.error(f"Not sure why it is None here, but not earlier")
                 return
-            if not self.do_capture and self.object is not None:
-                logging.info(
-                    f"Starting image capture of object: {self.object.object_id}"
-                )
-                self.do_capture = True
-                self.capture_time = time()
 
-            if self.do_capture and time() - self.capture_time > self.capture_interval:
-                capture_thread = threading.Thread(target=self._capture_image)
-                capture_thread.daemon = True
-                capture_thread.start()
+            # recompute the object's current location
+            # we want to do this after getting the camera's current location because that is a network call
+            # and it there is latency and jitter in how long it takes.
+            self.object.recompute_location()
 
-        elapsed_time = time() - start_time
-        # logging.info(
-        #     f"\t⏱️\t {round(elapsed_time,3)}s RATES - 🎥 Pan: {self.rho_dot_c}\tTilt: {self.tau_dot_c}\t🛩️  Pan: {self.object.rho_rate}\tTilt: {self.object.tau_rate} ANGLES: 🎥  Pan: {self.rho_c}\tTilt: {self.tau_c}\t🛩️  Pan: {self.object.rho}\tTilt: {self.object.tau} "
-        # )
-
-        # Compute position of aircraft relative to tripod in ENz, then XYZ,
-        # then uvw coordinates
-        r_ENz_a_t = np.array(
-            [
-                math.sin(math.radians(self.object.rho)) * math.cos(math.radians(self.object.tau)),
-                math.cos(math.radians(self.object.rho)) * math.cos(math.radians(self.object.tau)),
-                math.sin(math.radians(self.object.tau)),
-            ]
-        )
-        r_XYZ_a_t = np.matmul(self.camera.get_xyz_to_enz_transformation_matrix().transpose(), r_ENz_a_t)
-        r_uvw_a_t = np.matmul(self.camera.get_xyz_to_uvw_transformation_matrix(), r_XYZ_a_t)
-
-        # Compute pan an tilt
-        self.camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
-        self.camera_tilt = math.degrees(
-            math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
-        )  # [deg]
-
-
-        # Log camera pointing using MQTT
-        if self.log_to_mqtt:
-            logger_msg = self.generate_payload_json(
-                push_timestamp=int(datetime.utcnow().timestamp()),
-                device_type=os.environ.get("DEVICE_TYPE", "Collector"),
-                id_=self.hostname,
-                deployment_id=os.environ.get(
-                    "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
-                ),
-                current_location=os.environ.get(
-                    "CURRENT_LOCATION",
-                    f"{self.camera.tripod_latitude}, {self.camera.tripod_longitude}",
-                ),
-                status="Debug",
-                message_type="Event",
-                model_version="null",
-                firmware_version="v0.0.0",
-                data_payload_type="Logger",
-                data_payload=json.dumps(
-                    {
-                        "camera-pointing": {
-                            "timestamp_c": self.timestamp_c,
-                            "rho_o": self.object.rho,
-                            "tau_o": self.object.tau,
-                            "rho_camera_o": self.camera_pan,
-                            "tau_camera_o": self.camera_tilt,
-                            "corrected_rho_delta": self.object.rho - self.camera_pan,
-                            "corrected_tau_delta": self.object.tau - self.camera_tilt,
-                            "rho_dot_o": self.object.rho_rate,
-                            "tau_dot_o": self.object.tau_rate,
-                            "rho_c": self.camera.rho,
-                            "tau_c": self.camera.tau,
-                            "rho_dot_c": self.rho_dot_c,
-                            "tau_dot_c": self.tau_dot_c,
-                            "rho_c_gain": self.rho_c_gain,
-                            "tau_c_gain": self.tau_c_gain,
-                            "rst_vel_o_0": self.object.rst_velocity_msg_relative_to_tripod[0],
-                            "rst_vel_o_1": self.object.rst_velocity_msg_relative_to_tripod[1],
-                            "rst_vel_o_2": self.object.rst_velocity_msg_relative_to_tripod[2],
-                            "rst_point_o_0": self.object.rst_point_msg_relative_to_tripod[0],
-                            "rst_point_o_1": self.object.rst_point_msg_relative_to_tripod[1],
-                            "rst_point_o_2": self.object.rst_point_msg_relative_to_tripod[2],
-                            "distance": self.object.distance_to_tripod3d,
-                            "focus": _focus,
-                            "zoom": _zoom,
-                            "object_location_update_period": self.object.location_update_period,
-                            "rho_derivative": self.object.rho_derivative,
-                            "tau_derivative": self.object.tau_derivative,
-                            "pan_rate_index": self.camera.pan_rate_index,
-                            "tilt_rate_index": self.camera.tilt_rate_index,
-                            "delta_rho_dot_c": self.delta_rho_dot_c,
-                            "delta_tau_dot_c": self.delta_tau_dot_c,
-                            "delta_rho": self.delta_rho,
-                            "delta_tau": self.delta_tau,
-                            "tracking_loop_time": elapsed_time,
-                            "time_since_last_update": time_since_last_update,
-                            "object_id": self.object.object_id,
-                        }
-                    }
-                ),
+            # Compute angle delta between camera and object pan and tilt
+            self.delta_rho = axis_ptz_utilities.compute_angle_delta(
+                self.camera.rho, self.object.rho
             )
-            self.publish_to_topic(self.logger_topic, logger_msg)
+            self.delta_tau = axis_ptz_utilities.compute_angle_delta(
+                self.camera.tau, self.object.tau
+            )
 
+            # Compute slew rate differences
+
+            # tracking the rate of change for the object's pan and tilt allows us to amplify the gain
+            # when the object is moving quickly past the camera
+            object_rho_derivative = abs(self.object.rho_derivative)
+            object_tau_derivative = abs(self.object.tau_derivative)
+
+            # we want to make sure the object derivative does not have a dampening effect on the gain
+            if object_rho_derivative < 1:
+                object_rho_derivative = 1
+            if object_tau_derivative < 1:
+                object_tau_derivative = 1
+            if object_rho_derivative > self.pan_derivative_gain_max:
+                object_rho_derivative = self.pan_derivative_gain_max
+            if object_tau_derivative > self.tilt_derivative_gain_max:
+                object_tau_derivative = self.tilt_derivative_gain_max
+
+            self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
+            self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
+
+            # Compute position and velocity in the camera fixed (rst)
+            # coordinate system of the object relative to the tripod at
+            # time zero after pointing the camera at the object
+
+            # Update camera pan and tilt rate
+            self.rho_dot_c = self.object.rho_rate + self.rho_c_gain #- (self.object.rho_derivative ** 2)
+            self.tau_dot_c = self.object.tau_rate + self.tau_c_gain #- (self.object.tau_derivative ** 2)
+
+            # Get, or compute and set focus, command camera pan and tilt
+            # rates, and begin capturing images, if needed
+            if self.use_camera:
+                # Note that focus cannot be negative, since distance_to_tripod3d
+                # is non-negative
+                self.camera.update_focus(self.object.distance_to_tripod3d)
+                self.camera.update_pan_tilt_rates(self.rho_dot_c, self.tau_dot_c)
+
+                if self.object is None:
+                    logging.error(f"REALLY not sure why it is None here, but not earlier")
+                    return
+                if not self.do_capture and self.object is not None:
+                    logging.info(
+                        f"Starting image capture of object: {self.object.object_id}"
+                    )
+                    self.do_capture = True
+                    self.capture_time = time()
+
+                if self.do_capture and time() - self.capture_time > self.capture_interval:
+                    capture_thread = threading.Thread(target=self._capture_image)
+                    capture_thread.daemon = True
+                    capture_thread.start()
+
+            elapsed_time = time() - start_time
+            # logging.info(
+            #     f"\t⏱️\t {round(elapsed_time,3)}s RATES - 🎥 Pan: {self.rho_dot_c}\tTilt: {self.tau_dot_c}\t🛩️  Pan: {self.object.rho_rate}\tTilt: {self.object.tau_rate} ANGLES: 🎥  Pan: {self.rho_c}\tTilt: {self.tau_c}\t🛩️  Pan: {self.object.rho}\tTilt: {self.object.tau} "
+            # )
+
+            # Compute position of aircraft relative to tripod in ENz, then XYZ,
+            # then uvw coordinates
+            if self.object is None:
+                logging.error(f"Object is None, not tracking")
+                return
+            
+            r_ENz_a_t = np.array(
+                [
+                    math.sin(math.radians(self.object.rho)) * math.cos(math.radians(self.object.tau)),
+                    math.cos(math.radians(self.object.rho)) * math.cos(math.radians(self.object.tau)),
+                    math.sin(math.radians(self.object.tau)),
+                ]
+            )
+            r_XYZ_a_t = np.matmul(self.camera.get_xyz_to_enz_transformation_matrix().transpose(), r_ENz_a_t)
+            r_uvw_a_t = np.matmul(self.camera.get_xyz_to_uvw_transformation_matrix(), r_XYZ_a_t)
+
+            # Compute pan an tilt
+            self.camera_pan = math.degrees(math.atan2(r_uvw_a_t[0], r_uvw_a_t[1]))  # [deg]
+            self.camera_tilt = math.degrees(
+                math.atan2(r_uvw_a_t[2], axis_ptz_utilities.norm(r_uvw_a_t[0:2]))
+            )  # [deg]
+
+
+            # Log camera pointing using MQTT
+            if self.log_to_mqtt:
+                logger_msg = self.generate_payload_json(
+                    push_timestamp=int(datetime.utcnow().timestamp()),
+                    device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+                    id_=self.hostname,
+                    deployment_id=os.environ.get(
+                        "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+                    ),
+                    current_location=os.environ.get(
+                        "CURRENT_LOCATION",
+                        f"{self.camera.tripod_latitude}, {self.camera.tripod_longitude}",
+                    ),
+                    status="Debug",
+                    message_type="Event",
+                    model_version="null",
+                    firmware_version="v0.0.0",
+                    data_payload_type="Logger",
+                    data_payload=json.dumps(
+                        {
+                            "camera-pointing": {
+                                "timestamp_c": self.timestamp_c,
+                                "rho_o": self.object.rho,
+                                "tau_o": self.object.tau,
+                                "rho_camera_o": self.camera_pan,
+                                "tau_camera_o": self.camera_tilt,
+                                "corrected_rho_delta": self.object.rho - self.camera_pan,
+                                "corrected_tau_delta": self.object.tau - self.camera_tilt,
+                                "rho_dot_o": self.object.rho_rate,
+                                "tau_dot_o": self.object.tau_rate,
+                                "rho_c": self.camera.rho,
+                                "tau_c": self.camera.tau,
+                                "rho_dot_c": self.rho_dot_c,
+                                "tau_dot_c": self.tau_dot_c,
+                                "rho_c_gain": self.rho_c_gain,
+                                "tau_c_gain": self.tau_c_gain,
+                                "rst_vel_o_0": self.object.rst_velocity_msg_relative_to_tripod[0],
+                                "rst_vel_o_1": self.object.rst_velocity_msg_relative_to_tripod[1],
+                                "rst_vel_o_2": self.object.rst_velocity_msg_relative_to_tripod[2],
+                                "rst_point_o_0": self.object.rst_point_msg_relative_to_tripod[0],
+                                "rst_point_o_1": self.object.rst_point_msg_relative_to_tripod[1],
+                                "rst_point_o_2": self.object.rst_point_msg_relative_to_tripod[2],
+                                "distance": self.object.distance_to_tripod3d,
+                                "focus": _focus,
+                                "zoom": _zoom,
+                                "object_location_update_period": self.object.location_update_period,
+                                "rho_derivative": self.object.rho_derivative,
+                                "tau_derivative": self.object.tau_derivative,
+                                "pan_rate_index": self.camera.pan_rate_index,
+                                "tilt_rate_index": self.camera.tilt_rate_index,
+                                "delta_rho_dot_c": self.delta_rho_dot_c,
+                                "delta_tau_dot_c": self.delta_tau_dot_c,
+                                "delta_rho": self.delta_rho,
+                                "delta_tau": self.delta_tau,
+                                "tracking_loop_time": elapsed_time,
+                                "time_since_last_update": time_since_last_update,
+                                "object_id": self.object.object_id,
+                            }
+                        }
+                    ),
+                )
+                self.publish_to_topic(self.logger_topic, logger_msg)
+        except Exception as e:
+            logging.error(f"Error in tracking object: {e}")
+            logging.error(traceback.format_exc())
 
     def _slew_camera(self, rho_target: float, tau_target: float) -> None:
         if self.status == Status.SLEWING:
@@ -840,7 +847,9 @@ class AxisPtzController(BaseMQTTPubSub):
                 "vertical_velocity",
             ]
         ) <= set(data.keys()):
-            logging.info(f"Required keys missing from object message data: {data}")
+            #logging.info(f"Required keys missing from object message data: {data}")
+            self.do_capture = False
+            self.status = Status.SLEEPING
             self.object = None
             return
         logging.info(
