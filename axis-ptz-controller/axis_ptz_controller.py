@@ -848,9 +848,21 @@ class AxisPtzController(BaseMQTTPubSub):
             ]
         ) <= set(data.keys()):
             #logging.info(f"Required keys missing from object message data: {data}")
-            self.do_capture = False
-            self.status = Status.SLEEPING
-            self.object = None
+            if self.status == Status.TRACKING:
+                logging.info(f"Stopping continuous pan and tilt - Object is no longer being tracked")
+                self.camera.stop_move()
+                self.do_capture = False
+                self.status = Status.SLEEPING
+                self.object = None
+            elif self.status == Status.SLEWING:
+                logging.info(f"Stopping continuous pan and tilt - Object is no longer being tracked")
+                self.camera.stop_move()
+                self.do_capture = False
+                self.status = Status.SLEEPING
+                self.object = None
+            elif self.status == Status.SLEEPING and self.object != None:
+                self.object = None
+                logging.info(f"We are sleeping, but we have an object, so we will stop tracking it")
             return
         logging.info(
             f"\t🗒️\tProcessing object msg data: {data['object_id']} \t {data['latitude']} \t {data['longitude']} \t {data['altitude']}"
