@@ -348,8 +348,14 @@ class Camera:
             logging.info(
                 f"Absolute Move - Target pan: {azimuth} tilt: {elevation} Corrected pan: {camera_pan}, and tilt: {camera_tilt}, with zoom: {self.zoom}"
             )
-            if elevation > -0 and azimuth >= -180 and azimuth <= 180:
+            if camera_tilt >= 0 and camera_pan >= -180 and camera_pan <= 180:
+
                 self.slew_camera(camera_pan, camera_tilt)
+            else:
+                logging.error(
+                    f"Invalid azimuth and elevation angles: {camera_pan}, {camera_tilt} "
+
+                )   
 
     def slew_camera(self, rho_target: float, tau_target: float) -> None:
         """Slew the camera to the specified pan and tilt angles. It
