@@ -587,6 +587,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         if self.object is None:
             logging.error(f"Object is None, not tracking")
+            self.camera.stop_move()
             return
 
         # Make sure Object info is not updated while pointing is being computed
@@ -608,6 +609,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
             if self.object is None:
                 logging.error(f"Not sure why it is None here, but not earlier")
+                self.camera.stop_move()
                 return
 
             # recompute the object's current location
@@ -661,6 +663,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
                 if self.object is None:
                     logging.error(f"REALLY not sure why it is None here, but not earlier")
+                    self.camera.stop_move()
                     return
                 if not self.do_capture and self.object is not None:
                     logging.info(
@@ -683,6 +686,7 @@ class AxisPtzController(BaseMQTTPubSub):
             # then uvw coordinates
             if self.object is None:
                 logging.error(f"Object is None, not tracking")
+                self.camera.stop_move()
                 return
             
             r_ENz_a_t = np.array(
