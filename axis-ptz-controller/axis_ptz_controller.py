@@ -415,6 +415,8 @@ class AxisPtzController(BaseMQTTPubSub):
         # ignoring config message data without a "axis-ptz-controller"
         # key
         data = self.decode_payload(msg, "Configuration")
+        if data == {}:  # If data is empty, return
+            return
         if "axis-ptz-controller" not in data:
             logging.info(
                 f"Configuration message data missing axis-ptz-controller: {data}"
@@ -527,9 +529,9 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Log configuration parameters
         self._log_config()
+        self._publish_config()
 
-    def _log_config(self) -> None:
-        """Logs all paramters that can be set on construction."""
+    def _config_object(self) -> Dict[str, Any]:
         config = {
             "hostname": self.hostname,
             "camera_ip": self.camera_ip,
@@ -576,6 +578,37 @@ class AxisPtzController(BaseMQTTPubSub):
             "log_level": self.log_level,
             "continue_on_exception": self.continue_on_exception,
         }
+
+        return config
+
+    def _publish_config(self) -> None:
+        config = self._config_object()
+        config_msg = self.generate_payload_json(
+            push_timestamp=int(datetime.utcnow().timestamp()),
+            device_type=os.environ.get("DEVICE_TYPE", "Collector"),
+            id_=self.hostname,
+            deployment_id=os.environ.get(
+                "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
+            ),
+            current_location=os.environ.get(
+                "CURRENT_LOCATION", f"{self.tripod_latitude}, {self.tripod_longitude}"
+            ),
+            status="Debug",
+            message_type="Event",
+            model_version="null",
+            firmware_version="v0.0.0",
+            data_payload_type="Current Configuration",
+            data_payload=json.dumps(
+                {
+                    "axis-ptz-controller": config
+                }
+            ),
+        )
+        self._config_callback(None, None, config_msg)
+
+    def _log_config(self) -> None:
+        """Logs all paramters that can be set on construction."""
+        config = self._config_object()
         logging.info(
             f"AxisPtzController configuration:\n{json.dumps(config, indent=4)}"
         )
