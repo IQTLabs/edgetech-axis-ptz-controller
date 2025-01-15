@@ -591,7 +591,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 "DEPLOYMENT_ID", f"Unknown-Location-{self.hostname}"
             ),
             current_location=os.environ.get(
-                "CURRENT_LOCATION", f"{self.tripod_latitude}, {self.tripod_longitude}"
+                "CURRENT_LOCATION", f"{self.camera.tripod_latitude}, {self.camera.tripod_longitude}"
             ),
             status="Debug",
             message_type="Event",
