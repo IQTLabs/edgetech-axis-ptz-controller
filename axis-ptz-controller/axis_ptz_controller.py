@@ -606,7 +606,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 }
             ),
         )
-        self._config_callback(None, None, config_msg)
+        self.publish_to_topic(self.config_topic, config_msg)
 
     def _log_config(self) -> None:
         """Logs all paramters that can be set on construction."""
