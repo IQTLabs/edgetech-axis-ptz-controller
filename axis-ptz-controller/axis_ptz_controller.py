@@ -7,6 +7,8 @@ module.
 import ast
 from datetime import datetime
 import json
+from json import JSONDecodeError
+
 import math
 import logging
 import threading
@@ -380,7 +382,7 @@ class AxisPtzController(BaseMQTTPubSub):
         try:
             json_payload = json.loads(payload)
             data_payload = json_payload[data_payload_type]
-        except (KeyError, TypeError) as e:
+        except (KeyError, TypeError, JSONDecodeError, json.JSONDecodeError) as e:
             logging.error(f"Error: {e}")
             logging.error(json_payload)
             logging.error(
