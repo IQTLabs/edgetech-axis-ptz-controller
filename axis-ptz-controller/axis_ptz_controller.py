@@ -537,8 +537,6 @@ class AxisPtzController(BaseMQTTPubSub):
         config = {
             "hostname": self.hostname,
             "camera_ip": self.camera_ip,
-            "camera_user": self.camera_user,
-            "camera_password": self.camera_password,
             "config_topic": self.config_topic,
             "orientation_topic": self.orientation_topic,
             "object_topic": self.object_topic,
