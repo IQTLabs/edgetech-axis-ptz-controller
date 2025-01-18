@@ -506,6 +506,8 @@ class AxisPtzController(BaseMQTTPubSub):
         if "use_camera" in config:
             self.use_camera = config["use_camera"]
             self.camera.use_camera = config["use_camera"]
+            if not config["use_camera"]:
+                self.camera.stop_move()
         if "include_age" in config:
             self.include_age = config[
                 "include_age"
