@@ -847,6 +847,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.camera.update_tripod_orientation(
             data["tripod_yaw"], data["tripod_pitch"], data["tripod_roll"]
         )
+        self._publish_config()
 
     def _object_callback(
         self,
