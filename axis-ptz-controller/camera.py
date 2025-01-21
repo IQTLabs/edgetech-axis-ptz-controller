@@ -199,6 +199,9 @@ class Camera:
         ) = axis_ptz_utilities.compute_E_XYZ_to_ENz(
             self.tripod_longitude, self.tripod_latitude
         )
+    def recalculate_focus(self) -> None:
+        self.focus_slope = (self.focus_min - self.focus_max) / self.hyperfocal_distance
+        self.focus_intercept = self.focus_max
 
     def update_tripod_orientation(
         self, tripod_yaw: float, tripod_pitch: float, tripod_roll: float
