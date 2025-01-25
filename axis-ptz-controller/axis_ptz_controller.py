@@ -497,11 +497,11 @@ class AxisPtzController(BaseMQTTPubSub):
             self.camera.focus = config["focus"]
         if "focus_min" in config or "focus_max" in config or "hyperfocal_distance" in config:
             if "focus_min" in config:
-                self.camera.focus_min = config["focus_min"]
+                self.camera.focus_min = float(config["focus_min"])
             if "focus_max" in config:
-                self.camera.focus_max = config["focus_max"]
+                self.camera.focus_max = float(config["focus_max"])
             if "hyperfocal_distance" in config:
-                self.camera.hyperfocal_distance = config["hyperfocal_distance"]
+                self.camera.hyperfocal_distance = float(config["hyperfocal_distance"])
             self.camera.recalculate_focus()
         if "auto_focus" in config:
             self.camera.auto_focus = config["auto_focus"]
