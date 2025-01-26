@@ -209,6 +209,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
         self.tracking_interval = tracking_interval
+        self.focus_interval = 1.0
         self.pan_gain = pan_gain
         self.pan_derivative_gain_max = pan_derivative_gain_max
         self.tilt_gain = tilt_gain
@@ -695,7 +696,6 @@ class AxisPtzController(BaseMQTTPubSub):
             if self.use_camera:
                 # Note that focus cannot be negative, since distance_to_tripod3d
                 # is non-negative
-                self.camera.update_focus(self.object.distance_to_tripod3d)
                 self.camera.update_pan_tilt_rates(self.rho_dot_c, self.tau_dot_c)
 
                 if self.object is None:
@@ -1181,6 +1181,7 @@ class AxisPtzController(BaseMQTTPubSub):
             )
 
         update_tracking_time = time()
+        update_focus_time = time()
 
         # Enter the main loop
         while True:
@@ -1193,6 +1194,16 @@ class AxisPtzController(BaseMQTTPubSub):
                 sleep(self.loop_interval)
                 if not self.use_camera:
                     self._update_pointing()
+
+                # Focus Update
+                if (
+                    self.use_camera and
+                    not self.camera.auto_focus and
+                    self.object != None and
+                    time() - update_focus_time > self.capture_interval
+                ):
+                    update_focus_time = time()
+                    self.camera.update_focus(self.object.distance_to_tripod3d)
 
                 # Track object
                 if (
