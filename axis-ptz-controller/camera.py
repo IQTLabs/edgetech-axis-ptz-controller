@@ -265,7 +265,7 @@ class Camera:
                     self.focus_slope * distance + self.focus_intercept,
                 )
             )
-            logging.debug(f"Commanding focus: {self.focus}")
+            logging.info(f"Commanding focus: {self.focus}")
             try:
                 self.camera_control.set_focus(self.focus)
             except Exception as e:
