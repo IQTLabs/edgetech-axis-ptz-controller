@@ -1200,11 +1200,11 @@ class AxisPtzController(BaseMQTTPubSub):
                     self.use_camera and
                     not self.camera.auto_focus and
                     self.object != None and
-                    time() - update_focus_time > self.capture_interval
+                    time() - update_focus_time > self.focus_interval
                 ):
                     update_focus_time = time()
                     self.camera.update_focus(self.object.distance_to_tripod3d)
-
+                
                 # Track object
                 if (
                     self.use_camera
