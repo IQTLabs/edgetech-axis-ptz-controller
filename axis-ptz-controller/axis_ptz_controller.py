@@ -1093,6 +1093,12 @@ class AxisPtzController(BaseMQTTPubSub):
             adjusted_tau_c = tau_c + self.tau_dot_c * self.capture_lead_time
             # Note: this time does not include any leading
             object_msg_age = datetime_c.timestamp() - self.object.msg_timestamp  # [s] 
+            if object_msg_age < 0:
+                logging.error(f"Object message age is negative: {object_msg_age} - {datetime_c.timestamp()} - {self.object.msg_timestamp}")
+                object_msg_age = 0
+            if object_msg_age > 60:
+                logging.error(f"Object message age is too old: {object_msg_age} - {datetime_c.timestamp()} - {self.object.msg_timestamp}")
+
             image_metadata = {
                 "timestamp": timestr,
                 "imagefile": str(image_filepath),

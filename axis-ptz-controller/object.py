@@ -38,7 +38,7 @@ class Object:
         self.lead_time = lead_time
         self.include_age = include_age
 
-        self._config_log()
+        #self._config_log()
 
         # Object pan and tilt relative to the tripod
         self.rho = 0.0  # [deg] currently set to rho_lead
@@ -114,7 +114,7 @@ class Object:
             "msg_vertical_velocity": self.msg_vertical_velocity,
             "include_age": self.include_age,
         }
-        logging.info(f"Object configuration: {config}")
+        logging.debug(f"Object configuration: {config}")
 
     def update_from_msg(self, msg: Dict[str, Any]) -> None:
         """
@@ -187,6 +187,14 @@ class Object:
                 time() - self.msg_timestamp
             )  # datetime.utcnow().timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {msg_age} [s]")
+            if msg_age < 0:
+                logging.warning(
+                    f"Object message age is negative: {msg_age} [s]. Setting to zero."
+                )
+                msg_age = 0.0
+            if msg_age > 60:
+                logging.warning(
+                    f"Object message age is greater than 60 seconds: {msg_age} [s]."
             time_delta += msg_age
 
 
