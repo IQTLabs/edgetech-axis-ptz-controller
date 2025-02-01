@@ -5,7 +5,7 @@ module.
 """
 
 import ast
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from json import JSONDecodeError
 
@@ -296,7 +296,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.object: Object = Object("fake", self.camera) # Initialize with a fake object for Typing
 
         config_msg = self.generate_payload_json(
-            push_timestamp=int(datetime.utcnow().timestamp()),
+            push_timestamp=int(datetime.now(timezone.utc).timestamp()),
             device_type=os.environ.get("DEVICE_TYPE", "Collector"),
             id_=self.hostname,
             deployment_id=os.environ.get(
@@ -328,7 +328,7 @@ class AxisPtzController(BaseMQTTPubSub):
         # coordinate system to the camera housing fixed (uvw)
         # coordinate system
         orientation_msg = self.generate_payload_json(
-            push_timestamp=int(datetime.utcnow().timestamp()),
+            push_timestamp=int(datetime.now(timezone.utc).timestamp()),
             device_type=os.environ.get("DEVICE_TYPE", "Collector"),
             id_=self.hostname,
             deployment_id=os.environ.get(
@@ -589,7 +589,7 @@ class AxisPtzController(BaseMQTTPubSub):
     def _publish_config(self) -> None:
         config = self._config_object()
         config_msg = self.generate_payload_json(
-            push_timestamp=int(datetime.utcnow().timestamp()),
+            push_timestamp=int(datetime.now(timezone.utc).timestamp()),
             device_type=os.environ.get("DEVICE_TYPE", "Collector"),
             id_=self.hostname,
             deployment_id=os.environ.get(
@@ -746,7 +746,7 @@ class AxisPtzController(BaseMQTTPubSub):
             # Log camera pointing using MQTT
             if self.log_to_mqtt:
                 logger_msg = self.generate_payload_json(
-                    push_timestamp=int(datetime.utcnow().timestamp()),
+                    push_timestamp=int(datetime.now(timezone.utc).timestamp()),
                     device_type=os.environ.get("DEVICE_TYPE", "Collector"),
                     id_=self.hostname,
                     deployment_id=os.environ.get(
@@ -996,7 +996,7 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Generate payload as JSON
         payload = self.generate_payload_json(
-            push_timestamp=int(datetime.utcnow().timestamp()),
+            push_timestamp=int(datetime.now(timezone.utc).timestamp()),
             device_type=os.environ.get("DEVICE_TYPE", "Collector"),
             id_=self.hostname,
             deployment_id=os.environ.get(
@@ -1088,7 +1088,6 @@ class AxisPtzController(BaseMQTTPubSub):
             )
 
             ptz_age = time() - ptz_time
-            logging.info(f"PTZ time: {ptz_age}")
             adjusted_rho_c = rho_c + self.rho_dot_c * self.capture_lead_time
             adjusted_tau_c = tau_c + self.tau_dot_c * self.capture_lead_time
             # Note: this time does not include any leading

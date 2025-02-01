@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import math
 import os
@@ -100,7 +100,7 @@ def config_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
     with open("test-data/unit-test-data/config_msg_data.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
-        push_timestamp=int(datetime.utcnow().timestamp()),
+        push_timestamp=int(datetime.now(timezone.utc).timestamp()),
         device_type="TBC",
         id_="TBC",
         deployment_id="TBC",
@@ -121,7 +121,7 @@ def orientation_msg_0s(controller: axis_ptz_controller.AxisPtzController) -> str
     with open("test-data/unit-test-data/orientation_msg_data_0s.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
-        push_timestamp=int(datetime.utcnow().timestamp()),
+        push_timestamp=int(datetime.now(timezone.utc).timestamp()),
         device_type="TBC",
         id_="TBC",
         deployment_id="TBC",
@@ -142,7 +142,7 @@ def orientation_msg_90s(controller: axis_ptz_controller.AxisPtzController) -> st
     with open("test-data/unit-test-data/orientation_msg_data_90s.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
-        push_timestamp=int(datetime.utcnow().timestamp()),
+        push_timestamp=int(datetime.now(timezone.utc).timestamp()),
         device_type="TBC",
         id_="TBC",
         deployment_id="TBC",
@@ -175,7 +175,7 @@ def object_msg(controller: axis_ptz_controller.AxisPtzController) -> str:
     with open("test-data/unit-test-data/object_msg_data.json", "r") as f:
         data = json.load(f)
     msg = controller.generate_payload_json(
-        push_timestamp=int(datetime.utcnow().timestamp()),
+        push_timestamp=int(datetime.now(timezone.utc).timestamp()),
         device_type="TBC",
         id_="TBC",
         deployment_id="TBC",

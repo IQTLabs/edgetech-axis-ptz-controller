@@ -6,7 +6,7 @@ from typing import Any, Dict
 import numpy as np
 import axis_ptz_utilities
 from camera import Camera
-
+from datetime import datetime, timezone
 
 class Object:
 
@@ -184,8 +184,8 @@ class Object:
         msg_age = 0.0
         if self.include_age:
             msg_age = (
-                time() - self.msg_timestamp
-            )  # datetime.utcnow().timestamp() - self.timestamp_o  # [s]
+                datetime.now(timezone.utc).timestamp()  - self.msg_timestamp
+            )  # datetime.now(timezone.utc).timestamp() - self.timestamp_o  # [s]
             logging.debug(f"Object msg age: {msg_age} [s]")
             if msg_age < 0:
                 logging.warning(
