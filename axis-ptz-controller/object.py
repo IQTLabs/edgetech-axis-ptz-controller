@@ -194,7 +194,7 @@ class Object:
                 msg_age = 0.0
             if msg_age > 60:
                 logging.warning(
-                    f"Object message age is greater than 60 seconds: {msg_age} [s]."
+                    f"Object message age is greater than 60 seconds: {msg_age} [s].")
             time_delta += msg_age
 
 
