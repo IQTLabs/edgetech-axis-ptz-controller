@@ -383,23 +383,24 @@ class Camera:
             self.camera_control.absolute_move(rho_target, tau_target, self.zoom, 99)
         except Exception as e:
             logging.error(f"Error: {e}")
-
-        duration = max(
-            math.fabs(
-                axis_ptz_utilities.compute_angle_delta(
-                    theta_c=self.rho, theta_o=rho_target
-                )
-            )
-            / (self.pan_rate_max),
-            math.fabs(
+        tilt_delta = math.fabs(
                 axis_ptz_utilities.compute_angle_delta(
                     theta_c=self.tau, theta_o=tau_target
                 )
             )
+        pan_delta = math.fabs(
+                axis_ptz_utilities.compute_angle_delta(
+                    theta_c=self.rho, theta_o=rho_target
+                )
+            )
+        duration = max(
+            pan_delta
+            / (self.pan_rate_max),
+            tilt_delta
             / (self.tilt_rate_max),
         )
         duration = duration + 0.5
-        logging.info(f"Sleeping: {duration} [s]")
+        logging.info(f"Panning {pan_delta} degrees, Tilting {tilt_delta} Sleeping: {duration} [s] = Pan time {pan_delta / self.pan_rate_max} or  Tilt time {tilt_delta / self.tilt_rate_max} + 0.5")
         sleep(duration)
 
     def _compute_pan_rate_index(self, rho_dot: float) -> None:
