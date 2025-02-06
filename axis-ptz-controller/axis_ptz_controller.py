@@ -681,12 +681,29 @@ class AxisPtzController(BaseMQTTPubSub):
             # and it there is latency and jitter in how long it takes.
             self.object.recompute_location()
 
-            self.pan_pid.setpoint = self.object.rho
-            self.rho_dot_c = self.object.rho_rate + self.pan_pid(self.camera.rho)
+            self.delta_rho = axis_ptz_utilities.compute_angle_delta(
+                self.camera.rho, self.object.rho
+            )
+            self.delta_tau = axis_ptz_utilities.compute_angle_delta(
+                self.camera.tau, self.object.tau
+            )
+
+            #self.pan_pid.setpoint = self.object.rho
+            #self.pidout_rho = self.pan_pid(self.camera.rho)
+            #self.tilt_pid.setpoint = self.object.tau
+            #self.pidout_tau = self.tilt_pid(self.camera.tau)
             
-            self.tilt_pid.setpoint = self.object.tau
-            self.tau_dot_c = self.object.tau_rate + self.tilt_pid(self.camera.tau)
-            logging.info(f"\tProcessing angle rate command data:\t {self.rho_dot_c} \t {self.tau_dot_c}")
+            self.pan_pid.setpoint = 0
+            self.pidout_rho = self.pan_pid(-self.delta_rho)
+            
+            self.tilt_pid.setpoint = 0
+            self.pidout_tau = self.tilt_pid(-self.delta_tau)
+            
+
+            self.rho_dot_c = self.object.rho_rate + self.pidout_rho
+            self.tau_dot_c = self.object.tau_rate + self.pidout_tau
+            
+            logging.info(f"\tProcessing angle rate command data:\t {self.rho_dot_c} \t {self.pidout_rho} \t {self.camera.rho} \t {self.object.rho} \t {self.tau_dot_c} \t {self.pidout_tau} \t {self.camera.tau} \t {self.object.tau}")
 
             # Get, or compute and set focus, command camera pan and tilt
             # rates, and begin capturing images, if needed
@@ -774,8 +791,10 @@ class AxisPtzController(BaseMQTTPubSub):
                                 "tau_c": self.camera.tau,
                                 "rho_dot_c": self.rho_dot_c,
                                 "tau_dot_c": self.tau_dot_c,
-                                "rho_c_gain": self.rho_c_gain,
-                                "tau_c_gain": self.tau_c_gain,
+                                "pidout_rho": self.pidout_rho,
+                                "pidout_tau": self.pidout_tau,
+                                "rho_c_gain": -1337,
+                                "tau_c_gain": -1337,
                                 "rst_vel_o_0": self.object.rst_velocity_msg_relative_to_tripod[0],
                                 "rst_vel_o_1": self.object.rst_velocity_msg_relative_to_tripod[1],
                                 "rst_vel_o_2": self.object.rst_velocity_msg_relative_to_tripod[2],
@@ -790,8 +809,8 @@ class AxisPtzController(BaseMQTTPubSub):
                                 "tau_derivative": self.object.tau_derivative,
                                 "pan_rate_index": self.camera.pan_rate_index,
                                 "tilt_rate_index": self.camera.tilt_rate_index,
-                                "delta_rho_dot_c": self.delta_rho_dot_c,
-                                "delta_tau_dot_c": self.delta_tau_dot_c,
+                                "delta_rho_dot_c": -1337,
+                                "delta_tau_dot_c": -1337,
                                 "delta_rho": self.delta_rho,
                                 "delta_tau": self.delta_tau,
                                 "tracking_loop_time": elapsed_time,
@@ -812,7 +831,13 @@ class AxisPtzController(BaseMQTTPubSub):
             return
 
         self.status = Status.SLEWING
-        #self.camera.slew_camera(rho_target, tau_target)
+        self.camera.slew_camera(rho_target, tau_target)
+        self.pan_pid.integral = 0
+        self.pan_pid.derivative = 0
+        self.pan_pid._last_input = None  # Prevent large derivative spike on restart
+        self.tilt_pid.integral = 0
+        self.tilt_pid.derivative = 0
+        self.tilt_pid._last_input = None  # Prevent large derivative spike on restart
 
         # Start Tracking
         self.status = Status.TRACKING
