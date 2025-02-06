@@ -812,7 +812,7 @@ class AxisPtzController(BaseMQTTPubSub):
             return
 
         self.status = Status.SLEWING
-        self.camera.slew_camera(rho_target, tau_target)
+        #self.camera.slew_camera(rho_target, tau_target)
 
         # Start Tracking
         self.status = Status.TRACKING
