@@ -953,15 +953,15 @@ class AxisPtzController(BaseMQTTPubSub):
             self.object.update_from_msg(data)
             #self.object.recompute_location()
 
-        if self.use_camera and self.object.tau < 0:
-            logging.info(f"Stopping image capture of object: {self.object.object_id}")
-            self.object = None
-            self.do_capture = False
-            self.status = Status.SLEEPING
-            logging.info(
-                "Stopping continuous pan and tilt - Object is below the horizon"
-            )
-            self.camera.stop_move()
+        #if self.use_camera and self.object.tau < 0:
+        #    logging.info(f"Stopping image capture of object: {self.object.object_id}")
+        #    self.object = None
+        #    self.do_capture = False
+        #    self.status = Status.SLEEPING
+        #    logging.info(
+        #        "Stopping continuous pan and tilt - Object is below the horizon"
+        #    )
+        #    self.camera.stop_move()
 
     def _manual_control_callback(
         self,
