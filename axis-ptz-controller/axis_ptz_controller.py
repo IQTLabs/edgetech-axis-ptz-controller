@@ -1165,6 +1165,44 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info("Exiting")
         sys.exit()
 
+    def _control_timing(self) -> None:
+        # Update camera pointing
+        if not self.use_camera:
+            self._update_pointing
+        
+        # Focus Update
+        if (
+            self.use_camera and
+            not self.camera.auto_focus and
+            self.object != None and
+            time() - update_focus_time > self.focus_interval
+        ):
+            update_focus_time = time()
+            self.camera.update_focus(self.object.distance_to_tripod3d)
+        
+        # Track object
+        if (
+            self.use_camera
+            and time() - update_tracking_time > self.tracking_interval
+        ):
+            time_since_last_update = time() - update_tracking_time
+            update_tracking_time = time()
+            self._track_object(time_since_last_update)
+
+        # Command zero camera pan and tilt rates, and stop
+        # capturing images if a object message has not been
+        # received in twice the capture interval
+        if (
+            self.status == Status.TRACKING
+            and time() - self.object_update_time > 2.0 * self.capture_interval
+        ):
+            logging.info(
+                f"Stopping tracking image capture of object, no longer receiving updates"
+            )
+            self.do_capture = False
+            self.camera.stop_move()
+            self.status = Status.SLEEPING
+
     def main(self) -> None:
         """Schedule module heartbeat and image capture, subscribe to
         all required topics, then loop forever. Update pointing for
@@ -1176,6 +1214,7 @@ class AxisPtzController(BaseMQTTPubSub):
             schedule.every(self.heartbeat_interval).seconds.do(
                 self.publish_heartbeat, payload="PTZ Controller Module Heartbeat"
             )
+            schedule.every(self.loop_interval).seconds.do(_control_timing)
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
@@ -1195,43 +1234,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 if self.use_mqtt:
                     schedule.run_pending()
 
-                # Update camera pointing
-                sleep(self.loop_interval)
-                if not self.use_camera:
-                    self._update_pointing()
-
-                # Focus Update
-                if (
-                    self.use_camera and
-                    not self.camera.auto_focus and
-                    self.object != None and
-                    time() - update_focus_time > self.focus_interval
-                ):
-                    update_focus_time = time()
-                    self.camera.update_focus(self.object.distance_to_tripod3d)
                 
-                # Track object
-                if (
-                    self.use_camera
-                    and time() - update_tracking_time > self.tracking_interval
-                ):
-                    time_since_last_update = time() - update_tracking_time
-                    update_tracking_time = time()
-                    self._track_object(time_since_last_update)
-
-                # Command zero camera pan and tilt rates, and stop
-                # capturing images if a object message has not been
-                # received in twice the capture interval
-                if (
-                    self.status == Status.TRACKING
-                    and time() - self.object_update_time > 2.0 * self.capture_interval
-                ):
-                    logging.info(
-                        f"Stopping tracking image capture of object, no longer receiving updates"
-                    )
-                    self.do_capture = False
-                    self.camera.stop_move()
-                    self.status = Status.SLEEPING
 
             except KeyboardInterrupt:
                 # If keyboard interrupt, fail gracefully
