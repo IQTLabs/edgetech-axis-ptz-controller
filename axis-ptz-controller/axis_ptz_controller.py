@@ -69,10 +69,14 @@ class AxisPtzController(BaseMQTTPubSub):
         tripod_yaw: float = 0.0,
         tripod_pitch: float = 0.0,
         tripod_roll: float = 0.0,
-        pan_gain: float = 0.2,
+        pan_gain_k: float = 0.5,
+        pan_gain_i: float = 0.2,
+        pan_gain_d: float = 0.0,
         pan_derivative_gain_max: float = 10.0,
         pan_rate_max: float = 150.0,
-        tilt_gain: float = 0.2,
+        tilt_gain_k: float = 0.5,
+        tilt_gain_i: float = 0.2,
+        tilt_gain_d: float = 0.0,
         tilt_derivative_gain_max: float = 10.0,
         tilt_rate_max: float = 150.0,
         zoom: int = 6000,
@@ -91,7 +95,6 @@ class AxisPtzController(BaseMQTTPubSub):
         log_to_mqtt: bool = False,
         log_level: str = "INFO",
         continue_on_exception: bool = False,
-        legacy_control: bool = False,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -143,14 +146,22 @@ class AxisPtzController(BaseMQTTPubSub):
             Pitch angle of camera tripod from level North [degrees]
         tripod_roll: float
             Roll angle of camera tripod from level North [degrees]
-        pan_gain: float
+        pan_gain_k: float
             Proportional control gain for pan error [1/s]
+        pan_gain_i: float
+            Integral control gain for pan error [1/s]
+        pan_gain_d: float
+            Derivative control gain for pan error [1/s]
         pan_derivative_gain_max: float
             Maximum gain level from the object's pan derivative
         pan_rate_max: float
             Camera pan rate maximum [deg/s]
-        tilt_gain: float
+        tilt_gain_k: float
             Proportional control gain for tilt error [1/s]
+        tilt_gain_i: float
+            Integral control gain for tilt error [1/s]
+        tilt_gain_d: float
+            Derivative control gain for tilt error [1/s]
         tilt_derivative_gain_max: float
             Maximum gain level from the object's tilt derivative
         tilt_rate_max: float
@@ -212,9 +223,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_dir = capture_dir
         self.tracking_interval = tracking_interval
         self.focus_interval = 1.0
-        self.pan_gain = pan_gain
         self.pan_derivative_gain_max = pan_derivative_gain_max
-        self.tilt_gain = tilt_gain
         self.tilt_derivative_gain_max = tilt_derivative_gain_max
         self.jpeg_resolution = jpeg_resolution
         self.jpeg_compression = jpeg_compression
@@ -226,13 +235,13 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_to_mqtt = log_to_mqtt
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
-        self.legacyControl = legacy_control
+        self.last_update = time()
 
         # PID controllers for pan and tilt
-        self.pan_pid = PID(self.pan_gain, 0.0, 0.0)
+        self.pan_pid = PID(pan_gain_k, pan_gain_i, pan_gain_d)
         self.pan_pid.output_limits = (-pan_rate_max, pan_rate_max)
 
-        self.tilt_pid = PID(self.tilt_gain, 0.0, 0.0)
+        self.tilt_pid = PID(tilt_gain_k, tilt_gain_i, tilt_gain_d)
         self.tilt_pid.output_limits = (-tilt_rate_max, tilt_rate_max)
 
         # Always construct camera configuration and control since
@@ -257,17 +266,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.rho_c = 0.0  # [deg]
         self.tau_c = 0.0  # [deg]
 
-        # Delta between camera and object pan and tilt angles
-        self.delta_rho = 0.0  # [deg]
-        self.delta_tau = 0.0  # [deg]
-
         # Camera pan and tilt rates
         self.rho_dot_c = 0.0  # [deg/s]
         self.tau_dot_c = 0.0  # [deg/s]
-
-        # Camera pan and tilt rate differences
-        self.delta_rho_dot_c = 0.0  # [deg/s]
-        self.delta_tau_dot_c = 0.0  # [deg/s]
 
         # Set the status for the controller
         self.status = Status.SLEEPING
@@ -493,8 +494,12 @@ class AxisPtzController(BaseMQTTPubSub):
         if "tilt_rate_max" in config:
             self.camera.tilt_rate_max = config["tilt_rate_max"]
 
-        self.pan_gain = config.get("pan_gain", self.pan_gain)  # [1/s]
-        self.tilt_gain = config.get("tilt_gain", self.tilt_gain)  # [1/s]
+        self.pan_pid.Kp = config.get("pan_gain_k", self.pan_pid.Kp)  # [1/s]
+        self.pan_pid.Ki = config.get("pan_gain_i", self.pan_pid.Ki)  # [1/s]
+        self.pan_pid.Kd = config.get("pan_gain_d", self.pan_pid.Kd)  # [1/s]
+        self.tilt_pid.Kp = config.get("tilt_gain_k", self.tilt_pid.Kp)  # [1/s]
+        self.tilt_pid.Ki = config.get("tilt_gain_i", self.tilt_pid.Ki)  # [1/s]
+        self.tilt_pid.Kd = config.get("tilt_gain_d", self.tilt_pid.Kd)  # [1/s]
         self.pan_derivative_gain_max = config.get(
             "pan_derivative_gain_max", self.pan_derivative_gain_max
         )
@@ -570,9 +575,13 @@ class AxisPtzController(BaseMQTTPubSub):
             "tripod_yaw": self.camera.tripod_yaw,
             "tripod_pitch": self.camera.tripod_pitch,
             "tripod_roll": self.camera.tripod_roll,
-            "pan_gain": self.pan_gain,
+            "pan_gain_k": self.pan_pid.Kp,
+            "pan_gain_i": self.pan_pid.Ki,
+            "pan_gain_d": self.pan_pid.Kd,
             "pan_derivative_gain_max": self.pan_derivative_gain_max,
-            "tilt_gain": self.tilt_gain,
+            "tilt_gain_k": self.tilt_pid.Kp,
+            "tilt_gain_i": self.tilt_pid.Ki,
+            "tilt_gain_d": self.tilt_pid.Kd,
             "tilt_derivative_gain_max": self.tilt_derivative_gain_max,
             "pan_rate_max": self.camera.pan_rate_max,
             "tilt_rate_max": self.camera.tilt_rate_max,
@@ -629,7 +638,14 @@ class AxisPtzController(BaseMQTTPubSub):
         )
 
 
-    def _track_object(self, time_since_last_update: float) -> None:
+    def _track_object(self) -> None:
+        if not self.use_camera:
+            return
+
+        time_since_last_update = time() - self.last_update
+        self.last_update = time()
+        
+
         if self.status != Status.TRACKING:
             return
 
@@ -665,48 +681,12 @@ class AxisPtzController(BaseMQTTPubSub):
             # and it there is latency and jitter in how long it takes.
             self.object.recompute_location()
 
-            # Compute angle delta between camera and object pan and tilt
-            self.delta_rho = axis_ptz_utilities.compute_angle_delta(
-                self.camera.rho, self.object.rho
-            )
-            self.delta_tau = axis_ptz_utilities.compute_angle_delta(
-                self.camera.tau, self.object.tau
-            )
-
-            if self.legacyControl:
-                # Compute slew rate differences
-
-                # tracking the rate of change for the object's pan and tilt allows us to amplify the gain
-                # when the object is moving quickly past the camera
-                object_rho_derivative = abs(self.object.rho_derivative)
-                object_tau_derivative = abs(self.object.tau_derivative)
-
-                # we want to make sure the object derivative does not have a dampening effect on the gain
-                if object_rho_derivative < 1:
-                    object_rho_derivative = 1
-                if object_tau_derivative < 1:
-                    object_tau_derivative = 1
-                if object_rho_derivative > self.pan_derivative_gain_max:
-                    object_rho_derivative = self.pan_derivative_gain_max
-                if object_tau_derivative > self.tilt_derivative_gain_max:
-                    object_tau_derivative = self.tilt_derivative_gain_max
-
-                self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
-                self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
-
-                # Compute position and velocity in the camera fixed (rst)
-                # coordinate system of the object relative to the tripod at
-                # time zero after pointing the camera at the object
-
-                # Update camera pan and tilt rate
-                self.rho_dot_c = self.object.rho_rate + self.rho_c_gain #- (self.object.rho_derivative ** 2)
-                self.tau_dot_c = self.object.tau_rate + self.tau_c_gain #- (self.object.tau_derivative ** 2)
-            else:
-                self.pan_pid.setpoint = self.object.rho
-                self.rho_dot_c = self.object.rho_rate + self.pan_pid(self.camera.rho)
-                
-                self.tilt_pid.setpoint = self.object.tau
-                self.tau_dot_c = self.object.tau_rate + self.tilt_pid(self.camera.tau)
+            self.pan_pid.setpoint = self.object.rho
+            self.rho_dot_c = self.object.rho_rate + self.pan_pid(self.camera.rho)
+            
+            self.tilt_pid.setpoint = self.object.tau
+            self.tau_dot_c = self.object.tau_rate + self.tilt_pid(self.camera.tau)
+            logging.info(f"\tProcessing angle rate command data:\t {self.rho_dot_c} \t {self.tau_dot_c}")
 
             # Get, or compute and set focus, command camera pan and tilt
             # rates, and begin capturing images, if needed
@@ -1182,7 +1162,8 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info("Exiting")
         sys.exit()
 
-    def _control_timing(self) -> None:
+    def _control_timing(self) -> None:        
+
         # Update camera pointing
         if not self.use_camera:
             self._update_pointing
@@ -1192,19 +1173,11 @@ class AxisPtzController(BaseMQTTPubSub):
             self.use_camera and
             not self.camera.auto_focus and
             self.object != None and
-            time() - update_focus_time > self.focus_interval
+            time() - self.update_focus_time > self.focus_interval
         ):
-            update_focus_time = time()
+            self.update_focus_time = time()
             self.camera.update_focus(self.object.distance_to_tripod3d)
-        
-        # Track object
-        if (
-            self.use_camera
-            and time() - update_tracking_time > self.tracking_interval
-        ):
-            time_since_last_update = time() - update_tracking_time
-            update_tracking_time = time()
-            self._track_object(time_since_last_update)
+
 
         # Command zero camera pan and tilt rates, and stop
         # capturing images if a object message has not been
@@ -1231,7 +1204,9 @@ class AxisPtzController(BaseMQTTPubSub):
             schedule.every(self.heartbeat_interval).seconds.do(
                 self.publish_heartbeat, payload="PTZ Controller Module Heartbeat"
             )
-            schedule.every(self.loop_interval).seconds.do(_control_timing)
+            schedule.every(self.loop_interval).seconds.do(self._control_timing)
+            schedule.every(self.tracking_interval).seconds.do(self._track_object)
+            
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
@@ -1241,15 +1216,15 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.manual_control_topic, self._manual_control_callback
             )
 
-        update_tracking_time = time()
-        update_focus_time = time()
-
+        self.update_tracking_time = time()
+        self.update_focus_time = time()
         # Enter the main loop
         while True:
             try:
                 # Run pending scheduled messages
                 if self.use_mqtt:
                     schedule.run_pending()
+                sleep(0.001)
 
                 
 
@@ -1321,10 +1296,14 @@ def make_controller() -> AxisPtzController:
         tripod_yaw=float(os.environ.get("TRIPOD_YAW", 0.0)),
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
-        pan_gain=float(os.environ.get("PAN_GAIN", 0.2)),
+        pan_gain_k=float(os.environ.get("PAN_GAIN_K", 0.5)),
+        pan_gain_i=float(os.environ.get("PAN_GAIN_I", 0.2)),
+        pan_gain_d=float(os.environ.get("PAN_GAIN_D", 0.0)),
         pan_derivative_gain_max=float(os.environ.get("PAN_DERIVATIVE_GAIN_MAX", 10.0)),
         pan_rate_max=float(os.environ.get("PAN_RATE_MAX", 150.0)),
-        tilt_gain=float(os.environ.get("TILT_GAIN", 0.2)),
+        tilt_gain_k=float(os.environ.get("TILT_GAIN_K", 0.5)),
+        tilt_gain_i=float(os.environ.get("TILT_GAIN_I", 0.2)),
+        tilt_gain_d=float(os.environ.get("TILT_GAIN_D", 0.0)),
         tilt_derivative_gain_max=float(os.environ.get("TILT_DERIVATIVE_GAIN_MAX", 10.0)),
         tilt_rate_max=float(os.environ.get("TILT_RATE_MAX", 150.0)),
         zoom=int(os.environ.get("ZOOM", 6000)),
@@ -1345,8 +1324,6 @@ def make_controller() -> AxisPtzController:
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
-        legacy_control=ast.literal_eval(
-            os.environ.get("LEGACY_CONTROL", "False")
         
     )
 
