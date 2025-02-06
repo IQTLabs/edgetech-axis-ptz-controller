@@ -5,6 +5,7 @@ COPY ./pyproject.toml .
 COPY ./poetry.lock .
 RUN poetry config virtualenvs.create false
 RUN poetry install --without dev
+RUN pip install simple-pid
 
 COPY ./axis_ptz_controller.py .
 COPY ./axis_ptz_utilities.py .

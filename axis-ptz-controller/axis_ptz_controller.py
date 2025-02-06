@@ -8,6 +8,7 @@ import ast
 from datetime import datetime, timezone
 import json
 from json import JSONDecodeError
+from simple_pid import PID
 
 import math
 import logging
@@ -90,6 +91,7 @@ class AxisPtzController(BaseMQTTPubSub):
         log_to_mqtt: bool = False,
         log_level: str = "INFO",
         continue_on_exception: bool = False,
+        legacy_control: bool = False,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -224,6 +226,14 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_to_mqtt = log_to_mqtt
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
+        self.legacyControl = legacy_control
+
+        # PID controllers for pan and tilt
+        self.pan_pid = PID(self.pan_gain, 0.0, 0.0)
+        self.pan_pid.output_limits = (-pan_rate_max, pan_rate_max)
+
+        self.tilt_pid = PID(self.tilt_gain, 0.0, 0.0)
+        self.tilt_pid.output_limits = (-tilt_rate_max, tilt_rate_max)
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -663,33 +673,40 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.camera.tau, self.object.tau
             )
 
-            # Compute slew rate differences
+            if self.legacyControl:
+                # Compute slew rate differences
 
-            # tracking the rate of change for the object's pan and tilt allows us to amplify the gain
-            # when the object is moving quickly past the camera
-            object_rho_derivative = abs(self.object.rho_derivative)
-            object_tau_derivative = abs(self.object.tau_derivative)
+                # tracking the rate of change for the object's pan and tilt allows us to amplify the gain
+                # when the object is moving quickly past the camera
+                object_rho_derivative = abs(self.object.rho_derivative)
+                object_tau_derivative = abs(self.object.tau_derivative)
 
-            # we want to make sure the object derivative does not have a dampening effect on the gain
-            if object_rho_derivative < 1:
-                object_rho_derivative = 1
-            if object_tau_derivative < 1:
-                object_tau_derivative = 1
-            if object_rho_derivative > self.pan_derivative_gain_max:
-                object_rho_derivative = self.pan_derivative_gain_max
-            if object_tau_derivative > self.tilt_derivative_gain_max:
-                object_tau_derivative = self.tilt_derivative_gain_max
+                # we want to make sure the object derivative does not have a dampening effect on the gain
+                if object_rho_derivative < 1:
+                    object_rho_derivative = 1
+                if object_tau_derivative < 1:
+                    object_tau_derivative = 1
+                if object_rho_derivative > self.pan_derivative_gain_max:
+                    object_rho_derivative = self.pan_derivative_gain_max
+                if object_tau_derivative > self.tilt_derivative_gain_max:
+                    object_tau_derivative = self.tilt_derivative_gain_max
 
-            self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
-            self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
+                self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
+                self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
 
-            # Compute position and velocity in the camera fixed (rst)
-            # coordinate system of the object relative to the tripod at
-            # time zero after pointing the camera at the object
+                # Compute position and velocity in the camera fixed (rst)
+                # coordinate system of the object relative to the tripod at
+                # time zero after pointing the camera at the object
 
-            # Update camera pan and tilt rate
-            self.rho_dot_c = self.object.rho_rate + self.rho_c_gain #- (self.object.rho_derivative ** 2)
-            self.tau_dot_c = self.object.tau_rate + self.tau_c_gain #- (self.object.tau_derivative ** 2)
+                # Update camera pan and tilt rate
+                self.rho_dot_c = self.object.rho_rate + self.rho_c_gain #- (self.object.rho_derivative ** 2)
+                self.tau_dot_c = self.object.tau_rate + self.tau_c_gain #- (self.object.tau_derivative ** 2)
+            else:
+                self.pan_pid.setpoint = self.object.rho
+                self.rho_dot_c = self.object.rho_rate + self.pan_pid(self.camera.rho)
+                
+                self.tilt_pid.setpoint = self.object.tau
+                self.tau_dot_c = self.object.tau_rate + self.tilt_pid(self.camera.tau)
 
             # Get, or compute and set focus, command camera pan and tilt
             # rates, and begin capturing images, if needed
@@ -1328,6 +1345,9 @@ def make_controller() -> AxisPtzController:
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
+        legacy_control=ast.literal_eval(
+            os.environ.get("LEGACY_CONTROL", "False")
+        
     )
 
 
