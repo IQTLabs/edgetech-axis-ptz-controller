@@ -494,12 +494,18 @@ class AxisPtzController(BaseMQTTPubSub):
         if "tilt_rate_max" in config:
             self.camera.tilt_rate_max = config["tilt_rate_max"]
 
-        self.pan_pid.Kp = config.get("pan_gain_k", self.pan_pid.Kp)  # [1/s]
-        self.pan_pid.Ki = config.get("pan_gain_i", self.pan_pid.Ki)  # [1/s]
-        self.pan_pid.Kd = config.get("pan_gain_d", self.pan_pid.Kd)  # [1/s]
-        self.tilt_pid.Kp = config.get("tilt_gain_k", self.tilt_pid.Kp)  # [1/s]
-        self.tilt_pid.Ki = config.get("tilt_gain_i", self.tilt_pid.Ki)  # [1/s]
-        self.tilt_pid.Kd = config.get("tilt_gain_d", self.tilt_pid.Kd)  # [1/s]
+        if "pan_gain_k" in config:
+            self.pan_pid.Kp = float(config.get("pan_gain_k", self.pan_pid.Kp))  # [1/s]
+            self.pan_pid.Ki = float(config.get("pan_gain_i", self.pan_pid.Ki))  # [1/s]
+            self.pan_pid.Kd = float(config.get("pan_gain_d", self.pan_pid.Kd))  # [1/s]
+            self.pan_pid = PID(self.pan_pid.Kp,self.pan_pid.Ki, self.pan_pid.Kd)
+        
+        if "tilt_gain_k" in config:
+            self.tilt_pid.Kp = float(config.get("tilt_gain_k", self.tilt_pid.Kp))  # [1/s]
+            self.tilt_pid.Ki = float(config.get("tilt_gain_i", self.tilt_pid.Ki))  # [1/s]
+            self.tilt_pid.Kd = float(config.get("tilt_gain_d", self.tilt_pid.Kd))  # [1/s]
+            self.tilt_pid = PID(self.tilt_pid.Kp,self.tilt_pid.Ki, self.tilt_pid.Kd)
+
         self.pan_derivative_gain_max = config.get(
             "pan_derivative_gain_max", self.pan_derivative_gain_max
         )
