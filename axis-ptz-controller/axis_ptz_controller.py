@@ -95,6 +95,7 @@ class AxisPtzController(BaseMQTTPubSub):
         log_to_mqtt: bool = False,
         log_level: str = "INFO",
         continue_on_exception: bool = False,
+        is_dome: bool = True,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -199,6 +200,8 @@ class AxisPtzController(BaseMQTTPubSub):
         continue_on_exception: bool
             Continue on unhandled exceptions if True, raise exception
             if False (the default)
+        is_dome: bool
+            flag for if this is a Dome type PTZ camera or a fully articulating camera
 
         Returns
         -------
@@ -236,6 +239,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
         self.last_update = time()
+        self.is_dome = is_dome
 
         # PID controllers for pan and tilt
         self.pan_pid = PID(pan_gain_k, pan_gain_i, pan_gain_d)
@@ -301,6 +305,7 @@ class AxisPtzController(BaseMQTTPubSub):
             hyperfocal_distance=hyperfocal_distance,
             use_camera=use_camera,
             auto_focus=auto_focus,
+            is_dome=is_dome,
         )
 
         # Object to track
@@ -494,12 +499,18 @@ class AxisPtzController(BaseMQTTPubSub):
         if "tilt_rate_max" in config:
             self.camera.tilt_rate_max = config["tilt_rate_max"]
 
-        self.pan_pid.Kp = config.get("pan_gain_k", self.pan_pid.Kp)  # [1/s]
-        self.pan_pid.Ki = config.get("pan_gain_i", self.pan_pid.Ki)  # [1/s]
-        self.pan_pid.Kd = config.get("pan_gain_d", self.pan_pid.Kd)  # [1/s]
-        self.tilt_pid.Kp = config.get("tilt_gain_k", self.tilt_pid.Kp)  # [1/s]
-        self.tilt_pid.Ki = config.get("tilt_gain_i", self.tilt_pid.Ki)  # [1/s]
-        self.tilt_pid.Kd = config.get("tilt_gain_d", self.tilt_pid.Kd)  # [1/s]
+        if "pan_gain_k" in config:
+            self.pan_pid.Kp = float(config.get("pan_gain_k", self.pan_pid.Kp))  # [1/s]
+            self.pan_pid.Ki = float(config.get("pan_gain_i", self.pan_pid.Ki))  # [1/s]
+            self.pan_pid.Kd = float(config.get("pan_gain_d", self.pan_pid.Kd))  # [1/s]
+            self.pan_pid = PID(self.pan_pid.Kp,self.pan_pid.Ki, self.pan_pid.Kd)
+        
+        if "tilt_gain_k" in config:
+            self.tilt_pid.Kp = float(config.get("tilt_gain_k", self.tilt_pid.Kp))  # [1/s]
+            self.tilt_pid.Ki = float(config.get("tilt_gain_i", self.tilt_pid.Ki))  # [1/s]
+            self.tilt_pid.Kd = float(config.get("tilt_gain_d", self.tilt_pid.Kd))  # [1/s]
+            self.tilt_pid = PID(self.tilt_pid.Kp,self.tilt_pid.Ki, self.tilt_pid.Kd)
+
         self.pan_derivative_gain_max = config.get(
             "pan_derivative_gain_max", self.pan_derivative_gain_max
         )
@@ -1349,6 +1360,7 @@ def make_controller() -> AxisPtzController:
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
+        is_dome=ast.literal_eval(os.environ.get("IS_DOME", "True")),
         
     )
 

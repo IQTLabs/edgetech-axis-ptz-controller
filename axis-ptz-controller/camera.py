@@ -5,6 +5,7 @@ from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
+from scipy.interpolate import interp1d
 
 
 import axis_ptz_utilities
@@ -37,6 +38,7 @@ class Camera:
         focus_min: int = 7499,
         focus_max: int = 9999,
         hyperfocal_distance: float = 22500.0,
+        is_dome: bool = True,
     ) -> None:
         """Initializes the instance of the Camera class.
 
@@ -76,11 +78,31 @@ class Camera:
         self.hyperfocal_distance = hyperfocal_distance
         self.use_camera = use_camera
         self.auto_focus = auto_focus
+        self.is_dome = is_dome
 
         self.rho = 0.0
         self.tau = 0.0
         self.zoom_c = 0
         self.focus_c = 0
+
+
+
+        if self.is_dome:
+            percent_speed = np.array([0,100])
+            angular_rate = np.array([0,180])
+        else:
+            percent_speed = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
+                                21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 
+                                39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50])
+            angular_rate = np.array([0, 0.05, 0.058, 0.075, 0.101, 0.139, 0.188, 0.251, 0.328, 0.419, 0.526, 
+                                0.648, 0.788, 0.945, 1.118, 1.312, 1.519, 1.757, 2.01, 2.279, 2.572, 
+                                2.882, 3.217, 3.574, 3.955, 4.353, 4.774, 5.228, 5.702, 6.197, 6.72, 
+                                7.267, 7.821, 8.435, 9.059, 9.705, 10.384, 11.072, 11.814, 12.571, 
+                                13.355, 14.143, 15.001, 15.876, 16.776, 17.705, 18.658, 19.638, 20.662, 
+                                21.71, 22.779])
+
+        # Interpolation function (without extrapolation)
+        self.interpolator = interp1d(angular_rate, percent_speed, kind='linear', bounds_error=False, fill_value=(percent_speed[0], percent_speed[-1]))
 
         # Initialize pan and tilt rate indices, which are between -100
         # and 100
@@ -416,14 +438,8 @@ class Camera:
         Returns
         -------
         """
-        if rho_dot < -self.pan_rate_max:
-            self.pan_rate_index = -100
-
-        elif self.pan_rate_max < rho_dot:
-            self.pan_rate_index = +100
-
-        else:
-            self.pan_rate_index = (100 / self.pan_rate_max) * rho_dot
+        self.pan_rate_index = self.interpolator(abs(rho_dot))*(rho_dot/abs(rho_dot))
+        logging.info(f'{self.pan_rate_index} | {rho_dot}')
         # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
     def _compute_tilt_rate_index(self, tau_dot: float) -> None:
@@ -439,14 +455,8 @@ class Camera:
         Returns
         -------
         """
-        if tau_dot < -self.tilt_rate_max:
-            self.tilt_rate_index = -100
-
-        elif self.tilt_rate_max < tau_dot:
-            self.tilt_rate_index = 100
-
-        else:
-            self.tilt_rate_index = (100 / self.tilt_rate_max) * tau_dot
+        self.tilt_rate_index = self.interpolator(abs(tau_dot))*(tau_dot/abs(tau_dot))
+        logging.info(f'{self.tilt_rate_index} | {tau_dot}')
         # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
     def get_yaw_pitch_roll(self) -> Tuple[float, float, float]:
