@@ -5,7 +5,6 @@ from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
-from scipy.interpolate import interp1d
 
 
 import axis_ptz_utilities
@@ -84,25 +83,6 @@ class Camera:
         self.tau = 0.0
         self.zoom_c = 0
         self.focus_c = 0
-
-
-
-        if self.is_dome:
-            percent_speed = np.array([0,100])
-            angular_rate = np.array([0,180])
-        else:
-            percent_speed = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
-                                21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 
-                                39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50])
-            angular_rate = np.array([0, 0.05, 0.058, 0.075, 0.101, 0.139, 0.188, 0.251, 0.328, 0.419, 0.526, 
-                                0.648, 0.788, 0.945, 1.118, 1.312, 1.519, 1.757, 2.01, 2.279, 2.572, 
-                                2.882, 3.217, 3.574, 3.955, 4.353, 4.774, 5.228, 5.702, 6.197, 6.72, 
-                                7.267, 7.821, 8.435, 9.059, 9.705, 10.384, 11.072, 11.814, 12.571, 
-                                13.355, 14.143, 15.001, 15.876, 16.776, 17.705, 18.658, 19.638, 20.662, 
-                                21.71, 22.779])
-
-        # Interpolation function (without extrapolation)
-        self.interpolator = interp1d(angular_rate, percent_speed, kind='linear', bounds_error=False, fill_value=(percent_speed[0], percent_speed[-1]))
 
         # Initialize pan and tilt rate indices, which are between -100
         # and 100
@@ -438,7 +418,17 @@ class Camera:
         Returns
         -------
         """
-        self.pan_rate_index = self.interpolator(abs(rho_dot))*(rho_dot/abs(rho_dot))
+        if self.is_dome:  # Dome style cameras have linear behavior
+            self.pan_rate_index = rho_dot/self.pan_rate_max*100.0
+        else:  # Articulating style cameras have exponential behavior, gives more precise control at low numbers
+            self.pan_rate_index = (abs(rho_dot)/0.002)**(1/2.38824)*(rho_dot/abs(rho_dot))
+        
+        if self.pan_rate_index<-100:
+            self.pan_rate_index=-100
+        
+        if self.pan_rate_index>100:
+            self.pan_rate_index=100
+
         logging.info(f'{self.pan_rate_index} | {rho_dot}')
         # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
@@ -455,7 +445,17 @@ class Camera:
         Returns
         -------
         """
-        self.tilt_rate_index = self.interpolator(abs(tau_dot))*(tau_dot/abs(tau_dot))
+        if self.is_dome:  # Dome style cameras have linear behavior
+            self.tilt_rate_index = tau_dot/self.tilt_rate_max*100.0
+        else:  # Articulating style cameras have exponential behavior
+            self.tilt_rate_index = (abs(tau_dot)/0.002)**(1/2.38824)*(rho_dot/abs(rho_dot))
+        
+        if self.tilt_rate_index<-100:
+            self.tilt_rate_index=-100
+        
+        if self.tilt_rate_index>100:
+            self.tilt_rate_index=100
+
         logging.info(f'{self.tilt_rate_index} | {tau_dot}')
         # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
