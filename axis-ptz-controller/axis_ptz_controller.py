@@ -90,6 +90,7 @@ class AxisPtzController(BaseMQTTPubSub):
         log_to_mqtt: bool = False,
         log_level: str = "INFO",
         continue_on_exception: bool = False,
+        is_dome: bool = True,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -186,6 +187,8 @@ class AxisPtzController(BaseMQTTPubSub):
         continue_on_exception: bool
             Continue on unhandled exceptions if True, raise exception
             if False (the default)
+        is_dome: bool
+            flag for if this is a Dome type PTZ camera or a fully articulating camera
 
         Returns
         -------
@@ -224,6 +227,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_to_mqtt = log_to_mqtt
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
+        self.is_dome = is_dome
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -290,6 +294,7 @@ class AxisPtzController(BaseMQTTPubSub):
             hyperfocal_distance=hyperfocal_distance,
             use_camera=use_camera,
             auto_focus=auto_focus,
+            is_dome=is_dome,
         )
 
         # Object to track
@@ -931,7 +936,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.object.update_from_msg(data)
             #self.object.recompute_location()
 
-        if self.use_camera and self.object.tau < 0:
+        if self.use_camera and self.is_dome and self.object.tau < 0:
             logging.info(f"Stopping image capture of object: {self.object.object_id}")
             self.object = None
             self.do_capture = False
@@ -1325,6 +1330,7 @@ def make_controller() -> AxisPtzController:
         continue_on_exception=ast.literal_eval(
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
+        is_dome=ast.literal_eval(os.environ.get("IS_DOME", "True")),
     )
 
 

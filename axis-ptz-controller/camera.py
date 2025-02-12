@@ -37,6 +37,7 @@ class Camera:
         focus_min: int = 7499,
         focus_max: int = 9999,
         hyperfocal_distance: float = 22500.0,
+        is_dome: bool = True,
     ) -> None:
         """Initializes the instance of the Camera class.
 
@@ -76,6 +77,7 @@ class Camera:
         self.hyperfocal_distance = hyperfocal_distance
         self.use_camera = use_camera
         self.auto_focus = auto_focus
+        self.is_dome = is_dome
 
         self.rho = 0.0
         self.tau = 0.0
@@ -416,14 +418,18 @@ class Camera:
         Returns
         -------
         """
-        if rho_dot < -self.pan_rate_max:
-            self.pan_rate_index = -100
+        if self.is_dome:  # Dome style cameras have linear behavior
+            self.pan_rate_index = rho_dot/self.pan_rate_max*100.0
+        else:  # Articulating style cameras have exponential behavior, gives more precise control at low numbers
+            self.pan_rate_index = (abs(rho_dot)/0.002)**(1/2.38824)*(rho_dot/abs(rho_dot))
+        
+        if self.pan_rate_index<-100:
+            self.pan_rate_index=-100
+        
+        if self.pan_rate_index>100:
+            self.pan_rate_index=100
 
-        elif self.pan_rate_max < rho_dot:
-            self.pan_rate_index = +100
-
-        else:
-            self.pan_rate_index = (100 / self.pan_rate_max) * rho_dot
+        # logging.info(f'{self.pan_rate_index} | {rho_dot}')
         # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
     def _compute_tilt_rate_index(self, tau_dot: float) -> None:
@@ -439,14 +445,18 @@ class Camera:
         Returns
         -------
         """
-        if tau_dot < -self.tilt_rate_max:
-            self.tilt_rate_index = -100
+        if self.is_dome:  # Dome style cameras have linear behavior
+            self.tilt_rate_index = tau_dot/self.tilt_rate_max*100.0
+        else:  # Articulating style cameras have exponential behavior
+            self.tilt_rate_index = (abs(tau_dot)/0.002)**(1/2.38824)*(tau_dot/abs(tau_dot))
+        
+        if self.tilt_rate_index<-100:
+            self.tilt_rate_index=-100
+        
+        if self.tilt_rate_index>100:
+            self.tilt_rate_index=100
 
-        elif self.tilt_rate_max < tau_dot:
-            self.tilt_rate_index = 100
-
-        else:
-            self.tilt_rate_index = (100 / self.tilt_rate_max) * tau_dot
+        # logging.info(f'{self.tilt_rate_index} | {tau_dot}')
         # Even though the VAPIX API says it only supports INT, it seems to handle floats just fine
 
     def get_yaw_pitch_roll(self) -> Tuple[float, float, float]:
