@@ -91,6 +91,8 @@ class AxisPtzController(BaseMQTTPubSub):
         log_level: str = "INFO",
         continue_on_exception: bool = False,
         is_dome: bool = True,
+        min_camera_tilt = 0,
+        max_camera_tilt = 90,
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -189,6 +191,10 @@ class AxisPtzController(BaseMQTTPubSub):
             if False (the default)
         is_dome: bool
             flag for if this is a Dome type PTZ camera or a fully articulating camera
+        min_camera_tilt: float
+            minimum physical tilt level of camera
+        max_camera_tilt: float
+            maximum physical tilt level of camera
 
         Returns
         -------
@@ -228,6 +234,8 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_level = log_level
         self.continue_on_exception = continue_on_exception
         self.is_dome = is_dome
+        self.min_camera_tilt = min_camera_tilt
+        self.max_camera_tilt = max_camera_tilt
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -936,7 +944,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.object.update_from_msg(data)
             #self.object.recompute_location()
 
-        if self.use_camera and self.is_dome and self.object.tau < 0:
+        if self.use_camera and ( (self.object.tau < self.min_camera_tilt) or (self.object.tau > self.max_camera_tilt) ):
             logging.info(f"Stopping image capture of object: {self.object.object_id}")
             self.object = None
             self.do_capture = False
@@ -1331,6 +1339,8 @@ def make_controller() -> AxisPtzController:
             os.environ.get("CONTINUE_ON_EXCEPTION", "False")
         ),
         is_dome=ast.literal_eval(os.environ.get("IS_DOME", "True")),
+        min_camera_tilt=float(os.environ.get("MIN_CAMERA_ANGLE", 0.0)),
+        max_camera_tilt=float(os.environ.get("MAX_CAMERA_ANGLE", 90.0)),
     )
 
 
