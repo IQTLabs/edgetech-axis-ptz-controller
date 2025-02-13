@@ -826,7 +826,14 @@ class AxisPtzController(BaseMQTTPubSub):
         if self.status == Status.SLEWING:
             logging.error("Camera is already slewing")
             return
-
+        if self.use_camera and ( (self.object.tau < self.min_camera_tilt) or (self.object.tau > self.max_camera_tilt) ):
+            self.object = None
+            self.do_capture = False
+            self.status = Status.SLEEPING
+            logging.info(
+                "Inhibiting slew - object is outside the camera's physical limits"
+            )
+            return
         self.status = Status.SLEWING
         self.camera.slew_camera(rho_target, tau_target)
 
@@ -950,7 +957,7 @@ class AxisPtzController(BaseMQTTPubSub):
             self.do_capture = False
             self.status = Status.SLEEPING
             logging.info(
-                "Stopping continuous pan and tilt - Object is below the horizon"
+                "Stopping continuous pan and tilt - Object is outside the camera's physical limits"
             )
             self.camera.stop_move()
 
