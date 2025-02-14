@@ -693,8 +693,8 @@ class AxisPtzController(BaseMQTTPubSub):
             if object_tau_derivative > self.tilt_derivative_gain_max:
                 object_tau_derivative = self.tilt_derivative_gain_max
 
-            self.rho_c_gain = self.pan_gain * self.delta_rho * object_rho_derivative
-            self.tau_c_gain = self.tilt_gain * self.delta_tau * object_tau_derivative
+            self.rho_c_gain = self.pan_gain * self.delta_rho 
+            self.tau_c_gain = self.tilt_gain * self.delta_tau 
 
             # Compute position and velocity in the camera fixed (rst)
             # coordinate system of the object relative to the tripod at
