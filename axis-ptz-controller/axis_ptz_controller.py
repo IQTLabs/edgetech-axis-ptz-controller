@@ -32,6 +32,27 @@ from camera_control import CameraControl
 from camera import Camera
 from object import Object
 
+import csv
+import os
+from datetime import datetime
+
+def save_parameters_to_csv(controller: AxisPtzController, filename="controller_data.csv"):
+        """Saves all parameters of the AxisPtzController class to a CSV file."""
+        
+        # Ensure the file exists and write headers if it's the first time writing
+        file_exists = os.path.isfile(filename)
+        
+        with open(filename, mode='a', newline='') as file:
+            writer = csv.writer(file)
+
+            # Write headers if the file does not exist
+            if not file_exists:
+                headers = ["timestamp"] + list(vars(controller).keys())
+                writer.writerow(headers)
+
+            # Write current values
+            values = [datetime.now().isoformat()] + list(vars(controller).values())
+            writer.writerow(values)
 
 
 class Status(Enum):
@@ -1354,4 +1375,5 @@ def make_controller() -> AxisPtzController:
 if __name__ == "__main__":
     # Instantiate controller and execute
     controller = make_controller()
+    schedule.every(0.1).seconds.do(save_parameters_to_csv, controller=controller)
     controller.main()
