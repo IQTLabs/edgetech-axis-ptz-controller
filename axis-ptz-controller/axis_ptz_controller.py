@@ -24,6 +24,7 @@ from enum import Enum
 import paho.mqtt.client as mqtt
 import schedule
 import numpy as np
+import queue
 
 from base_mqtt_pub_sub import BaseMQTTPubSub
 import axis_ptz_utilities
@@ -35,24 +36,6 @@ from object import Object
 import csv
 import os
 from datetime import datetime
-
-def save_parameters_to_csv(controller: AxisPtzController, filename="controller_data.csv"):
-        """Saves all parameters of the AxisPtzController class to a CSV file."""
-        
-        # Ensure the file exists and write headers if it's the first time writing
-        file_exists = os.path.isfile(filename)
-        
-        with open(filename, mode='a', newline='') as file:
-            writer = csv.writer(file)
-
-            # Write headers if the file does not exist
-            if not file_exists:
-                headers = ["timestamp"] + list(vars(controller).keys())
-                writer.writerow(headers)
-
-            # Write current values
-            values = [datetime.now().isoformat()] + list(vars(controller).values())
-            writer.writerow(values)
 
 
 class Status(Enum):
@@ -223,6 +206,13 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
+        self.log_queue = queue.Queue()  # Thread-safe queue for logging
+        self.log_file = "/app/data/controller_data.csv"
+        self.logging_thread = threading.Thread(target=self._process_log_queue, daemon=True)
+        self.logging_thread.start()  # Start background logging thread
+
+        # Ensure the CSV file has headers
+        self._initialize_csv()
         self.hostname = hostname
         self.camera_ip = camera_ip
         self.camera_user = camera_user
@@ -257,6 +247,9 @@ class AxisPtzController(BaseMQTTPubSub):
         self.is_dome = is_dome
         self.min_camera_tilt = min_camera_tilt
         self.max_camera_tilt = max_camera_tilt
+        self.last_update = time()
+        self.update_focus_time = time()
+        self.update_tracking_time = time()
 
         # Always construct camera configuration and control since
         # instantiation only assigns arguments
@@ -1206,6 +1199,91 @@ class AxisPtzController(BaseMQTTPubSub):
         logging.info("Exiting")
         sys.exit()
 
+    def _initialize_csv(self):
+        """Ensure CSV file exists and has headers."""
+        file_exists = os.path.isfile(self.log_file)
+        if not file_exists:
+            with open(self.log_file, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([
+                    "timestamp", "pan_gain", "tilt_gain", "rho_c_gain", "tau_c_gain",
+                    "delta_rho", "delta_tau", "object_rho_rate", "object_tau_rate",
+                    "object_rho", "object_tau", "camera_rho", "camera_tau",
+                    "rho_dot_c", "tau_dot_c", "object_latitude", "object_longitude",
+                    "object_altitude", "object_horizontal_velocity", "object_vertical_velocity",
+                    "object_track", "object_id", "camera_latitude", "camera_longitude",
+                    "camera_altitude"
+                ])
+
+    def save_parameters_to_csv(self):
+        """Queue logging request instead of writing directly."""
+        try:
+            row = [
+                datetime.now().isoformat(), self.pan_gain, self.tilt_gain,
+                self.rho_c_gain, self.tau_c_gain, self.delta_rho, self.delta_tau,
+                self.object.rho_rate, self.object.tau_rate, self.object.rho,
+                self.object.tau, self.camera.rho, self.camera.tau,
+                self.rho_dot_c, self.tau_dot_c, self.object.msg_latitude,
+                self.object.msg_longitude, self.object.msg_altitude,
+                self.object.msg_horizontal_velocity, self.object.msg_vertical_velocity,
+                self.object.msg_track, self.object.object_id, self.camera.tripod_latitude,
+                self.camera.tripod_longitude, self.camera.tripod_altitude
+            ]
+            self.log_queue.put(row)  # Add to queue instead of writing immediately
+        except Exception as e:
+            print(f"Error queuing log entry: {e}")
+
+    def _process_log_queue(self):
+        """Background thread to write log queue to CSV efficiently with reduced latency."""
+        with open(self.log_file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            while True:
+                try:
+                    row = self.log_queue.get(timeout=0.01)  # Wait at most 10ms for data
+                    writer.writerow(row)
+                    self.log_queue.task_done()
+                except queue.Empty:
+                    continue  # If queue is empty, avoid blocking and retry immediately
+                except Exception as e:
+                    print(f"Error writing to CSV: {e}")
+
+    def _control_timing(self) -> None:
+        # Update camera pointing
+        if not self.use_camera:
+            self._update_pointing
+        
+        # Focus Update
+        if (
+            self.use_camera and
+            not self.camera.auto_focus and
+            self.object != None and
+            time() - self.update_focus_time > self.focus_interval
+        ):
+            self.update_focus_time = time()
+            self.camera.update_focus(self.object.distance_to_tripod3d)
+        
+        # Track object
+        if (
+            self.use_camera
+            and time() - self.update_tracking_time > self.tracking_interval
+        ):
+            time_since_last_update = time() - self.update_tracking_time
+            self.update_tracking_time = time()
+            self._track_object(time_since_last_update)
+        # Command zero camera pan and tilt rates, and stop
+        # capturing images if a object message has not been
+        # received in twice the capture interval
+        if (
+            self.status == Status.TRACKING
+            and time() - self.object_update_time > 2.0 * self.capture_interval
+        ):
+            logging.info(
+                f"Stopping tracking image capture of object, no longer receiving updates"
+            )
+            self.do_capture = False
+            self.camera.stop_move()
+            self.status = Status.SLEEPING
+
     def main(self) -> None:
         """Schedule module heartbeat and image capture, subscribe to
         all required topics, then loop forever. Update pointing for
@@ -1217,6 +1295,9 @@ class AxisPtzController(BaseMQTTPubSub):
             schedule.every(self.heartbeat_interval).seconds.do(
                 self.publish_heartbeat, payload="PTZ Controller Module Heartbeat"
             )
+            
+            schedule.every(0.1).seconds.do(self.save_parameters_to_csv)
+            schedule.every(self.loop_interval).seconds.do(self._control_timing)
 
             # Subscribe to required topics
             self.add_subscribe_topic(self.config_topic, self._config_callback)
@@ -1236,44 +1317,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 if self.use_mqtt:
                     schedule.run_pending()
 
-                # Update camera pointing
-                sleep(self.loop_interval)
-                if not self.use_camera:
-                    self._update_pointing()
-
-                # Focus Update
-                if (
-                    self.use_camera and
-                    not self.camera.auto_focus and
-                    self.object != None and
-                    time() - update_focus_time > self.focus_interval
-                ):
-                    update_focus_time = time()
-                    self.camera.update_focus(self.object.distance_to_tripod3d)
                 
-                # Track object
-                if (
-                    self.use_camera
-                    and time() - update_tracking_time > self.tracking_interval
-                ):
-                    time_since_last_update = time() - update_tracking_time
-                    update_tracking_time = time()
-                    self._track_object(time_since_last_update)
-
-                # Command zero camera pan and tilt rates, and stop
-                # capturing images if a object message has not been
-                # received in twice the capture interval
-                if (
-                    self.status == Status.TRACKING
-                    and time() - self.object_update_time > 2.0 * self.capture_interval
-                ):
-                    logging.info(
-                        f"Stopping tracking image capture of object, no longer receiving updates"
-                    )
-                    self.do_capture = False
-                    self.camera.stop_move()
-                    self.status = Status.SLEEPING
-
             except KeyboardInterrupt:
                 # If keyboard interrupt, fail gracefully
                 logging.warning("Received keyboard interrupt")
@@ -1375,5 +1419,4 @@ def make_controller() -> AxisPtzController:
 if __name__ == "__main__":
     # Instantiate controller and execute
     controller = make_controller()
-    schedule.every(0.1).seconds.do(save_parameters_to_csv, controller=controller)
     controller.main()
