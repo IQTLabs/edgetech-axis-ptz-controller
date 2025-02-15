@@ -206,11 +206,6 @@ class AxisPtzController(BaseMQTTPubSub):
         """
         # Parent class handles kwargs, including MQTT IP
         super().__init__(**kwargs)
-        self.log_queue = queue.Queue()  # Thread-safe queue for logging
-        self.log_file = "/app/data/controller_data.csv"
-        self._initialize_csv()
-        self.logging_thread = threading.Thread(target=self._process_log_queue, daemon=True)
-        self.logging_thread.start()  # Start background logging thread
         
 
         # Ensure the CSV file has headers
@@ -385,6 +380,12 @@ class AxisPtzController(BaseMQTTPubSub):
 
         # Log configuration parameters
         self._log_config()
+
+        self.log_queue = queue.Queue()  # Thread-safe queue for logging
+        self.log_file = "/app/data/controller_data.csv"
+        self._initialize_csv()
+        self.logging_thread = threading.Thread(target=self._process_log_queue, daemon=True)
+        self.logging_thread.start()  # Start background logging thread
 
     def decode_payload(
         self, msg: Union[mqtt.MQTTMessage, str], data_payload_type: str
@@ -1203,41 +1204,24 @@ class AxisPtzController(BaseMQTTPubSub):
     def _initialize_csv(self):
         """Ensure CSV file exists and has headers."""
         file_exists = os.path.isfile(self.log_file)
-        if not file_exists:
-            with open(self.log_file, mode='w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([
-                    "timestamp", "pan_gain", "tilt_gain", "rho_c_gain", "tau_c_gain",
-                    "delta_rho", "delta_tau", "object_rho_rate", "object_tau_rate",
-                    "object_rho", "object_tau", "camera_rho", "camera_tau",
-                    "rho_dot_c", "tau_dot_c", "object_latitude", "object_longitude",
-                    "object_altitude", "object_horizontal_velocity", "object_vertical_velocity",
-                    "object_track", "object_id", "msg_timestamp",
-                    "object.xyz_point_msg_relative_to_tripod_X", "object.xyz_point_msg_relative_to_tripod_Y", "object.xyz_point_msg_relative_to_tripod_Z",
-                    "object.xyz_point_now_relative_to_tripod_X", "object.xyz_point_now_relative_to_tripod_Y", "object.xyz_point_now_relative_to_tripod_Z",
-                    "object.xyz_point_lead_relative_to_tripod_X", "object.xyz_point_lead_relative_to_tripod_Y", "object.xyz_point_lead_relative_to_tripod_Z",
-                    "object.xyz_velocity_msg_relative_to_tripod_X", "object.xyz_velocity_msg_relative_to_tripod_Y", "object.xyz_velocity_msg_relative_to_tripod_Z",
-                    "camera_latitude", "camera_longitude", "camera_altitude"
-                ])
+        with open(self.log_file, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            headers = ["timestamp"]
+            headers += list([f"controller_{key}" for key in vars(self).keys()])
+            headers += ['UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN']
+            headers += list([f"object_{key}" for key in vars(self.object).keys()])
+            headers += list([f"camera_{key}" for key in vars(self.camera).keys()])
+            headers += ['UNKNOWN']
+            writer.writerow(headers)
 
     def save_parameters_to_csv(self):
         """Queue logging request instead of writing directly."""
         try:
-            row = [
-                datetime.now().isoformat(), self.pan_gain, self.tilt_gain,
-                self.rho_c_gain, self.tau_c_gain, self.delta_rho, self.delta_tau,
-                self.object.rho_rate, self.object.tau_rate, self.object.rho,
-                self.object.tau, self.camera.rho, self.camera.tau,
-                self.rho_dot_c, self.tau_dot_c, self.object.msg_latitude,
-                self.object.msg_longitude, self.object.msg_altitude,
-                self.object.msg_horizontal_velocity, self.object.msg_vertical_velocity,
-                self.object.msg_track, self.object.object_id, self.object.msg_timestamp,
-                self.object.xyz_point_msg_relative_to_tripod[0], self.object.xyz_point_msg_relative_to_tripod[1], self.object.xyz_point_msg_relative_to_tripod[2],
-                self.object.xyz_point_now_relative_to_tripod[0], self.object.xyz_point_now_relative_to_tripod[1], self.object.xyz_point_now_relative_to_tripod[2],
-                self.object.xyz_point_lead_relative_to_tripod[0], self.object.xyz_point_lead_relative_to_tripod[1], self.object.xyz_point_lead_relative_to_tripod[2],
-                self.object.xyz_velocity_msg_relative_to_tripod[0], self.object.xyz_velocity_msg_relative_to_tripod[1], self.object.xyz_velocity_msg_relative_to_tripod[2],
-                self.camera.tripod_latitude, self.camera.tripod_longitude, self.camera.tripod_altitude
-            ]
+            
+            row = [datetime.now().isoformat()]
+            row += list(vars(self).values())
+            row += list(vars(self.object).values())
+            row += list(vars(self.camera).values())
             self.log_queue.put(row)  # Add to queue instead of writing immediately
         except Exception as e:
             print(f"Error queuing log entry: {e}")
