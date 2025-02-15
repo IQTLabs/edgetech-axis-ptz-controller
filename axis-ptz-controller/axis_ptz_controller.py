@@ -1296,7 +1296,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.publish_heartbeat, payload="PTZ Controller Module Heartbeat"
             )
             
-            schedule.every(0.1).seconds.do(self.save_parameters_to_csv)
+            schedule.every(0.2).seconds.do(self.save_parameters_to_csv)
             schedule.every(self.loop_interval).seconds.do(self._control_timing)
 
             # Subscribe to required topics
