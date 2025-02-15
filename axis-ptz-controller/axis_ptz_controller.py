@@ -1215,10 +1215,9 @@ class AxisPtzController(BaseMQTTPubSub):
             writer = csv.writer(file)
             headers = ["timestamp"]
             headers += list([f"controller_{key}" for key in vars(self).keys()])
-            #headers += ['UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN']
+            headers += ['controller_logging_thread']
             headers += list([f"object_{key}" for key in vars(self.object).keys()])
             headers += list([f"camera_{key}" for key in vars(self.camera).keys()])
-            #headers += ['UNKNOWN']
             writer.writerow(headers)
 
     def save_parameters_to_csv(self):
