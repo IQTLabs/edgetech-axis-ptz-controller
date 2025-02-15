@@ -97,6 +97,7 @@ class AxisPtzController(BaseMQTTPubSub):
         is_dome: bool = True,
         min_camera_tilt = 0,
         max_camera_tilt = 90,
+        log_file = f'/app/data/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_controller_data.csv',
         **kwargs: Any,
     ):
         """Instantiate the PTZ controller by connecting to the camera
@@ -388,7 +389,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self._log_config()
 
         self.log_queue = queue.Queue()  # Thread-safe queue for logging
-        self.log_file = "/app/data/controller_data.csv"
+        self.log_file = log_file
         self._initialize_csv()
         self.logging_thread = ''
         self.logging_thread = threading.Thread(target=self._process_log_queue, daemon=True)
