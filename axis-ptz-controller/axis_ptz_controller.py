@@ -281,6 +281,12 @@ class AxisPtzController(BaseMQTTPubSub):
         self.delta_rho_dot_c = 0.0  # [deg/s]
         self.delta_tau_dot_c = 0.0  # [deg/s]
 
+        self.rho_c_gain = 0.0
+        self.tau_c_gain = 0.0
+        self.camera_pan = 0.0
+        self.camera_tilt = 0.0
+
+
         # Set the status for the controller
         self.status = Status.SLEEPING
 
@@ -384,6 +390,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.log_queue = queue.Queue()  # Thread-safe queue for logging
         self.log_file = "/app/data/controller_data.csv"
         self._initialize_csv()
+        self.logging_thread = ''
         self.logging_thread = threading.Thread(target=self._process_log_queue, daemon=True)
         self.logging_thread.start()  # Start background logging thread
 
@@ -1208,10 +1215,10 @@ class AxisPtzController(BaseMQTTPubSub):
             writer = csv.writer(file)
             headers = ["timestamp"]
             headers += list([f"controller_{key}" for key in vars(self).keys()])
-            headers += ['UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN']
+            #headers += ['UNKNOWN','UNKNOWN','UNKNOWN','UNKNOWN']
             headers += list([f"object_{key}" for key in vars(self.object).keys()])
             headers += list([f"camera_{key}" for key in vars(self.camera).keys()])
-            headers += ['UNKNOWN']
+            #headers += ['UNKNOWN']
             writer.writerow(headers)
 
     def save_parameters_to_csv(self):

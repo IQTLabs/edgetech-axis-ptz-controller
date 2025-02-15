@@ -37,6 +37,7 @@ class Object:
         self.camera = camera
         self.lead_time = lead_time
         self.include_age = include_age
+        self.location_update_period = 0
 
         #self._config_log()
 
