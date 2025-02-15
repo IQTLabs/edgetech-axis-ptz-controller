@@ -208,11 +208,12 @@ class AxisPtzController(BaseMQTTPubSub):
         super().__init__(**kwargs)
         self.log_queue = queue.Queue()  # Thread-safe queue for logging
         self.log_file = "/app/data/controller_data.csv"
+        self._initialize_csv()
         self.logging_thread = threading.Thread(target=self._process_log_queue, daemon=True)
         self.logging_thread.start()  # Start background logging thread
+        
 
         # Ensure the CSV file has headers
-        self._initialize_csv()
         self.hostname = hostname
         self.camera_ip = camera_ip
         self.camera_user = camera_user
@@ -1211,8 +1212,12 @@ class AxisPtzController(BaseMQTTPubSub):
                     "object_rho", "object_tau", "camera_rho", "camera_tau",
                     "rho_dot_c", "tau_dot_c", "object_latitude", "object_longitude",
                     "object_altitude", "object_horizontal_velocity", "object_vertical_velocity",
-                    "object_track", "object_id", "camera_latitude", "camera_longitude",
-                    "camera_altitude"
+                    "object_track", "object_id", "msg_timestamp",
+                    "object.xyz_point_msg_relative_to_tripod_X", "object.xyz_point_msg_relative_to_tripod_Y", "object.xyz_point_msg_relative_to_tripod_Z",
+                    "object.xyz_point_now_relative_to_tripod_X", "object.xyz_point_now_relative_to_tripod_Y", "object.xyz_point_now_relative_to_tripod_Z",
+                    "object.xyz_point_lead_relative_to_tripod_X", "object.xyz_point_lead_relative_to_tripod_Y", "object.xyz_point_lead_relative_to_tripod_Z",
+                    "object.xyz_velocity_msg_relative_to_tripod_X", "object.xyz_velocity_msg_relative_to_tripod_Y", "object.xyz_velocity_msg_relative_to_tripod_Z",
+                    "camera_latitude", "camera_longitude", "camera_altitude"
                 ])
 
     def save_parameters_to_csv(self):
@@ -1226,8 +1231,12 @@ class AxisPtzController(BaseMQTTPubSub):
                 self.rho_dot_c, self.tau_dot_c, self.object.msg_latitude,
                 self.object.msg_longitude, self.object.msg_altitude,
                 self.object.msg_horizontal_velocity, self.object.msg_vertical_velocity,
-                self.object.msg_track, self.object.object_id, self.camera.tripod_latitude,
-                self.camera.tripod_longitude, self.camera.tripod_altitude
+                self.object.msg_track, self.object.object_id, self.object.msg_timestamp,
+                self.object.xyz_point_msg_relative_to_tripod[0], self.object.xyz_point_msg_relative_to_tripod[1], self.object.xyz_point_msg_relative_to_tripod[2],
+                self.object.xyz_point_now_relative_to_tripod[0], self.object.xyz_point_now_relative_to_tripod[1], self.object.xyz_point_now_relative_to_tripod[2],
+                self.object.xyz_point_lead_relative_to_tripod[0], self.object.xyz_point_lead_relative_to_tripod[1], self.object.xyz_point_lead_relative_to_tripod[2],
+                self.object.xyz_velocity_msg_relative_to_tripod[0], self.object.xyz_velocity_msg_relative_to_tripod[1], self.object.xyz_velocity_msg_relative_to_tripod[2],
+                self.camera.tripod_latitude, self.camera.tripod_longitude, self.camera.tripod_altitude
             ]
             self.log_queue.put(row)  # Add to queue instead of writing immediately
         except Exception as e:
