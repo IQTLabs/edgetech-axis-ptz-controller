@@ -457,26 +457,22 @@ class AxisPtzController(BaseMQTTPubSub):
         ):
             logging.error("MQTT topics cannot be changed via MQTT")
 
+
         if (
             "tripod_longitude" in config
-            or "tripod_latitude" in config
-            or "tripod_altitude" in config
+            and "tripod_latitude" in config
+            and "tripod_altitude" in config
         ):
-            if (
-                "tripod_longitude" in config
-                and "tripod_latitude" in config
-                and "tripod_altitude" in config
-            ):
-                self.camera.update_tripod_position(
-                    config["tripod_longitude"],
-                    config["tripod_latitude"],
-                    config["tripod_altitude"],
-                )
-                
-            else:
-                logging.error(
-                    "Tripod longitude, latitude, and altitude must be set together"
-                )
+            self.camera.update_tripod_position(
+                config["tripod_longitude"],
+                config["tripod_latitude"],
+                config["tripod_altitude"],
+            )
+            
+        else:
+            logging.error(
+                "Tripod longitude, latitude, and altitude must be set together"
+            )
 
         self.heartbeat_interval = config.get(
             "heartbeat_interval", self.heartbeat_interval
