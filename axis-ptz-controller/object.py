@@ -27,6 +27,7 @@ class Object:
             lead_time (float): Time in seconds to lead object message
         """
         self.object_id = object_id
+        self.flight = None
         self.msg_longitude = 0
         self.msg_latitude = 0
         self.msg_altitude = 0
@@ -130,6 +131,7 @@ class Object:
         self.msg_altitude = msg["altitude"]
         self.msg_timestamp = msg["timestamp"]
         self.msg_track = msg["track"]
+        self.flight = msg["flight"]
         self.msg_horizontal_velocity = msg["horizontal_velocity"]
         self.msg_vertical_velocity = msg["vertical_velocity"]
 
