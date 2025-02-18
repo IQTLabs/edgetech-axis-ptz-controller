@@ -1323,6 +1323,7 @@ def make_controller() -> AxisPtzController:
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
         tracking_interval=float(os.environ.get("TRACKING_INTERVAL", 1.0)),
+        number_camera=int(os.environ.get("NUMBER_CAMERA", 1)),
         tripod_yaw=float(os.environ.get("TRIPOD_YAW", 0.0)),
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
