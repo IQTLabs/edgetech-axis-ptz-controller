@@ -1063,9 +1063,12 @@ class AxisPtzController(BaseMQTTPubSub):
             self.capture_time = time()
             datetime_c = datetime.utcnow()
             timestr = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
+            flight = "UNKNOWN"
+            if self.object.flight is not None:
+                flight = self.object.flight.rstrip()
             image_filepath = Path(self.capture_dir) / "{}_{}_{}_{}_{}_{}_{}_{}.jpg".format(
                 self.object.object_id,
-                self.object.flight,
+                flight,
                 int(self.object.azm) % 360,
                 int(self.object.elv),
                 int(self.object.distance_to_tripod3d),
