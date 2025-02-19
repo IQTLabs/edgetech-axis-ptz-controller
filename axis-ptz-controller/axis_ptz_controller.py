@@ -723,7 +723,7 @@ class AxisPtzController(BaseMQTTPubSub):
                     self.capture_time = time()
 
                 if self.do_capture and time() - self.capture_time > self.capture_interval:
-                    for camera_index in range(self.number_camera):
+                    for camera_index in range(1, self.number_camera + 1):
                         capture_thread = threading.Thread(target=self._capture_image, args=(camera_index,))
                         capture_thread.daemon = True
                         capture_thread.start()
@@ -1089,19 +1089,18 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # TODO: Update camera configuration to make renaming the
             # file unnecessary
-            with tempfile.TemporaryDirectory() as d:
-                with axis_ptz_utilities.pushd(d):
-                    try:
-                        text = self.camera_configuration.get_jpeg_request(
-                            resolution=self.jpeg_resolution,
-                            compression=self.jpeg_compression,
-                            camera=cam_num
-                        )
-                        logging.debug(f"Camera configuration response: {text}")
-                        shutil.move(list(Path(d).glob("*.jpg"))[0], image_filepath)
-                    except Exception as e:
-                        logging.error(f"Could not capture image to directory: {d}: {e}")
-                        return
+
+            try:
+                text = self.camera_configuration.get_jpeg_request(
+                    filename=image_filepath,
+                    resolution=self.jpeg_resolution,
+                    compression=self.jpeg_compression,
+                    camera=cam_num
+                )
+                logging.debug(f"Camera configuration response: {text}")
+            except Exception as e:
+                logging.error(f"Could not capture image: {image_filepath}: {e}")
+                return
             logging.debug(
                 f"Publishing filename: {image_filepath}, for object: {self.object.object_id}, at: {self.capture_time}"
             )

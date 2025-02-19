@@ -5,6 +5,7 @@ import logging
 import requests
 from requests.auth import HTTPDigestAuth
 from sensecam_control import vapix_config
+import os
 
 
 class CameraConfiguration(vapix_config.CameraConfiguration):
@@ -15,6 +16,7 @@ class CameraConfiguration(vapix_config.CameraConfiguration):
 
     def get_jpeg_request(
         self,
+        filename: str = None,
         resolution: str = None,
         camera: str = None,
         square_pixel: int = None,
@@ -57,6 +59,11 @@ class CameraConfiguration(vapix_config.CameraConfiguration):
             description).
 
         """
+        if filename:
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+        else:
+            ValueError("Filename is required")
+
         payload = {
             "resolution": resolution,
             "camera": camera,
@@ -81,8 +88,7 @@ class CameraConfiguration(vapix_config.CameraConfiguration):
         )
 
         if resp.status_code == 200:
-            now = datetime.datetime.now()
-            with open(str(now.strftime("%d-%m-%Y_%Hh%Mm%Ss")) + ".jpg", "wb") as var:
+            with open(filename, "wb") as var:
                 var.write(resp.content)
             return str("Image saved")
 
