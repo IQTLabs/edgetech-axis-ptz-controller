@@ -64,6 +64,7 @@ class AxisPtzController(BaseMQTTPubSub):
         loop_interval: float = 0.1,
         capture_interval: int = 2,
         capture_dir: str = ".",
+        number_camera: int = 1,
         tracking_interval: float = 1.0,
         tripod_yaw: float = 0.0,
         tripod_pitch: float = 0.0,
@@ -135,6 +136,8 @@ class AxisPtzController(BaseMQTTPubSub):
             Interval at which the camera image is captured [s]
         capture_dir: str
             Directory in which to place captured images
+        number_camera: int
+            Number of cameras to control
         tracking_interval: float
             Lead time used when computing camera pointing to the
             object [s]
@@ -218,6 +221,7 @@ class AxisPtzController(BaseMQTTPubSub):
         self.capture_interval = capture_interval
         self.capture_dir = capture_dir
         self.tracking_interval = tracking_interval
+        self.number_camera = number_camera
         self.focus_interval = 1.0
         self.pan_gain = pan_gain
         self.pan_derivative_gain_max = pan_derivative_gain_max
@@ -719,9 +723,10 @@ class AxisPtzController(BaseMQTTPubSub):
                     self.capture_time = time()
 
                 if self.do_capture and time() - self.capture_time > self.capture_interval:
-                    capture_thread = threading.Thread(target=self._capture_image)
-                    capture_thread.daemon = True
-                    capture_thread.start()
+                    for camera_index in range(1, self.number_camera + 1):
+                        capture_thread = threading.Thread(target=self._capture_image, args=(camera_index,))
+                        capture_thread.daemon = True
+                        capture_thread.start()
 
             elapsed_time = time() - start_time
             # logging.info(
@@ -1040,7 +1045,7 @@ class AxisPtzController(BaseMQTTPubSub):
 
         return success
 
-    def _capture_image(self) -> None:
+    def _capture_image(self, cam_num) -> None:
         """When enabled, capture an image in JPEG format, and publish
         corresponding image metadata.
 
@@ -1058,12 +1063,18 @@ class AxisPtzController(BaseMQTTPubSub):
             self.capture_time = time()
             datetime_c = datetime.utcnow()
             timestr = datetime_c.strftime("%Y-%m-%d-%H-%M-%S")
-            image_filepath = Path(self.capture_dir) / "{}_{}_{}_{}_{}.jpg".format(
+            flight = "UNKNOWN"
+            if self.object.flight is not None:
+                flight = self.object.flight.rstrip()
+            image_filepath = Path(self.capture_dir) / "{}_{}_{}_{}_{}_{}_{}_{}.jpg".format(
                 self.object.object_id,
+                flight,
                 int(self.object.azm) % 360,
                 int(self.object.elv),
                 int(self.object.distance_to_tripod3d),
+                int(self.camera.zoom_c),
                 timestr,
+                cam_num
             )
             logging.info(
                 f"\t📸\tCapturing image of object: {self.object.object_id}, at: {self.capture_time}, in: {image_filepath}"
@@ -1081,18 +1092,18 @@ class AxisPtzController(BaseMQTTPubSub):
 
             # TODO: Update camera configuration to make renaming the
             # file unnecessary
-            with tempfile.TemporaryDirectory() as d:
-                with axis_ptz_utilities.pushd(d):
-                    try:
-                        text = self.camera_configuration.get_jpeg_request(
-                            resolution=self.jpeg_resolution,
-                            compression=self.jpeg_compression,
-                        )
-                        logging.debug(f"Camera configuration response: {text}")
-                        shutil.move(list(Path(d).glob("*.jpg"))[0], image_filepath)
-                    except Exception as e:
-                        logging.error(f"Could not capture image to directory: {d}: {e}")
-                        return
+
+            try:
+                text = self.camera_configuration.get_jpeg_request(
+                    filename=image_filepath,
+                    resolution=self.jpeg_resolution,
+                    compression=self.jpeg_compression,
+                    camera=cam_num
+                )
+                logging.debug(f"Camera configuration response: {text}")
+            except Exception as e:
+                logging.error(f"Could not capture image: {image_filepath}: {e}")
+                return
             logging.debug(
                 f"Publishing filename: {image_filepath}, for object: {self.object.object_id}, at: {self.capture_time}"
             )
@@ -1314,6 +1325,7 @@ def make_controller() -> AxisPtzController:
         capture_interval=int(os.environ.get("CAPTURE_INTERVAL", 2)),
         capture_dir=os.environ.get("CAPTURE_DIR", "."),
         tracking_interval=float(os.environ.get("TRACKING_INTERVAL", 1.0)),
+        number_camera=int(os.environ.get("NUMBER_CAMERA", 1)),
         tripod_yaw=float(os.environ.get("TRIPOD_YAW", 0.0)),
         tripod_pitch=float(os.environ.get("TRIPOD_PITCH", 0.0)),
         tripod_roll=float(os.environ.get("TRIPOD_ROLL", 0.0)),
