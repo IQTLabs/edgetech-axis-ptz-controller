@@ -928,7 +928,7 @@ class AxisPtzController(BaseMQTTPubSub):
                 logging.info(f"We are sleeping, but we have an object, so we will stop tracking it")
             return
         logging.info(
-            f"\t🗒️\tProcessing object msg data: {data['object_id']} \t {data['latitude']} \t {data['longitude']} \t {data['altitude']}"
+            f"\t🗒️\tProcessing object msg data: {data['object_id']} \t {data['latitude']} \t {data['longitude']} \t {data['altitude']} \t {data['horizontal_velocity']} \t {data['vertical_velocity']}"
         )
 
         self.object_update_time = time()
